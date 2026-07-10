@@ -2136,7 +2136,19 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
     const hangersByNode={};
     if(result && result.hangers) result.hangers.forEach(h=>{ hangersByNode[h.node]=h; });
 
-    const L=[]; const c=s=>L.push(s);
+    /* v24-X1: AutoPIPE V25 실임포트 피드백 반영 — '*' 주석행이 전부
+       "UNSUPPORTED OR UNRECOGNIZED ELEMENT TAG" 로 거부되고, 한글은 ANSI
+       파서에서 깨짐이 확인됨. 조치: (1) 행 선두 '*' 주석은 NTL 본문에서
+       제외하고 notes 로 라우팅(별도 README 저장), (2) 카드 꼬리의
+       ' * 설명' 인라인 주석 제거(단 *TAG* 형 재질 마커는 보존),
+       (3) 카드 본문 비ASCII 는 '?' 치환 + 노트 기록. */
+    const L=[]; const notes=[];
+    const c=s=>{
+      if(typeof s==='string' && s.charAt(0)==='*'){ notes.push(s.replace(/^\*\s?/,'')); return; }
+      let t=String(s);
+      if(/[^\x00-\x7F]/.test(t)){ notes.push('[ASCII-SANITIZED] '+t); t=t.replace(/[^\x00-\x7F]/g,'?'); }
+      L.push(t);
+    };
     // ---------------- header + 정직성 고지 (N-01, N-02, N-10) ----------------
     c('* ===================================================================');
     c('*  AutoPIPE Batch (NTL) — B31.1 브라우저 도구 v2 내보내기');
@@ -2270,14 +2282,14 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           const rate=(a.rate>0)?a.rate:(h&&h.rate>0?h.rate:0);
           const load=(a.load>0)?a.load:(h&&h.load>0?h.load:0);
           if(rate>0||load>0)
-            c(`SPNG ${nm} DIR ${up}  RATE ${rj(f(rate,2),10)} N/MM  COLD ${rj(f(load,1),10)} N${dbl}${h?'  * tool-designed':''}`);
+            c(`SPNG ${nm} DIR ${up}  RATE ${rj(f(rate,2),10)} N/MM  COLD ${rj(f(load,1),10)} N${dbl}${h?'':''}`);
           else
             c(`SPNG ${nm} DIR ${up}  AUTO${dbl}  * AutoPIPE 자동 설계`);
         } else if(a.kind==='constant_hanger'||a.kind==='constant_support'){
           const h=hangersByNode[n.id];
           const load=(a.load>0)?a.load:(h&&h.load>0?h.load:0);
           if(load>0)
-            c(`CNST ${nm} DIR ${up}  LOAD ${rj(f(load,1),10)} N${dbl}${h?'  * tool-designed':''}`);
+            c(`CNST ${nm} DIR ${up}  LOAD ${rj(f(load,1),10)} N${dbl}${h?'':''}`);
           else
             c(`CNST ${nm} DIR ${up}  AUTO${dbl}  * AutoPIPE 자동 설계`);
         } else if(a.kind==='snubber'||a.kind==='damper'){
@@ -2312,13 +2324,14 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
     });
     const sp0=elems.length?specOf(elems[0]):col.base;
     c(`XTRA  SG ${f(sp0.SG==null?1:sp0.SG,2)}  CYCLES ${sp0.cyc||7000}  EFF ${f(sp0.Eff==null?1:sp0.Eff,2)}`);
-    c('GLOD  U1  SEISMIC-STATIC 0.30 G  DIR X   * 도구 기본값과 동일하게 설정할 것');
+    c('GLOD  U1  SEISMIC-STATIC 0.30 G  DIR X'); notes.push('GLOD U1: 0.3g static X — set same in AutoPIPE');
     c('* --- LOAD COMBINATIONS (B31.1) ---');
-    c('COMB  SUS  GR + P1            * Eq.15 sustained');
-    c('COMB  OPE  GR + P1 + T1       * operating');
-    c('COMB  OCC  GR + P1 + U1       * Eq.16 occasional (스너버 활성)');
+    c('COMB  SUS  GR + P1');
+    c('COMB  OPE  GR + P1 + T1');
+    c('COMB  OCC  GR + P1 + U1');
     c('*');
     c('* --- END ---');
+    buildNTL._notes = notes.slice();   /* v24-X1 */
     return L.join('\n');
   }
 
@@ -2600,6 +2613,23 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
     let files=0;
     try{ download(`B31.1_AutoPIPE25_${tag}.ntl`, buildNTL(state,PSA,result), 'text/plain'); files++; }
     catch(e){ console.error('NTL export error',e); }
+    try{ /* v24-X1: NTL 주석/경고/체크리스트는 본문 대신 별도 README 로 */
+      const nts=(buildNTL._notes||[]);
+      const rd=['AutoPIPE NTL 임포트 안내 (B31.1 도구 v24)','==================================================','',
+        '이 NTL 은 주석 없는 순수 카드(ASCII) 형식입니다.',
+        "(AutoPIPE V25 가 '*' 주석행을 UNRECOGNIZED ELEMENT TAG 로",
+        ' 거부하는 것이 실제 임포트에서 확인되어 제거했습니다.)','',
+        '체크리스트:',
+        ' 1) 여전히 특정 카드 에러가 나면: AutoPIPE 에서 아무 작은 모델을',
+        '    NTL 로 저장/Export 한 파일을 확보해 본 파일과 대조하면',
+        '    카드 레이아웃을 정확히 맞출 수 있습니다.',
+        ' 2) JOB 카드 VERNO 가 거부되면 1) 파일의 첫 줄로 교체하세요.',
+        ' 3) 공식 지원 임포트 경로는 PCF — 함께 생성된 .pcf 를 우선 시도.',
+        ' 4) 임포트 후 Tools > Model Consistency Check 실행.','',
+        '모델링 노트/경고 (NTL 본문에서 분리된 내용):'
+      ].concat(nts.length?nts.map(x=>' - '+x):[' (없음)']).join('\r\n');
+      download(`B31.1_AutoPIPE25_${tag}_README.txt`, rd, 'text/plain', true); files++;
+    }catch(e){ console.error('README export error',e); }
     try{ download(`B31.1_AutoPIPE25_${tag}.pcf`, buildPCF(state,PSA), 'text/plain'); files++; }
     catch(e){ console.error('PCF export error',e); }
     if(result && result.nodeRes){
@@ -3166,10 +3196,8 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
         } else if (kw === 'SPNG') {              // v2: variable spring
           nid = nodeId(toks[1]);
           var mr3 = /RATE\s+([-\d.]+)/.exec(s), ml4 = /(?:COLD|LOAD)\s+([-\d.]+)/.exec(s);
-          var tool = s.indexOf('tool-designed') >= 0;
-          var dbl = /\bDOUBLE\b/.test(s);
-          // tool-designed 값은 유효값(이중 환산 포함) → form=single 로 임포트
-          att = { kind: 'vspring_hanger', form: (dbl && !tool) ? 'double' : 'single',
+          /* v24-X1: RATE/COLD 는 유효 총량(이중 환산 완료) — form=single 고정, 마커 불의존 */
+          att = { kind: 'vspring_hanger', form: 'single',
                   rate: mr3 ? num(mr3[1], 0) : 0 };
           var lv3 = ml4 ? num(ml4[1], 0) : 0;
           if (lv3) att.load = lv3;
@@ -3177,9 +3205,8 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
         } else if (kw === 'CNST') {              // v2: constant hanger
           nid = nodeId(toks[1]);
           var ml5 = /LOAD\s+([-\d.]+)/.exec(s);
-          var tool2 = s.indexOf('tool-designed') >= 0;
-          var dbl2 = /\bDOUBLE\b/.test(s);
-          att = { kind: 'constant_hanger', form: (dbl2 && !tool2) ? 'double' : 'single' };
+          /* v24-X1: LOAD 는 유효 총량 — form=single 고정, 마커 불의존 */
+          att = { kind: 'constant_hanger', form: 'single' };
           var lv4 = ml5 ? num(ml5[1], 0) : 0;
           if (lv4) att.load = lv4;
           addAtt(model, nid, att, warnings, 'CNST');
