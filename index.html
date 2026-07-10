@@ -2127,212 +2127,250 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
   }
 
   /* ====================== 1) NTL (AutoPIPE Batch) ========================= */
-  // buildNTL(state,PSA[,result]) — result 는 선택 인자(v1 호환). 있으면 행어 설계값 반영(N-08).
+  /* v24-X2: AutoPipe 25.00.01.213 실물 Export 파일 기반 전면 재작성.
+     정본 문법: v21_verify/SA4_export/NTL_V25_GRAMMAR.md (실물에서 측정·확정)
+     실물 픽스처: "TEST송부용 2.NTL" (CP949 · 33점 · DN250 P91)
+     핵심 규약:
+       - ASCII 전용 · 각 줄 80컬럼 공백 패딩 · CRLF (이 함수가 직접 \r\n join)
+       - 카드 키워드 col0, 연속행 '    *' (col4='*'), 주석 '***' (col0-2)
+       - 점명: 세그문자+2자리 (A00, A01, …) — 파일 끝 MAP 주석으로 노드ID 매핑
+       - 미해독 수치 필드는 실물 값 복제, OD/WT/CA/SG 등 우리 권위값은
+         '***' 주석(및 TOOLEXT 주석)으로 병기 → 본 도구 임포터가 무손실 복원,
+         AutoPipe 는 주석으로 무시(안전).
+     AutoPipe 로 옮겨지지 않는 항목(밸브·티·플랜지·질량·임의하중·스너버 정격·
+     앵커 F/M/D·custom 벤드반경)은 TOOLEXT 주석 + README 수동입력 목록으로. */
   function buildNTL(state, PSA, result){
     const col=collect(state,PSA);
     const {nodes, byId, elems, specOf, up}=col;
-    const pids=pipeIdentities(elems,specOf);
+    pipeIdentities(elems,specOf);                    // e._pid 부여(세그 분할 기준)
     const warns=scanWarnings(col,PSA);
     const hangersByNode={};
     if(result && result.hangers) result.hangers.forEach(h=>{ hangersByNode[h.node]=h; });
+    const notes=[];                                  // README 라우팅 (v24-X1 유지)
+    warns.forEach(w=>notes.push('[모델링 경고] '+w));
 
-    /* v24-X1: AutoPIPE V25 실임포트 피드백 반영 — '*' 주석행이 전부
-       "UNSUPPORTED OR UNRECOGNIZED ELEMENT TAG" 로 거부되고, 한글은 ANSI
-       파서에서 깨짐이 확인됨. 조치: (1) 행 선두 '*' 주석은 NTL 본문에서
-       제외하고 notes 로 라우팅(별도 README 저장), (2) 카드 꼬리의
-       ' * 설명' 인라인 주석 제거(단 *TAG* 형 재질 마커는 보존),
-       (3) 카드 본문 비ASCII 는 '?' 치환 + 노트 기록. */
-    const L=[]; const notes=[];
-    const c=s=>{
-      if(typeof s==='string' && s.charAt(0)==='*'){ notes.push(s.replace(/^\*\s?/,'')); return; }
-      let t=String(s);
-      if(/[^\x00-\x7F]/.test(t)){ notes.push('[ASCII-SANITIZED] '+t); t=t.replace(/[^\x00-\x7F]/g,'?'); }
-      L.push(t);
-    };
-    // ---------------- header + 정직성 고지 (N-01, N-02, N-10) ----------------
-    c('* ===================================================================');
-    c('*  AutoPIPE Batch (NTL) — B31.1 브라우저 도구 v2 내보내기');
-    c('*  대상: AutoPIPE CONNECT Edition 2025 (v12.x) — File > Open > *.NTL');
-    c('*  단위: SI (길이 mm, 힘 N, 응력 MPa, 온도 C)   수직축: '+up);
-    c('*  코드: ASME B31.1');
-    c('* -------------------------------------------------------------------');
-    c('*  [정직성 고지] 실제 NTL은 고정 컬럼 command-card 포맷이며, 카드별');
-    c('*  컬럼 레이아웃은 공개 문서로 확증되지 않음. [UNVERIFIED] 표기 카드는');
-    c('*  첫 임포트에서 반드시 검증할 것. 숫자 값(좌표·치수·하중·P/T)은 본');
-    c('*  도구 모델과 1:1 로 검증되어 있음 (export_check.py 참조).');
-    c('* -------------------------------------------------------------------');
-    c('*  IMPORT CHECKLIST:');
-    c('*   1) JOB 카드의 VERNO는 placeholder — 사용 중인 AutoPIPE 에서 빈');
-    c('*      모델을 NTL 로 Export 하여 그 첫 줄(JOB/VERNO/PROGV)로 교체.');
-    c('*      (Bentley KB: JOB 카드는 유효한 VERNO 필수, PROGV 는 공란 허용)');
-    c('*   2) 주석행("*" 시작)이 거부되면 "*" 로 시작하는 행 전부 삭제.');
-    c('*   3) 임포트 후 Tools > Model Consistency Check 실행.');
-    c('*   4) 스프링/상수 행어 AUTO 표기는 AutoPIPE 자동 설계에 위임한 것.');
-    c('*   5) 재해석 후 결과를 비교 CSV(_compare.csv)와 대조.');
-    if(warns.length){
-      c('* -------------------------------------------------------------------');
-      c('*  [MODELING WARNINGS]');
-      warns.forEach(w=>c('*   - '+w));
-    }
-    c('* ===================================================================');
-    c('* [UNVERIFIED] JOB record layout — VERNO 12.05 는 placeholder');
-    c('JOB  VERNO 12.05');
-    c('* [UNVERIFIED] SYST record layout');
-    c(`SYST  UNITS SI  VERT ${up}  CODE B31.1`);
-    // ---------------- pipe identities (N-03, N-09) ----------------
-    c('*');
-    c('* --- PIPE IDENTITIES [UNVERIFIED record layout / 값은 검증됨] ---');
-    c('*      tag   OD(mm)   WT(mm)  MATERIAL      CA(mm)  INSUL_T INSUL_RHO  SG');
-    pids.forEach(p=>{
-      const sp=p.sp;
-      c(`PIPE  ${lj(p.tag,4)} ${rj(f(sp.od,2),8)} ${rj(f(sp.t,2),8)}  *${lj(matName(sp.matKey),10)}* ${rj(f(sp.CA||0,2),6)} ${rj(sp.insulT||0,8)} ${rj(sp.insulRho||0,9)} ${rj(f(sp.SG==null?1:sp.SG,2),5)}`);
-    });
-    // ---------------- geometry (N-04, N-05) ----------------
-    c('*');
-    c('* --- GEOMETRY: 점/런 (오프셋 DX DY DZ mm, 직전 점 기준 상대) ---');
-    c('* --- 요소는 모델 정의 순서·방향 그대로 출력 (분기는 기존 점에서 재개) ---');
-    const ptDefined=new Set();
-    const consumed={bend:new Set(), tee:new Set(), valve:new Set(), flange:new Set(), reducer:new Set()};
-    let prevTo=null, segNo=0;
-    elems.forEach(e=>{
-      const a=byId[e.from], b=byId[e.to], sp=specOf(e);
-      if(!ptDefined.has(e.from)){
-        segNo++;
-        c(`* --- segment ${segNo} ---`);
-        c(`PNT  ${lj(nodeName(e.from),6)} ${rj(f(a.x),12)} ${rj(f(a.y),12)} ${rj(f(a.z),12)}   ABS`);
-        ptDefined.add(e.from);
-      } else if(prevTo!==e.from){
-        segNo++;
-        c(`* --- segment ${segNo}: 기존 점 ${nodeName(e.from)} 에서 분기/재개 ---`);
-        c(`SEGM ${lj(nodeName(e.from),6)}`);
+    /* ---------- 80컬럼 고정폭 라인 빌더 ---------- */
+    const L=[];
+    const mkLine=parts=>{                            // parts: [col, text] 배열
+      const buf=new Array(80).fill(' ');
+      for(const [cp,txRaw] of parts){
+        let tx=String(txRaw);
+        if(/[^\x00-\x7F]/.test(tx)){ notes.push('[ASCII-SANITIZED] '+tx); tx=tx.replace(/[^\x00-\x7F]/g,'?'); }
+        for(let i=0;i<tx.length&&cp+i<80;i++) buf[cp+i]=tx.charAt(i);
       }
-      c(`RUN  ${lj(nodeName(e.to),6)} ${rj(f(b.x-a.x),12)} ${rj(f(b.y-a.y),12)} ${rj(f(b.z-a.z),12)}   PIPE ${e._pid}`);
-      ptDefined.add(e.to);
-      prevTo=e.to;
-      // to-노드 부속: 정확히 1회 소비 (N-05)
-      (b.att||[]).forEach(at=>{
-        if(at.kind==='bend' && !consumed.bend.has(b.id)){
-          consumed.bend.add(b.id);
-          c(`BEND ${lj(nodeName(b.id),6)} RAD ${rj(f(bendRadiusMM(at,sp,PSA),1),9)}`);
-        } else if(at.kind==='tee' && !consumed.tee.has(b.id)){
-          consumed.tee.add(b.id);
-          c(`TEE  ${lj(nodeName(b.id),6)} TYPE ${teeTypeName(at)}`);
-        } else if(at.kind==='valve' && !consumed.valve.has(b.id)){
-          consumed.valve.add(b.id);   // N-06: 무게 kg 포함
-          c(`VALV ${lj(nodeName(b.id),6)} TYPE ${lj((at.vtype||'gate').toUpperCase(),8)} CLASS ${lj(String(at.vclass||'150'),5)} END ${lj((at.vend||'flanged').toUpperCase(),8)} WT ${rj(f(valveWeightKG(at,sp,PSA),1),8)} KG`);
-        } else if(at.kind==='flange' && !consumed.flange.has(b.id)){
-          consumed.flange.add(b.id);
-          c(`FLNG ${lj(nodeName(b.id),6)}`);
-        } else if(at.kind==='reducer' && !consumed.reducer.has(b.id)){
-          consumed.reducer.add(b.id);
-          c(`REDU ${lj(nodeName(b.id),6)} DN ${at.dnLarge||'?'} -> ${at.dnSmall||'?'}`);
-        }
-      });
+      return buf.join('');
+    };
+    const c=parts=>L.push(typeof parts==='string'?mkLine([[0,parts]]):mkLine(parts));
+    const R=(v,dec,end)=>{ const s=(+v).toFixed(dec); return [end+1-s.length, s]; };   // end = 끝컬럼(0기준, 포함)
+    const CONT='    *';                              // 연속행 접두 (col4='*')
+
+    /* ---------- 좌표/축 도우미 ---------- */
+    const MM=n=>[n.x,n.y,n.z];                       // collect() 가 이미 mm
+    const VUP=(up==='Z')?2:1;
+    const domAxis=nid=>{ const lg=col.legs[nid]||[]; if(!lg.length)return 0;
+      const u=lg[0].u.map(Math.abs); return u[0]>=u[1]&&u[0]>=u[2]?0:(u[1]>=u[2]?1:2); };
+    const domSign=nid=>{ const lg=col.legs[nid]||[]; if(!lg.length)return 1;
+      return (lg[0].u[domAxis(nid)]||1)>=0?1:-1; };
+
+    /* ---------- 세그먼트 분해: 정의 순서 체인, 분기/스펙변경 시 새 SEG ---------- */
+    const LET='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const segs=[]; let cur=null, prevTo=null;
+    elems.forEach(e=>{
+      if(!cur || prevTo!==e.from || cur.pid!==e._pid){
+        cur={letter:LET[segs.length%26]+(segs.length>=26?Math.floor(segs.length/26):''),
+             start:e.from, pid:e._pid, sp:specOf(e), items:[]};
+        segs.push(cur);
+      }
+      cur.items.push(e); prevTo=e.to;
     });
-    // 시작 노드(첫 PNT)의 부속도 소비 (bend 등이 시작점에 있을 때)
-    nodes.forEach(n=>{
-      (n.att||[]).forEach(at=>{
-        if(at.kind==='bend' && !consumed.bend.has(n.id)){
-          consumed.bend.add(n.id);
-          const sp=colSpecAt(col,n.id);
-          c(`BEND ${lj(nodeName(n.id),6)} RAD ${rj(f(bendRadiusMM(at,sp,PSA),1),9)}`);
-        } else if(at.kind==='tee' && !consumed.tee.has(n.id)){
-          consumed.tee.add(n.id);
-          c(`TEE  ${lj(nodeName(n.id),6)} TYPE ${teeTypeName(at)}`);
-        } else if(at.kind==='valve' && !consumed.valve.has(n.id)){
-          consumed.valve.add(n.id);
-          const sp=colSpecAt(col,n.id);
-          c(`VALV ${lj(nodeName(n.id),6)} TYPE ${lj((at.vtype||'gate').toUpperCase(),8)} CLASS ${lj(String(at.vclass||'150'),5)} END ${lj((at.vend||'flanged').toUpperCase(),8)} WT ${rj(f(valveWeightKG(at,sp,PSA),1),8)} KG`);
-        } else if(at.kind==='flange' && !consumed.flange.has(n.id)){
-          consumed.flange.add(n.id);
-          c(`FLNG ${lj(nodeName(n.id),6)}`);
-        } else if(at.kind==='reducer' && !consumed.reducer.has(n.id)){
-          consumed.reducer.add(n.id);
-          c(`REDU ${lj(nodeName(n.id),6)} DN ${at.dnLarge||'?'} -> ${at.dnSmall||'?'}`);
-        }
-      });
+
+    /* ---------- 점명 부여 + MAP ---------- */
+    const pnOf={};                                   // nodeId -> 첫 점명
+    const mapRows=[];
+    const nameIn=(seg,i)=>seg.letter+String(i).padStart(2,'0');
+    segs.forEach(seg=>{
+      let i=0;
+      const reg=nid=>{ const pn=nameIn(seg,i++);
+        mapRows.push([pn,nid]); if(pnOf[nid]===undefined)pnOf[nid]=pn; return pn; };
+      seg.names=[reg(seg.start)];
+      seg.items.forEach(e=>seg.names.push(reg(e.to)));
     });
-    // ---------------- supports (N-08, N-13, N-14) ----------------
-    c('*');
-    c('* --- SUPPORTS / ANCHORS [카드명: VSTP 만 공식 도움말로 확인, 나머지 UNVERIFIED] ---');
-    nodes.forEach(n=>{
+
+    /* ---------- TOOLEXT / 지지 카드 이미터 ---------- */
+    const manual=[];                                 // README 수동입력 목록
+    const text8=v=>(+v).toFixed(3);
+    function toolext(s){ c('***  TOOLEXT '+s); }
+    function emitSupports(nid,pn,sp){
+      const n=byId[nid];
       (n.att||[]).forEach(a=>{
-        const si=supportInfo(a.kind); if(!si) return;
-        const nm=lj(nodeName(n.id),6);
-        const dbl=(a.form==='double')?'  DOUBLE':'';
         if(a.kind==='anchor'||a.kind==='nozzle'||a.kind==='hx'){
-          /* v24-F5: 부가 하중(F N / M N·mm)·앵커무브먼트(D mm) 토큰 — 값이 있을 때만 */
-          {
-            let ax='';
-            if(a.fx||a.fy||a.fz) ax+=` FX ${f(a.fx||0,1)} FY ${f(a.fy||0,1)} FZ ${f(a.fz||0,1)}`;
-            if(a.mx||a.my||a.mz) ax+=` MX ${f(a.mx||0,1)} MY ${f(a.my||0,1)} MZ ${f(a.mz||0,1)}`;
-            if(a.dx||a.dy||a.dz) ax+=` DX ${f(a.dx||0,2)} DY ${f(a.dy||0,2)} DZ ${f(a.dz||0,2)}`;
-            c(`ANCH ${nm}${ax}${a.kind!=='anchor'?('  * '+a.kind):''}`);
+          c([[0,'ANC'],[5,pn],[11,'R'],[14,'000000']]);
+          c([[0,CONT],[10,('ANCHOR-N'+nid+(a.kind!=='anchor'?'-'+a.kind.toUpperCase():'')).slice(0,20)]]);
+          if(a.fx||a.fy||a.fz||a.mx||a.my||a.mz||a.dx||a.dy||a.dz){   /* v24-F5 값 */
+            toolext(`ANCH ${pn} FX ${a.fx||0} FY ${a.fy||0} FZ ${a.fz||0} MX ${a.mx||0} MY ${a.my||0} MZ ${a.mz||0} DX ${a.dx||0} DY ${a.dy||0} DZ ${a.dz||0}`);
+            manual.push(`${pn}(N${nid}) 앵커 부가 F/M/D — AutoPipe 에서 Imposed load/displacement 로 수동 입력`);
           }
         } else if(a.kind==='rest'){
-          c(`VSTP ${nm} DIR ${up}${dbl}`);
+          c([[0,'VSTP'],[5,pn],[16,'W'],R(2540,3,48),[60,'R']]);
+          c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
+          if(a.form==='double') manual.push(`${pn}(N${nid}) rest DOUBLE — AutoPipe 지지 속성에서 수동 반영`);
         } else if(a.kind==='rod'){
-          c(`VSTP ${nm} DIR ${up}  ROD${dbl}`);
-        } else if(a.kind==='guide'){
-          c(`GUID ${nm}${a.gap>0?` GAP ${f(a.gap,1)} MM`:''}`);   /* v23-F2: 가이드 갭(mm) 기록 */
-        } else if(a.kind==='line_stop'){
-          c(`STOP ${nm} DIR AXIAL`);
+          c([[0,'VSTP'],[5,pn],[60,'H'],[63,'1'],[66,'1']]);
+          c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
         } else if(a.kind==='vspring_hanger'||a.kind==='vspring_support'){
-          const h=hangersByNode[n.id];
+          const h=hangersByNode[nid];
           const rate=(a.rate>0)?a.rate:(h&&h.rate>0?h.rate:0);
           const load=(a.load>0)?a.load:(h&&h.load>0?h.load:0);
-          if(rate>0||load>0)
-            c(`SPNG ${nm} DIR ${up}  RATE ${rj(f(rate,2),10)} N/MM  COLD ${rj(f(load,1),10)} N${dbl}${h?'':''}`);
-          else
-            c(`SPNG ${nm} DIR ${up}  AUTO${dbl}  * AutoPIPE 자동 설계`);
+          c([[0,'SPRG'],[5,pn],[16,(up==='Z'?'Z':'Y')+'1'],R(load,3,28),R(rate,3,38),[44,'FIG B-268'],[60,'H']]);
+          c([[0,CONT],[50,'N'],R(1000,2,79)]);
+          c([[0,CONT],R(0.150,3,58),R(0,3,68),R(0,3,78)]);
+          if(!(rate>0)||!(load>0)) manual.push(`${pn}(N${nid}) 스프링 값 미확정(0) — 해석 후 내보내면 도구 설계값이 기입됨`);
+          if(a.form==='double') manual.push(`${pn}(N${nid}) 스프링 DOUBLE — 기입값은 유효 총량, AutoPipe 에서 확인`);
         } else if(a.kind==='constant_hanger'||a.kind==='constant_support'){
-          const h=hangersByNode[n.id];
+          const h=hangersByNode[nid];
           const load=(a.load>0)?a.load:(h&&h.load>0?h.load:0);
-          if(load>0)
-            c(`CNST ${nm} DIR ${up}  LOAD ${rj(f(load,1),10)} N${dbl}${h?'':''}`);
-          else
-            c(`CNST ${nm} DIR ${up}  AUTO${dbl}  * AutoPIPE 자동 설계`);
+          c([[0,'CONS'],[5,pn],[16,(up==='Z'?'Z':'Y')+'1'],R(load,3,28),[60,'H']]);
+          c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
+          if(!(load>0)) manual.push(`${pn}(N${nid}) 콘스턴트 하중 미확정(0) — 해석 후 내보내면 도구 설계값이 기입됨`);
+        } else if(a.kind==='guide'){
+          const gv=(a.gap>0)?a.gap:2540.0;
+          const ax=domAxis(nid);
+          const slots=(ax===1)?[R(gv,3,58),R(gv,3,68)]:[R(gv,3,38),R(gv,3,48)];   // 실물: X축 배관→슬롯1,2 / Y축 라이저→슬롯3,4
+          c([[0,'GUID'],[5,pn],[16,'W']].concat(slots));
+          c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
+          if(a.axis) toolext(`AXIS ${pn} guide ${a.axis}`);
+        } else if(a.kind==='line_stop'){
+          c([[0,'LINE'],[5,pn],[16,'W'],R(2540,3,38)]);
+          c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
+          if(a.axis) toolext(`AXIS ${pn} line_stop ${a.axis}`);
         } else if(a.kind==='snubber'||a.kind==='damper'){
-          c(`SNUB ${nm} DIR ${(a.dir||'lateral').toUpperCase()}${a.load>0?` RATE ${f(a.load,1)} N`:''}  * OCCASIONAL-ONLY (동적/지진시만 유효)`);   /* v24-F4: 정격 */
+          const dir=a.dir||'axial'; const vec=[0,0,0];
+          if(dir==='X'||dir==='Y'||dir==='Z') vec[({X:0,Y:1,Z:2})[dir]]=1;
+          else if(dir==='vertical') vec[VUP]=1;
+          else if(dir==='lateral'){ const axd=domAxis(nid); const d=[0,1,2].find(x=>x!==axd&&x!==VUP); vec[d==null?0:d]=1; }
+          else vec[domAxis(nid)]=domSign(nid);
+          c([[0,'DAMP'],[5,pn]]);
+          c([[0,CONT],R(vec[0],3,58),R(vec[1],3,68),R(vec[2],3,78)]);
+          c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
+          if(a.load>0){ toolext(`SNUBRATE ${pn} ${text8(a.load)}`);   /* v24-F4 정격 */
+            manual.push(`${pn}(N${nid}) 스너버 정격 ${(a.load).toFixed(0)} N — AutoPipe 매핑 없음(도구 전용)`); }
+          if(a.axis) toolext(`AXIS ${pn} ${a.kind} ${a.axis}`);
+        } else if(a.kind==='valve'){
+          const wkg=valveWeightKG(a,sp,PSA);
+          toolext(`VALVE ${pn} TYPE ${a.vtype||'gate'} CLASS ${a.vclass||'150'} END ${a.vend||'flanged'} MASS ${wkg.toFixed(2)}`);
+          manual.push(`${pn}(N${nid}) 밸브 ${wkg.toFixed(0)} kg — AutoPipe 컴포넌트 라이브러리로 수동 배치 필요`);
+        } else if(a.kind==='flange'){
+          toolext(`FLANGE ${pn} CLASS ${a.vclass||'150'} MASS ${a.mass>0?a.mass:0}`);
+          manual.push(`${pn}(N${nid}) 플랜지 — AutoPipe 에서 수동 배치 필요`);
+        } else if(a.kind==='mass'){
+          toolext(`MASS ${pn} KG ${a.mass||0}`);
+          manual.push(`${pn}(N${nid}) 집중질량 ${a.mass||0} kg — AutoPipe 에서 수동 입력 필요`);
+        } else if(a.kind==='force'){
+          toolext(`FORCE ${pn} FX ${a.fx||0} FY ${a.fy||0} FZ ${a.fz||0} MX ${a.mx||0} MY ${a.my||0} MZ ${a.mz||0}`);
+          manual.push(`${pn}(N${nid}) 임의하중 — AutoPipe Imposed load 로 수동 입력 필요`);
+        } else if(a.kind==='tee'){
+          toolext(`TEE ${pn} TYPE ${a.teeType||'welding'}${a.branchAngle?(' ANGLE '+a.branchAngle):''}`);
+        } else if(a.kind==='reducer'){
+          toolext(`REDUCER ${pn} ${a.dnLarge||'?'} ${a.dnSmall||'?'}`);
+          manual.push(`${pn}(N${nid}) 리듀서 — AutoPipe 에서 수동 배치 필요`);
         }
       });
-    });
-    // ---------------- point loads / masses (N-06) ----------------
-    const hasForce=nodes.some(n=>(n.att||[]).some(a=>a.kind==='force'));
-    const hasMass =nodes.some(n=>(n.att||[]).some(a=>a.kind==='mass'));
-    if(hasForce||hasMass){
-      c('*');
-      c('* --- CONCENTRATED FORCES (N, N.mm) / MASSES (kg) [UNVERIFIED layout] ---');
-      nodes.forEach(n=>(n.att||[]).forEach(a=>{
-        if(a.kind==='force')
-          c(`FORC ${lj(nodeName(n.id),6)} FX ${f(a.fx||0,1)} FY ${f(a.fy||0,1)} FZ ${f(a.fz||0,1)} MX ${f(a.mx||0,1)} MY ${f(a.my||0,1)} MZ ${f(a.mz||0,1)}`);
-        else if(a.kind==='mass')
-          c(`MASS ${lj(nodeName(n.id),6)} KG ${f(a.mass||0,1)}`);
-      }));
     }
-    // ---------------- load cases (N-09, N-13) ----------------
-    c('*');
-    c('* --- OPERATING LOADS [UNVERIFIED record layout / 값은 검증됨] ---');
-    const seen={};
-    elems.forEach(e=>{
-      const sp=specOf(e);
-      const sig=[f(sp.P||0,3),f(sp.Tdesign==null?20:sp.Tdesign,1),f(sp.Tamb==null?20:sp.Tamb,1)].join('|');
-      if(seen[sig]) return; seen[sig]=1;
-      const cn=Object.keys(seen).length;
-      c(`TEMP  T${cn} ${rj(f(sp.Tdesign==null?20:sp.Tdesign,1),8)} C   TAMB ${rj(f(sp.Tamb==null?20:sp.Tamb,1),7)} C`);
-      c(`PRES  P${cn} ${rj(f(sp.P||0,3),8)} MPA`);
+
+    /* ---------------- 헤더 (실물 복제; JOB 이름/버전 문자열은 실물 형식) -------- */
+    c([[0,'JOB'],[10,'B311-TOOL'],[60,'2.7  25.00.01.213']]);
+    c([[0,CONT]]);
+    c([[0,'HED'],[5,'B311-TOOL EXPORT']]);
+    const Tamb0=(elems.length?specOf(elems[0]):col.base).Tamb;
+    c([[0,'CTL'],[5,'B31.1'],[16,'Y'],[20,'1'],[25,'1'],R(Tamb0==null?21.1:Tamb0,2,37),[41,'SI'],[51,'SI'],[61,'AUTOPIPE'],[71,'B311-24']]);
+    c([[0,CONT],[25,'2024'],[30,'NY'],[33,'2023'],[40,(up==='Z'?'Z-X':'Y-X')]]);
+    c('***  Support rigid stiffness - Translation   .1000E+11');
+    c('***  Support rigid stiffness - Rotation      .1000E+11');
+    c('***  Anchor rigid stiffness - Translation    .1000E+11');
+    c('***  Anchor rigid stiffness - Rotation       .1000E+11');
+    c('***  IR Code                                 1');
+    c([[0,'DESC'],[5,'^e']]);
+    c('MINP N N Y Y Y Y Y Y Y N   N N N N N N N Y Y N N N N N N N Y N N Y Y N N');
+    c([[0,'SLEV'],[10,'GR'],[20,'NONE'],[30,'NONE'],[40,'NONE'],[50,'NONE'],[60,'0']]);
+    c([[0,CONT],[10,'0'],[20,'NONE'],[30,'NONE'],[40,'NONE'],[50,'NONE'],[60,'NONE'],[70,'NONE']]);
+    c('***');
+
+    /* ---------------- 세그먼트 본문 ---------------- */
+    const consumedBend=new Set(), supDone=new Set();
+    let pipeNo=0;
+    segs.forEach((seg,si)=>{
+      const sp=seg.sp, s0=byId[seg.start];
+      pipeNo++;
+      c([[0,'SEG'],[5,seg.names[0]],[10,seg.letter.charAt(0)],R(s0.x,3,28),R(s0.y,3,38),R(s0.z,3,48)]);
+      /* PIPE 정체성 — 고정컬럼 + 5연속행 (미해독 수치는 실물 값 복제) */
+      const dn=sp.nominalDN||Math.round(sp.od||0);
+      const schS='S'+String(sp.sch&&sp.sch!=='-'?sp.sch:'STD').replace(/\s/g,'');
+      c([[0,'PIPE'],[5,('DN'+dn+'_'+pipeNo).slice(0,13)],[19,'N'],R(dn,3,28),[31,schS.slice(0,8)],R(0,3,48),[53,'2.6800'],[79,'N']]);
+      c([[0,CONT],[5,'B311-TOOL EXPORT']]);
+      const rmat=({'A335-P91':'A335-P91-T1','A335-P92':'A335-P92','A335-P11':'A335-P11','A106-B':'A106-B','A53-B':'A53-B','A312-TP316':'A312-TP316'})[sp.matKey]||sp.matKey||'A106-B';
+      const rho=(PSA&&PSA.MATERIALS&&PSA.MATERIALS[sp.matKey])?PSA.MATERIALS[sp.matKey].rho:7850;
+      const nu =(PSA&&PSA.MATERIALS&&PSA.MATERIALS[sp.matKey])?PSA.MATERIALS[sp.matKey].poisson:0.3;
+      c([[0,CONT],[5,rmat.slice(0,16)],R(167.540,3,28),[30,'.213738203'],R(rho,3,58),R(nu,5,68),[70,'.213738203']]);
+      c([[0,CONT],[5,'W'],R(0,4,18),R(sp.insulT||0,4,28),R(sp.insulRho||0,4,38),R(0.3,4,48),R(0,4,58),R(0,4,68)]);
+      c([[0,CONT],[5,'          0.00    1.0000    1.0000 .082207002  413.690 1.0000     1.00 1.00']]);   // 실물 행 복제
+      c([[0,CONT]]);
+      c([[0,CONT],[13,'ZP92'],[30,'NONE']]);
+      c([[0,CONT],[8,'1.000']]);
+      /* 권위값 주석 — 임포터가 이 값을 정본으로 복원 */
+      c([[0,'***  Pipe OD'],R(sp.od||0,3,53)]);
+      c([[0,'***  Wall Thickness'],R(sp.t||0,3,53)]);
+      toolext(`SPEC ${seg.names[0]} CA ${sp.CA||0} SG ${sp.SG==null?1:sp.SG} CYC ${sp.cyc||7000} EFF ${sp.Eff==null?1:sp.Eff}`);
+      /* 시작점 지지 + OPER */
+      if(!supDone.has(seg.start)){ supDone.add(seg.start); emitSupports(seg.start,seg.names[0],sp); }
+      c([[0,'OPER'],[5,seg.names[0]],[14,'1'],R(sp.Tdesign==null?20:sp.Tdesign,3,28),R(sp.P||0,3,43)]);
+      /* RUN/BEND 체인 */
+      let prev=byId[seg.start];
+      seg.items.forEach((e,k)=>{
+        const b=byId[e.to], pn=seg.names[k+1];
+        const off=[b.x-prev.x, b.y-prev.y, b.z-prev.z];
+        const bendAtt=(b.att||[]).find(a=>a.kind==='bend'&&!consumedBend.has(b.id));
+        if(bendAtt){
+          consumedBend.add(b.id);
+          const bl=(bendAtt.bendKind==='short')?'S':'L';
+          c([[0,'BEND'],[5,pn],R(off[0],3,28),R(off[1],3,38),R(off[2],3,48),[54,bl]]);
+          if(bendAtt.R>0||['3d','5d'].includes(bendAtt.bendKind||'')){
+            toolext(`BENDR ${pn} ${bendAtt.R>0?('R '+bendAtt.R):('KIND '+bendAtt.bendKind)}`);
+            manual.push(`${pn}(N${b.id}) 벤드 반경 비표준(${bendAtt.R>0?bendAtt.R+'mm':bendAtt.bendKind}) — AutoPipe 에서 반경 수동 지정`);
+          }
+        } else {
+          c([[0,'RUN'],[5,pn],R(off[0],3,28),R(off[1],3,38),R(off[2],3,48)]);
+        }
+        c([[0,'***  Global Coordinates'],R(b.x,3,53),R(b.y,3,63),R(b.z,3,73)]);
+        if(!supDone.has(b.id)){ supDone.add(b.id); emitSupports(b.id,pn,specOf(e)); }
+        prev=b;
+      });
     });
-    const sp0=elems.length?specOf(elems[0]):col.base;
-    c(`XTRA  SG ${f(sp0.SG==null?1:sp0.SG,2)}  CYCLES ${sp0.cyc||7000}  EFF ${f(sp0.Eff==null?1:sp0.Eff,2)}`);
-    c('GLOD  U1  SEISMIC-STATIC 0.30 G  DIR X'); notes.push('GLOD U1: 0.3g static X — set same in AutoPIPE');
-    c('* --- LOAD COMBINATIONS (B31.1) ---');
-    c('COMB  SUS  GR + P1');
-    c('COMB  OPE  GR + P1 + T1');
-    c('COMB  OCC  GR + P1 + U1');
-    c('*');
-    c('* --- END ---');
-    buildNTL._notes = notes.slice();   /* v24-X1 */
-    return L.join('\n');
+
+    /* ---------------- 꼬리 (실물 복제) ---------------- */
+    c('BPOP      None      None      None       1   N N N              1.000     1.000');
+    c('    * 0  N N N      None      None      None');
+    c('    *    None');
+    c('***  NOTE: ALL SUPPORT NAMES GENERATED BY TRANSLATOR');
+    c('***');
+    c('***  ---NONSTANDARD BEAM MATERIALS---');
+    c('MATL RIGID          0.6895E+08  0.3000      0.000     0.000     0.000 0.0000E+00');
+    c('***');
+    c('SOLV Y    STAT     1   1      N         Y             1.000 N');
+    c([[0,CONT],[5,'Analysis Set No. 1']]);
+    c([[0,CONT],[5,'Y    N        1        30   0.0254    44.482     0.100     1.000  Y Y Y N 0']]);
+    c([[0,CONT],[5,'GR,,T1,GR,P1,T1,']]);
+    c('SOLV Y    HANG 1        2.540     0.250');
+    c([[0,CONT],[5,'N    N        0         0   0.0000     0.000     0.000     0.000  N N Y N 0']]);
+    c([[0,CONT],[5,'T1']]);
+    /* 점명 ↔ 노드ID 매핑 (임포터가 원 노드ID 복원에 사용, AutoPipe 는 주석 무시) */
+    c('***');
+    mapRows.forEach(([pn,nid])=>c(`***  MAP ${pn} = N${nid}`));
+    c('***');
+    c('***   END OF FILE');
+
+    manual.forEach(m=>notes.push('[수동 입력 필요] '+m));
+    buildNTL._notes = notes.slice();   /* v24-X1 (README 라우팅 유지) */
+    return L.join('\r\n')+'\r\n';      /* v24-X2: CRLF + 80컬럼 패딩 */
   }
 
   /* ================== 2) PCF (Piping Component File) ====================== */
@@ -2613,20 +2651,22 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
     let files=0;
     try{ download(`B31.1_AutoPIPE25_${tag}.ntl`, buildNTL(state,PSA,result), 'text/plain'); files++; }
     catch(e){ console.error('NTL export error',e); }
-    try{ /* v24-X1: NTL 주석/경고/체크리스트는 본문 대신 별도 README 로 */
+    try{ /* v24-X1/X2: 노트·수동입력 목록은 별도 README 로 (NTL 본문은 실물 문법) */
       const nts=(buildNTL._notes||[]);
-      const rd=['AutoPIPE NTL 임포트 안내 (B31.1 도구 v24)','==================================================','',
-        '이 NTL 은 주석 없는 순수 카드(ASCII) 형식입니다.',
-        "(AutoPIPE V25 가 '*' 주석행을 UNRECOGNIZED ELEMENT TAG 로",
-        ' 거부하는 것이 실제 임포트에서 확인되어 제거했습니다.)','',
+      const rd=['AutoPIPE NTL 임포트 안내 (B31.1 도구 v24 — 실물 문법판)','==================================================','',
+        '이 NTL 은 AutoPipe 25.00.01.213 이 실제 Export 한 파일에서 측정·확정한',
+        '문법(80컬럼 고정폭 · CRLF · ASCII · NTL_V25_GRAMMAR.md)으로 생성됨.',
+        "('***' 행은 AutoPipe 가 무시하는 주석 — 그 중 TOOLEXT/MAP 주석은",
+        ' 본 도구가 재임포트 시 무손실 복원에 사용합니다.)','',
         '체크리스트:',
-        ' 1) 여전히 특정 카드 에러가 나면: AutoPIPE 에서 아무 작은 모델을',
-        '    NTL 로 저장/Export 한 파일을 확보해 본 파일과 대조하면',
-        '    카드 레이아웃을 정확히 맞출 수 있습니다.',
-        ' 2) JOB 카드 VERNO 가 거부되면 1) 파일의 첫 줄로 교체하세요.',
-        ' 3) 공식 지원 임포트 경로는 PCF — 함께 생성된 .pcf 를 우선 시도.',
-        ' 4) 임포트 후 Tools > Model Consistency Check 실행.','',
-        '모델링 노트/경고 (NTL 본문에서 분리된 내용):'
+        ' 1) File > Open 으로 NTL 임포트 후 Tools > Model Consistency Check 실행.',
+        ' 2) 스프링/콘스턴트 값이 0 이면: 본 도구에서 해석 후 다시 내보내면',
+        '    도구 설계값(냉간하중/스프링율)이 기입됩니다.',
+        ' 3) 아래 [수동 입력 필요] 항목은 실물 NTL 카드로 전달할 수 없어',
+        '    AutoPipe 에서 직접 입력해야 합니다 (밸브/플랜지/집중질량/임의하중/',
+        '    앵커 부가 F·M·D/스너버 정격/비표준 벤드반경/rest·spring DOUBLE).',
+        ' 4) 대체 경로: 함께 생성된 .pcf(ISOGEN) 임포트도 지원됩니다.','',
+        '모델링 노트 / 수동 입력 필요 목록:'
       ].concat(nts.length?nts.map(x=>' - '+x):[' (없음)']).join('\r\n');
       download(`B31.1_AutoPIPE25_${tag}_README.txt`, rd, 'text/plain', true); files++;
     }catch(e){ console.error('README export error',e); }
@@ -2968,7 +3008,275 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           TEMP/PRES/XTRA/GLOD, '*' 주석)  ← v21 방언을 대체(우선)
         - SA5 확장 카드 (INSU/FLUID/CYCL/EFF, VALVE WEIGHT)
      ========================================================================== */
+  /* ==========================================================================
+     v24-X2: AutoPipe 25.00.01.213 실물 NTL 방언 파서
+     정본 문법: SA4_export/NTL_V25_GRAMMAR.md · 픽스처 "TEST송부용 2.NTL"(CP949)
+     - 카드 col0, 연속행 '    *'(col4='*'), 주석 '***'
+     - SEG 절대좌표 시작 + RUN/BEND 상대 오프셋 누적(mm) → nodes(m)
+     - '***  Pipe OD'/'***  Wall Thickness' 주석 = OD/WT 권위값
+     - '***  TOOLEXT …' = 본 도구 확장(무손실 라운드트립) — AutoPipe 는 무시
+     - '***  MAP A00 = N10' = 점명→노드ID 복원(본 도구 재임포트)
+     ========================================================================== */
+  function parseNTLReal(text) {
+    var warnings = [];
+    var model = emptyModel();
+    var g = { P: 0, T: 20, Ta: 21.1, SG: 1, Eff: 1, cyc: 7000, CA: 0, insName: 'none', insT: 0, insRho: 0 };
+    var lines = String(text).replace(/\r/g, '').split('\n');
+    // 0) MAP 주석 프리스캔 — 도구가 내보낸 파일 재임포트 시 원 노드ID 복원
+    var mapIds = {};
+    lines.forEach(function (l) {
+      var m = /^\*\*\*\s+MAP\s+(\S+)\s*=\s*N(\d+)/.exec(l);
+      if (m) mapIds[m[1]] = parseInt(m[2], 10);
+    });
+    var byName = {};            // 점명 -> nodeId
+    var lastPt = null;          // 마지막 정의 점명 (이름 없는 ANC 등의 대상)
+    var prevId = null;          // 체인 직전 노드
+    var curAbs = [0, 0, 0];     // 현재 절대좌표 (mm)
+    var segIdx = -1;
+    var curSpec = null;         // 현재 세그 스펙 (PIPE~OPER 카드로 채움)
+    var firstSpec = null;
+    var pipeCont = 0, lastKw = '';
+    var lastDamp = null;        // {att, cont} — 연속행 1 = 방향벡터
+
+    function matReal(nm) {      // 'A335-P91-T1' → 'A335-P91' (접두 일치)
+      var u = String(nm || '').trim().toUpperCase();
+      for (var i = 0; i < KNOWN_MATS.length; i++) {
+        var k = KNOWN_MATS[i].toUpperCase();
+        if (u === k || u.indexOf(k) === 0) return KNOWN_MATS[i];
+      }
+      warnings.push("[재질] 실물 NTL 재질 '" + nm + "' 미지원 → A106-B 대체. 확인 필요.");
+      return 'A106-B';
+    }
+    function newSpec() {
+      return { matKey: 'A106-B', od: 0, t: 0, sch: '-', sizeLabel: '',
+        P: 0, Tdesign: 20, Tamb: g.Ta, CA: 0, SG: 1, Eff: 1, cyc: 7000,
+        insulRho: 0, insulT: 0, insulName: 'none', nominalDN: null, _dn: null, _sch: null, _fin: false };
+    }
+    function finSpec() {        // od/t 미확정 시 DN·스케줄 근사 (PSA 표 사용 가능하면)
+      if (!(curSpec.od > 0 && curSpec.t > 0)) {
+        var PS = (typeof window !== 'undefined' && window.PSA && window.PSA.PIPE_SIZES) ? window.PSA.PIPE_SIZES : null;
+        if (curSpec._dn && PS && PS['DN' + curSpec._dn]) {
+          var e = PS['DN' + curSpec._dn];
+          if (!(curSpec.od > 0)) curSpec.od = e.od;
+          if (!(curSpec.t > 0) && curSpec._sch && e.t[curSpec._sch] != null) curSpec.t = e.t[curSpec._sch];
+        }
+        if (!(curSpec.od > 0 && curSpec.t > 0))
+          warnings.push('[PIPE] OD/WT 주석 없음 · DN/스케줄 근사 불가(DN' + curSpec._dn + ' S' + curSpec._sch + ') — 치수 확인 필요.');
+        else
+          warnings.push('[PIPE] OD/WT 주석 없음 — DN' + curSpec._dn + ' SCH ' + curSpec._sch + ' 표준표로 근사(' + curSpec.od + '×' + curSpec.t + ').');
+      }
+      curSpec.nominalDN = curSpec._dn || dnFromOD(curSpec.od) || null;
+      curSpec.sch = curSpec._sch || '-';
+      curSpec.sizeLabel = (curSpec.nominalDN ? 'DN' + curSpec.nominalDN + ' ' : '') + 'Ø' + curSpec.od + ' x ' + curSpec.t;
+      if (!firstSpec) firstSpec = curSpec;
+      curSpec._fin = true;
+    }
+    function specSnapshot() {
+      var sp = {}; for (var k in curSpec) if (k.charAt(0) !== '_') sp[k] = curSpec[k];
+      return sp;
+    }
+    function ensureNode(name, absMM) {
+      for (var i = 0; i < model.nodes.length; i++) {   // 분기 시작점: 좌표 일치 노드 재사용
+        var n = model.nodes[i];
+        if (Math.abs(n.x * 1000 - absMM[0]) < 0.01 && Math.abs(n.y * 1000 - absMM[1]) < 0.01 && Math.abs(n.z * 1000 - absMM[2]) < 0.01) {
+          byName[name] = n.id; return n.id;
+        }
+      }
+      var id = (mapIds[name] != null) ? mapIds[name] : (model.nodes.length + 1) * 10;
+      while (model.nodes.some(function (n2) { return n2.id === id; })) id += 1;
+      model.nodes.push({ id: id, x: absMM[0] / 1000, y: absMM[1] / 1000, z: absMM[2] / 1000, att: [] });
+      byName[name] = id;
+      return id;
+    }
+    function attTo(name, att, what) {
+      var nm = String(name || '').trim() || lastPt;
+      var nid = (nm && byName[nm] != null) ? byName[nm] : null;
+      if (nid == null) { warnings.push('[' + what + "] 대상 점 '" + nm + "' 미상 — 건너뜁니다."); return null; }
+      addAtt(model, nid, att, warnings, what);
+      return nid;
+    }
+    function lastAttOf(nid, kinds) {
+      for (var i = 0; i < model.nodes.length; i++) if (model.nodes[i].id === nid) {
+        var at = model.nodes[i].att;
+        for (var j = at.length - 1; j >= 0; j--) if (kinds.indexOf(at[j].kind) >= 0) return at[j];
+      }
+      return null;
+    }
+    function handleToolext(s) {
+      var tk = s.split(/\s+/); var op = (tk[0] || '').toUpperCase(); var pn = tk[1];
+      var nid = (pn && byName[pn] != null) ? byName[pn] : null;
+      var kv = {}; for (var i = 2; i < tk.length - 1; i += 2) kv[tk[i].toUpperCase()] = tk[i + 1];
+      if (op === 'SPEC') {                              // 세그 스펙 확장(CA/SG/CYC/EFF)
+        if (curSpec) {
+          if (kv.CA != null) curSpec.CA = num(kv.CA, 0);
+          if (kv.SG != null) curSpec.SG = num(kv.SG, 1);
+          if (kv.CYC != null) curSpec.cyc = num(kv.CYC, 7000);
+          if (kv.EFF != null) curSpec.Eff = num(kv.EFF, 1);
+          if (!firstSpec || firstSpec === curSpec) {
+            g.CA = curSpec.CA; g.SG = curSpec.SG; g.cyc = curSpec.cyc; g.Eff = curSpec.Eff;
+          }
+        }
+      } else if (nid == null) {
+        warnings.push("[TOOLEXT] 대상 점 '" + pn + "' 미상 — '" + op + "' 무시.");
+      } else if (op === 'VALVE') {
+        var av = { kind: 'valve', vtype: (kv.TYPE || 'gate').toLowerCase(), vclass: kv.CLASS || '150', vend: (kv.END || 'flanged').toLowerCase() };
+        if (num(kv.MASS, 0) > 0) av.mass = num(kv.MASS, 0);
+        addAtt(model, nid, av, warnings, 'TOOLEXT VALVE');
+      } else if (op === 'FLANGE') {
+        var af = { kind: 'flange' }; if (num(kv.MASS, 0) > 0) af.mass = num(kv.MASS, 0); if (kv.CLASS) af.vclass = kv.CLASS;
+        addAtt(model, nid, af, warnings, 'TOOLEXT FLANGE');
+      } else if (op === 'MASS') {
+        addAtt(model, nid, { kind: 'mass', mass: num(kv.KG, 0) }, warnings, 'TOOLEXT MASS');
+      } else if (op === 'FORCE') {
+        var ao = { kind: 'force' };
+        ['FX', 'FY', 'FZ', 'MX', 'MY', 'MZ'].forEach(function (k3) { if (num(kv[k3], 0)) ao[k3.toLowerCase()] = num(kv[k3], 0); });
+        addAtt(model, nid, ao, warnings, 'TOOLEXT FORCE');
+      } else if (op === 'TEE') {
+        var at2 = { kind: 'tee', teeType: (kv.TYPE || 'welding').toLowerCase() };
+        if (num(kv.ANGLE, 0)) at2.branchAngle = num(kv.ANGLE, 0);
+        addAtt(model, nid, at2, warnings, 'TOOLEXT TEE');
+      } else if (op === 'REDUCER') {
+        addAtt(model, nid, { kind: 'reducer', dnLarge: tk[2] || '', dnSmall: tk[3] || '' }, warnings, 'TOOLEXT REDUCER');
+      } else if (op === 'BENDR') {                      // 기존 bend att 를 반경/종류로 갱신
+        var ab = lastAttOf(nid, ['bend']);
+        if (ab) { if (kv.R != null) { ab.R = num(kv.R, 0); delete ab.bendKind; } else if (kv.KIND) ab.bendKind = kv.KIND.toLowerCase(); }
+      } else if (op === 'SNUBRATE') {                   // v24-F4 정격 복원
+        var asb = lastAttOf(nid, ['snubber', 'damper']);
+        if (asb) asb.load = num(tk[2], 0);
+      } else if (op === 'ANCH') {                       // v24-F5 F/M/D 복원
+        var aan = lastAttOf(nid, ['anchor', 'nozzle', 'hx']);
+        if (aan) ['FX', 'FY', 'FZ', 'MX', 'MY', 'MZ', 'DX', 'DY', 'DZ'].forEach(function (k4) {
+          if (num(kv[k4], 0)) aan[k4.toLowerCase()] = num(kv[k4], 0);
+        });
+      } else if (op === 'AXIS') {                       // v22-D4 axis 복원: AXIS <pn> <kind> <X|Y|Z>
+        var kk2 = (tk[2] || '').toLowerCase(), axv = (tk[3] || '').toUpperCase();
+        var aax = lastAttOf(nid, [kk2]);
+        if (aax && 'XYZ'.indexOf(axv) >= 0) aax.axis = axv;
+      } else {
+        warnings.push("[TOOLEXT] 미지원 확장 '" + op + "' 무시.");
+      }
+    }
+
+    for (var li = 0; li < lines.length; li++) {
+      var l = lines[li];
+      if (!l.trim()) continue;
+      try {
+        if (l.slice(0, 5) === '    *') {                // ---- 연속행 ----
+          if (lastKw === 'CTL') {
+            var mu = /\b(Y|Z)-X\b/.exec(l); if (mu) model.upAxis = mu[1];
+          } else if (lastKw === 'PIPE') {
+            pipeCont++;
+            if (pipeCont === 2 && curSpec) {            // 재질명
+              var mn = l.slice(5).trim().split(/\s+/)[0];
+              if (mn) curSpec.matKey = matReal(mn);
+            } else if (pipeCont === 3 && curSpec) {     // 'W' + 보온두께 + 보온밀도
+              var it = num(l.slice(19, 29), 0), ir = num(l.slice(29, 39), 0);
+              if (it > 0) { curSpec.insulT = it; curSpec.insulRho = ir || 0; curSpec.insulName = 'mineral';
+                g.insT = it; g.insRho = ir || 0; g.insName = 'mineral';
+                warnings.push('[보온재] 실물 NTL 은 보온재 종류 미기록 — mineral 로 가정(두께·밀도는 파일값).'); }
+            }
+          } else if (lastKw === 'DAMP' && lastDamp && lastDamp.cont === 0) {
+            lastDamp.cont = 1;                          // 연속행1 = 방향벡터 → 지배축
+            var vx = num(l.slice(49, 59), 0), vy = num(l.slice(59, 69), 0), vz = num(l.slice(69, 79), 0);
+            var av2 = [Math.abs(vx), Math.abs(vy), Math.abs(vz)];
+            lastDamp.att.dir = (av2[0] >= av2[1] && av2[0] >= av2[2]) ? 'X' : (av2[1] >= av2[2] ? 'Y' : 'Z');
+          }
+          continue;
+        }
+        if (l.slice(0, 3) === '***') {                  // ---- 주석 ----
+          var mo = /^\*\*\*\s+Pipe OD\s+([-\d.]+)/.exec(l);
+          if (mo && curSpec) { curSpec.od = num(mo[1], 0); continue; }
+          var mw2 = /^\*\*\*\s+Wall Thickness\s+([-\d.]+)/.exec(l);
+          if (mw2 && curSpec) { curSpec.t = num(mw2[1], 0); continue; }
+          var mt2 = /^\*\*\*\s+TOOLEXT\s+(.+)$/.exec(l);
+          if (mt2) handleToolext(mt2[1].trim());
+          continue;                                     // Global Coordinates / MAP / 기타 주석 무시
+        }
+        var kw = l.slice(0, 4).trim().toUpperCase();
+        lastKw = kw; lastDamp = null;
+        if (kw === 'CTL') {
+          var ta2 = num(l.slice(28, 38), null); if (ta2 != null) g.Ta = ta2;
+        } else if (kw === 'SEG') {
+          segIdx++;
+          var nm0 = l.slice(5, 10).trim();
+          curAbs = [num(l.slice(19, 29), 0), num(l.slice(29, 39), 0), num(l.slice(39, 49), 0)];
+          prevId = ensureNode(nm0, curAbs); lastPt = nm0;
+        } else if (kw === 'PIPE') {
+          curSpec = newSpec(); pipeCont = 0;
+          curSpec._dn = Math.round(num(l.slice(20, 29), 0)) || null;
+          var ms2 = /S(\S+)/.exec(l.slice(29, 40)); if (ms2) curSpec._sch = ms2[1];
+        } else if (kw === 'OPER') {
+          var tv = num(l.slice(15, 29), null), pv2 = num(l.slice(29, 45), null);
+          if (tv != null) { if (curSpec) curSpec.Tdesign = tv;
+            if (!g._t0) { g.T = tv; g._t0 = 1; }
+            else if (Math.abs(g.T - tv) > 1e-6) warnings.push('[OPER] 세그별 설계온도 상이 — 폼 기본값은 첫 값(' + g.T + '℃), 요소별 스펙은 각자 유지.'); }
+          if (pv2 != null) { if (curSpec) curSpec.P = pv2;
+            if (!g._p0) { g.P = pv2; g._p0 = 1; }
+            else if (Math.abs(g.P - pv2) > 1e-6) warnings.push('[OPER] 세그별 압력 상이 — 폼 기본값은 첫 값(' + g.P + 'MPa), 요소별 스펙은 각자 유지.'); }
+        } else if (kw === 'RUN' || kw === 'BEND') {
+          if (curSpec && !curSpec._fin) finSpec();
+          if (!curSpec) { curSpec = newSpec(); finSpec(); warnings.push('[RUN] PIPE 카드 없이 기하가 시작됨 — 기본 스펙 가정.'); }
+          var nm1 = l.slice(5, 10).trim();
+          curAbs = [curAbs[0] + num(l.slice(19, 29), 0), curAbs[1] + num(l.slice(29, 39), 0), curAbs[2] + num(l.slice(39, 49), 0)];
+          var nid2 = ensureNode(nm1, curAbs);
+          if (prevId != null && prevId !== nid2)
+            model.elems.push({ from: prevId, to: nid2, segId: (segIdx < 0 ? 0 : segIdx), spec: specSnapshot() });
+          if (kw === 'BEND') {
+            var bl = l.slice(54, 56).trim();
+            addAtt(model, nid2, { kind: 'bend', bendKind: (bl === 'S' ? 'short' : 'long') }, warnings, 'BEND');
+          }
+          prevId = nid2; lastPt = nm1;
+        } else if (kw === 'ANC') {
+          attTo(l.slice(5, 10), { kind: 'anchor' }, 'ANC');
+        } else if (kw === 'VSTP') {
+          attTo(l.slice(5, 10), { kind: 'rest', form: 'single' }, 'VSTP');   // W/R·H 변형 모두 수직지지
+        } else if (kw === 'SPRG') {
+          var as2 = { kind: 'vspring_hanger', form: 'single' };
+          var ld = num(l.slice(18, 29), 0), rt = num(l.slice(29, 39), 0);
+          if (ld > 0) as2.load = ld; if (rt > 0) as2.rate = rt;
+          attTo(l.slice(5, 10), as2, 'SPRG');
+        } else if (kw === 'CONS') {
+          var ac2 = { kind: 'constant_hanger', form: 'single' };
+          var ld2 = num(l.slice(18, 29), 0); if (ld2 > 0) ac2.load = ld2;
+          attTo(l.slice(5, 10), ac2, 'CONS');
+        } else if (kw === 'GUID') {
+          var ag2 = { kind: 'guide', form: 'single' };
+          var gv2 = [num(l.slice(31, 39), null), num(l.slice(41, 49), null), num(l.slice(51, 59), null), num(l.slice(61, 69), null)]
+            .filter(function (v) { return v != null && v > 0; });
+          var realGap = gv2.filter(function (v) { return Math.abs(v - 2540) > 0.5; });
+          if (realGap.length) ag2.gap = realGap[0];     // 2540.000 = 관례 기본값 → 밀착(gap 미설정)
+          attTo(l.slice(5, 10), ag2, 'GUID');
+        } else if (kw === 'LINE') {
+          attTo(l.slice(5, 10), { kind: 'line_stop' }, 'LINE');
+          var lv2 = num(l.slice(31, 39), null);
+          if (lv2 != null && Math.abs(lv2 - 2540) > 0.5)
+            warnings.push('[LINE] 라인스톱 갭 ' + lv2 + 'mm — 본 도구 라인스톱은 갭 미지원(밀착으로 임포트).');
+        } else if (kw === 'DAMP') {
+          var ad2 = { kind: 'snubber', form: 'single', dir: 'X' };
+          var nidD = attTo(l.slice(5, 10), ad2, 'DAMP');
+          if (nidD != null) lastDamp = { att: ad2, cont: 0 };
+        } else if (kw === 'JOB' || kw === 'HED' || kw === 'DESC' || kw === 'MINP' || kw === 'SLEV' ||
+                   kw === 'BPOP' || kw === 'MATL' || kw === 'SOLV') {
+          /* 헤더/솔버 카드 — 모델 정보 아님, 무시 */
+        } else {
+          warnings.push("[미지원] 실물 NTL 카드 '" + kw + "' 무시: '" + l.slice(0, 50).trim() + "'");
+        }
+      } catch (err) {
+        warnings.push('[오류내성] 실물 NTL 레코드 처리 오류(' + err + ") — 줄 무시: '" + l.slice(0, 50) + "'");
+      }
+    }
+    if (firstSpec) {
+      g.CA = firstSpec.CA; g.SG = firstSpec.SG; g.cyc = firstSpec.cyc; g.Eff = firstSpec.Eff;
+      g.insT = firstSpec.insulT; g.insRho = firstSpec.insulRho; g.insName = firstSpec.insulName;
+    }
+    return { model: finishModel(model, g, warnings), warnings: warnings };
+  }
+
   function parseNTL(text) {
+    /* v24-X2: AutoPipe 25.x 실물 방언 감지 → 전용 파서 위임 */
+    if (/^CTL\s+B31\.1/m.test(text) || (/^JOB\s/m.test(text) && /^SEG\s+\S+/m.test(text)))
+      return parseNTLReal(text);
+
     var warnings = [];
     var model = emptyModel();
     var g = { P: 0, T: 20, Ta: 20, SG: 1, Eff: 1, cyc: 7000, CA: 0, insName: 'none', insT: 0, insRho: 0 };
@@ -3974,7 +4282,11 @@ function applyLoadedModel(data, opt={}){
   // 3) material / condition fields
   const m=data.material||{};
   if(m.mMat!=null)$('#mMat').value=m.mMat;
-  if(m.mNps!=null)$('#mNps').value=m.mNps; fillSch();
+  /* v24-X2: 목록에 없는 DN(예: 커스텀 치수 모델의 DN711)은 'custom' 으로 폴백 —
+     select 에 없는 값 대입 시 value='' 가 되어 fillSch 가 TypeError 나던 결함 수정 */
+  if(m.mNps!=null){ const npsSel=$('#mNps'); npsSel.value=m.mNps;
+    if(npsSel.value!==String(m.mNps)) npsSel.value='custom'; }
+  fillSch();
   if(m.mSch!=null)$('#mSch').value=m.mSch;
   if(m.mOD!=null)$('#mOD').value=m.mOD;
   if(m.mWT!=null)$('#mWT').value=m.mWT;
