@@ -85,7 +85,7 @@ input,select{font-family:var(--mono);font-size:12px}
 .tbtn svg{width:14px;height:14px}
 
 /* ---- layout ---- */
-.app{display:grid;grid-template-columns:minmax(250px,288px) minmax(430px,1fr) minmax(270px,312px);flex:1 1 auto;min-height:0} /* v24-X3 */
+.app{display:grid;grid-template-columns:minmax(250px,288px) minmax(430px,1fr) minmax(270px,312px);grid-template-rows:minmax(0,1fr);flex:1 1 auto;min-height:0;overflow:hidden} /* v24-X3b: 행 고정 — 좌우 패널이 내용만큼 늘어나 창을 뚫던 결함 수정 */
 .col{display:flex;flex-direction:column;min-height:0;background:var(--panel)}
 .col.left{border-right:1px solid var(--line)}
 .col.right{border-left:1px solid var(--line)}
@@ -241,7 +241,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 .dirpad button{font-size:11px;font-weight:700;padding:5px 0;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--dim);border-radius:6px;cursor:pointer}
 .dirpad button:hover{background:var(--acc);color:#06121b;border-color:var(--acc)}
 .dirpad button.on{background:var(--acc);color:#06121b;border-color:var(--acc)}
-.tchk{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--dim);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;padding:0 9px;height:30px;cursor:pointer;user-select:none}
+.tchk{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--dim);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;padding:0 9px;height:30px;cursor:pointer;user-select:none;white-space:nowrap;flex:0 0 auto} /* v24-X3b */
 .tchk input{accent-color:var(--acc);cursor:pointer}
 .recentpanel{position:absolute;top:54px;right:14px;z-index:30;width:330px;max-height:74%;overflow:auto;background:rgba(13,18,26,.97);border:1px solid var(--line2);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.5);display:none}
 .recentpanel.show{display:block}
