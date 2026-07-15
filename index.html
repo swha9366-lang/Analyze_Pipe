@@ -65,19 +65,19 @@
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13px;overflow:hidden;-webkit-font-smoothing:antialiased}
+html{height:100%;overflow-x:auto;overflow-y:hidden} body{height:100%;min-width:1024px} /* v24-X3 */
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13px;overflow:hidden;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column} /* v24-X3 */
 button{font-family:inherit;cursor:pointer}
 input,select{font-family:var(--mono);font-size:12px}
 
 /* ---- top bar ---- */
-.top{height:46px;background:linear-gradient(180deg,#161d29,#10151e);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 14px;z-index:30;position:relative}
-.brand{display:flex;align-items:baseline;gap:8px}
+.top{min-height:46px;flex:0 0 auto;flex-wrap:wrap;row-gap:4px;background:linear-gradient(180deg,#161d29,#10151e);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:5px 14px;z-index:30;position:relative} /* v24-X3 */
+.brand{display:flex;align-items:baseline;gap:8px;white-space:nowrap} /* v24-X3 */
 .brand b{font-size:15px;letter-spacing:.5px;font-weight:700}
 .brand .v{font-family:var(--mono);font-size:10px;color:var(--acc);border:1px solid var(--acc2);border-radius:3px;padding:1px 5px}
 .brand .sub{color:var(--dim);font-size:11px;letter-spacing:.3px}
 .top .spacer{flex:1}
-.tbtn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:7px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;transition:.12s}
+.tbtn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:7px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;transition:.12s;white-space:nowrap;flex:0 0 auto} /* v24-X3 */
 .tbtn:hover{border-color:var(--line2);background:#222c3a}
 .tbtn.run{background:linear-gradient(180deg,#2a9fd6,#1d7fb0);border-color:#3bb0e0;color:#fff}
 .tbtn.run:hover{filter:brightness(1.08)}
@@ -85,7 +85,7 @@ input,select{font-family:var(--mono);font-size:12px}
 .tbtn svg{width:14px;height:14px}
 
 /* ---- layout ---- */
-.app{display:grid;grid-template-columns:288px 1fr 312px;height:calc(100% - 46px)}
+.app{display:grid;grid-template-columns:minmax(250px,288px) minmax(430px,1fr) minmax(270px,312px);flex:1 1 auto;min-height:0} /* v24-X3 */
 .col{display:flex;flex-direction:column;min-height:0;background:var(--panel)}
 .col.left{border-right:1px solid var(--line)}
 .col.right{border-left:1px solid var(--line)}
@@ -99,7 +99,7 @@ input,select{font-family:var(--mono);font-size:12px}
 .sect.closed .body{display:none}
 .sect.closed h3 .chev{transform:rotate(-90deg)}
 .body{padding:0 12px 12px}
-.scroll{overflow-y:auto;flex:1;min-height:0}
+.scroll{overflow-y:auto;flex:1;min-height:0;overscroll-behavior:contain} /* v24-X3 */
 .scroll::-webkit-scrollbar{width:9px}
 .scroll::-webkit-scrollbar-thumb{background:#2a3342;border-radius:6px;border:2px solid var(--panel)}
 
@@ -162,9 +162,9 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 .xbtn:hover{color:var(--bad)}
 
 /* ---- viewport ---- */
-.vp-head{position:absolute;top:0;left:0;right:0;height:38px;display:flex;align-items:center;gap:8px;padding:0 12px;z-index:10;pointer-events:none}
+.vp-head{position:absolute;top:0;left:0;right:0;min-height:38px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;row-gap:6px;padding:4px 12px;z-index:10;pointer-events:none} /* v24-X3 */
 .vp-head .seg{pointer-events:auto;display:flex;background:rgba(16,21,30,.85);border:1px solid var(--line);border-radius:7px;backdrop-filter:blur(8px);overflow:hidden}
-.vp-head .seg button{background:none;border:none;color:var(--dim);padding:6px 11px;font-size:11px;font-weight:600;border-right:1px solid var(--line)}
+.vp-head .seg button{background:none;border:none;color:var(--dim);padding:6px 11px;font-size:11px;font-weight:600;border-right:1px solid var(--line);white-space:nowrap} /* v24-X3 */
 .vp-head .seg button:last-child{border-right:none}
 .vp-head .seg button.on{background:var(--acc);color:#06121b}
 .vp-head .seg button:hover:not(.on){color:var(--ink);background:#1c2532}
