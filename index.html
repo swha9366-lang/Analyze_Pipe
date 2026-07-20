@@ -1,5 +1,20 @@
 <!DOCTYPE html>
 <!-- ===========================================================================
+  B31.1 Piping Stress Analyzer — v25  CHANGELOG (v24 → v25)
+  ---------------------------------------------------------------------------
+  F8  '리지드 서포트(Rest)' → '스트러트(Strut)' + 구속축 선택(V=수직축 추종,
+      전역 X/Y/Z). 기존 rest 하위호환 유지. strut(V)≡rest 비트동일.
+      NTL: VSTP/LINE/GUID 근사 + TOOLEXT STRUT 무손실 수출입.
+  F9  SCH '직접입력…' — 표준 DN 외경 + 사용자 두께(mm). 저장/로드/수출입 일관.
+  F10 세그먼트 선택 칩([A][B]…[+새 세그먼트]) — 클릭=활성화+From 자동 전환,
+      모델트리 세그 뱃지(색상), 요소 귀속 세그Id 보장 + 기존 세그 스펙 상속.
+  F11 세그먼트 스펙 편집 — [✎ 스펙 편집(폼으로)] → 수정 → [✔ 이 세그먼트에
+      적용] (온도·압력·재질·규격·보온 전부, pushHist/결과 무효화).
+  F12 rod 행어 NTL 오변환 수정 — 'H 1 1' 행어설계 플래그 제거(강체 VSTP+
+      TOOLEXT ROD), SOLV HANG 은 스프링/콘스턴트 있을 때만 출력.
+  F13 GUI 컬러링 — X/Y/Z 입력칸 축색 틴트(적/녹/청), 세그먼트 칩·뱃지 색상.
+  =========================================================================== -->
+<!-- ===========================================================================
   B31.1 Piping Stress Analyzer — v24  CHANGELOG (v23 → v24)
   ---------------------------------------------------------------------------
   F4  스너버/댐퍼 정격(설계하중, kg) 입력 — 미입력 시 자동연산값만 표시.
@@ -191,6 +206,26 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 .coordprev b{color:#33d399}
 .segbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
 .segbar #segNow{font-size:11px;font-weight:700;color:var(--acc);font-family:monospace}
+/* ---- v25-F10/F13: 세그먼트 칩 + 축색 힌트 ---- */
+#segChips{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:8px}
+.segchip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:10px;border:1px solid var(--line2);
+  border-left:4px solid var(--sc,#39bdf8);background:var(--panel2);color:var(--ink);font-family:var(--mono);
+  font-size:11px;font-weight:700;cursor:pointer;user-select:none;transition:.12s}
+.segchip:hover{background:#222c3a}
+.segchip.on{outline:2px solid var(--sc,#39bdf8);outline-offset:1px;background:#1c2836}
+.segchip.new{border-style:dashed;border-left-style:dashed;color:var(--dim);font-weight:600}
+.segb{display:inline-block;min-width:13px;text-align:center;border-radius:4px;font-size:8.5px;line-height:13px;
+  color:#08131c;font-weight:800;padding:0 3px;margin-left:4px;vertical-align:1px}
+.segacts{display:flex;gap:5px;margin-top:6px}
+.segacts button{flex:1;font-size:10.5px;padding:5px 6px;border-radius:6px;border:1px solid var(--line2);
+  background:var(--panel2);color:var(--ink);cursor:pointer}
+.segacts button:hover{border-color:var(--acc2);color:var(--acc)}
+/* 좌표 입력칸 축색 (3D 기즈모 팔레트: X=적, Y=녹, Z=청) — 은은한 틴트 + 포커스 테두리 */
+#nX{background:rgba(255,90,95,.09)!important;border-color:rgba(255,90,95,.35)}
+#nY{background:rgba(51,211,153,.09)!important;border-color:rgba(51,211,153,.35)}
+#nZ{background:rgba(57,132,248,.10)!important;border-color:rgba(91,142,248,.40)}
+#nX:focus{border-color:#ff5a5f;outline:none} #nY:focus{border-color:#33d399;outline:none} #nZ:focus{border-color:#5b8ef8;outline:none}
+#lblX{color:#ff8b8f} #lblY{color:#6fe3b1} #lblZ{color:#7fb0ff}
 .seghint{font-size:10px;line-height:1.45;color:var(--dim2);background:#101722;border:1px solid var(--line2);border-left:3px solid #33d399;border-radius:6px;padding:6px 9px;margin-top:6px}
 .seghint b{color:#33d399}
 .labellayer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:12}
@@ -336,7 +371,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 <body>
 <div class="top">
   <div class="brand">
-    <b>PSA</b><span class="v" title="v24 — v23 + 스너버 정격(F4)·앵커 F/M/D 입력(F5)·빠른 실행취소(F6)·부속 칩 편집(F7)">B31.1 · v24</span>
+    <b>PSA</b><span class="v" title="v25 — 스트러트 축선택(F8)·SCH 직접입력(F9)·세그먼트 선택/편집(F10·F11)·rod NTL 수정(F12)·축색 GUI(F13)">B31.1 · v25</span>
     <span class="sub">Power Piping Stress Analyzer</span>
   </div>
   <div class="spacer"></div>
@@ -386,6 +421,11 @@ input[readonly]{opacity:.6;cursor:not-allowed}
           <div class="grid2" id="customSize" style="display:none;margin-bottom:7px">
             <div class="fld"><span>외경 OD <i class="u-len">mm</i></span><input id="mOD" value="168.3"></div>
             <div class="fld"><span>두께 t <i class="u-len">mm</i></span><input id="mWT" value="7.11"></div>
+          </div>
+          <!-- v25-F9: SCH 직접입력 — 표준 DN 외경 + 사용자 두께 -->
+          <div class="grid2" id="schUserRow" style="display:none;margin-bottom:7px">
+            <div class="fld"><span>사용자 두께 t <i class="u-len">mm</i></span><input id="mWTU" value=""></div>
+            <div class="fld"><span style="color:#7e90a4">OD는 DN 표준값 유지</span></div>
           </div>
           <div class="grid3">
             <div class="fld"><span>설계압 <i class="u-prs">MPa</i></span><input id="mP" value="4.0"></div>
@@ -482,11 +522,17 @@ input[readonly]{opacity:.6;cursor:not-allowed}
             </div>
             <div class="mini" id="segBrHint" style="margin-top:4px;color:#7e90a4">방향 버튼을 누르면 Δ좌표가 자동 입력됩니다. 분기관경을 본관과 다르게 고르면 분기관이 <b style="color:#9fd4b0">이경(별도 세그먼트)</b>으로 생성됩니다.</div>
           </div>
-          <div class="segbar">
-            <span id="segNow">현재 세그먼트: 0</span>
-            <button id="btnNewSeg" class="mini-btn">＋ 새 세그먼트 (스펙 변경)</button>
+          <!-- v25-F10: 세그먼트 선택 칩 — 클릭=활성화(이후 절점은 그 세그먼트로 귀속, From=그 세그 마지막 절점) -->
+          <div id="segChips"></div>
+          <span id="segNow" style="display:none"></span><!-- 하위호환 앵커 -->
+          <button id="btnNewSeg" style="display:none"></button><!-- startNewSegment 는 [+ 새 세그먼트] 칩으로 이동 -->
+          <!-- v25-F11: 세그먼트 스펙 편집 -->
+          <div class="segacts">
+            <button id="btnSegSpecLoad" title="활성 세그먼트의 스펙을 좌측 폼으로 불러와 편집합니다 (진입 시 다른 세그먼트의 상속 스펙은 자동 고정되어 오염되지 않습니다)">✎ 스펙 편집(폼으로)</button>
+            <button id="btnSegSpecApply" title="좌측 폼의 현재 값(재질·규격·온도·압력·보온 등)을 활성 세그먼트의 모든 요소에 적용합니다">✔ 이 세그먼트에 적용</button>
           </div>
-          <div class="seghint" id="segHint">같은 세그먼트의 절점은 좌측 스펙이 <b>자동 적용</b>됩니다. 증기 온도·압력·배관 규격이 바뀌는 지점에서 <b>＋ 새 세그먼트</b>를 누르고 새 스펙을 입력하세요. 첫 세그먼트만 수동 입력, 이후는 자동 상속됩니다.</div>
+          <div class="mini" id="segEditNote" style="display:none;margin-top:4px;color:#ffd9a6"></div><!-- v25-F11b: 편집 중 표시 -->
+          <div class="seghint" id="segHint">세그먼트 칩을 눌러 <b>활성 세그먼트</b>를 고르면 이후 추가 절점이 그 세그먼트에 귀속되고 From 절점이 자동 전환됩니다. 스펙이 바뀌는 지점에서 <b>＋ 새 세그먼트</b>. 모델 확정 후에도 <b>✎ 스펙 편집 → ✔ 적용</b>으로 세그먼트별 온도·압력·재질·규격을 수정할 수 있습니다.</div>
           <div class="row">
             <label>기준 From</label>
             <select id="fromNode" style="flex:1"></select>
@@ -542,7 +588,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
                 <option value="anchor">앵커 (Anchor · 6DOF)</option>
                 <option value="nozzle">노즐 (Nozzle · 6DOF)</option>
                 <option value="hx">열교환기 노즐 (HX)</option>
-                <option value="rest">리지드 서포트 (Rest +Z)</option>
+                <option value="strut">스트러트 (Strut · 축선택)</option><!-- v25-F8: 구 '리지드 서포트(Rest)' 대체 — 기존 rest 모델은 계속 인식 -->
                 <option value="rod">로드 행어 (Rod Hanger)</option>
                 <option value="guide">가이드 (Guide)</option>
                 <option value="line_stop">라인스톱 (Axial)</option>
@@ -644,6 +690,15 @@ input[readonly]{opacity:.6;cursor:not-allowed}
             <label title="가이드와 배관 사이 반경방향 유격(mm). 변위가 갭을 초과할 때만 접촉·구속됩니다 (active-set 반복해석)">갭 mm</label>
             <input id="attGap" placeholder="0 (밀착)" style="flex:1">
           </div>
+          <!-- v25-F8: 스트러트 방향 (V=수직, 전역 X/Y/Z) -->
+          <div class="row" id="attStrutFld" style="display:none;margin-top:6px">
+            <label title="V(수직)는 상단 수직축 설정(+Y/+Z)을 자동 추종합니다. 전역 X/Y/Z는 수직축과 무관한 고정 전역방향 — 수직축을 +Z로 바꾸면 V는 Z를 잡고, 명시적 Y스트러트는 수평(횡) 구속이 됩니다. 수직 지지는 V 사용 권장.">구속방향</label>
+            <select id="attStrutDir" style="flex:1">
+              <option value="V">V · 수직 (수직축 자동 추종)</option>
+              <option value="X">전역 X</option><option value="Y">전역 Y</option><option value="Z">전역 Z</option>
+            </select>
+          </div>
+          <div class="mini" id="strutHint" style="display:none;margin-top:4px;color:#7e90a4">방향 <b>V(수직)</b>는 상단 수직축 설정(+Y/+Z)을 자동 추종. <b>전역 X/Y/Z</b>는 수직축과 무관한 고정 전역방향 — 수직축을 +Z로 바꾸면 V는 Z를 잡고, 명시적 Y스트러트는 수평(횡) 구속이 됩니다. 수직 지지는 V 사용 권장.</div>
           <!-- v24-F5: 앵커/노즐/HX 부가 하중·모멘트·강제변위 (전부 선택입력) -->
           <div id="attAnchFld" style="display:none">
             <div class="grid3" style="margin-top:6px">
@@ -1515,7 +1570,16 @@ function runAnalysis(input){
           log('i','I024',`앵커무브먼트 D=(${dsp[0]},${dsp[1]},${dsp[2]})mm — 열팽창 케이스 강제변위 적용 (B31.1 119.7)`,'N'+n.id); }
         supports.push(sup); anchorCount++;
       }
-      else if(kind==='rest'){ supports.push({node:n.id,type:'rigid',dofs:[VUP],kind,form,cases:null,reaction:true}); }
+      else if(kind==='rest'){ supports.push({node:n.id,type:'rigid',dofs:[VUP],kind,form,cases:null,reaction:true}); }  /* 하위호환: 구 Rest ≡ strut(V) */
+      else if(kind==='strut'){
+        /* v25-F8: 스트러트 — 축 선택형 강체 병진 지지.
+           dir: 'V'(기본)=수직(수직축 설정 추종), 'X'|'Y'|'Z'=고정 전역방향.
+           [engine_v2.py L638-642: d=VUP if dr=="V" else {"X":0,"Y":1,"Z":2}.get(dr,VUP)]
+           검증 등가성: strut(V)≡rest 비트동일, 직관X에서 strut(X)≡line_stop. */
+        const dr=a.dir||'V';
+        const d=(dr==='V')?VUP:(({X:0,Y:1,Z:2})[dr]!=null?({X:0,Y:1,Z:2})[dr]:VUP);
+        supports.push({node:n.id,type:'rigid',dofs:[d],kind,form,cases:null,reaction:true});
+      }
       else if(kind==='guide'){
         /* v22-D4 (옵션 guideAxisFix): 벤드(코너) 절점 가이드가 첫 인접요소 축만 보고
            주관 축방향(열성장 방향)을 강체구속하던 결함 수정 — 인접 '모든' 요소의
@@ -2217,9 +2281,29 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           c([[0,'VSTP'],[5,pn],[16,'W'],R(2540,3,48),[60,'R']]);
           c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
           if(a.form==='double') manual.push(`${pn}(N${nid}) rest DOUBLE — AutoPipe 지지 속성에서 수동 반영`);
-        } else if(a.kind==='rod'){
-          c([[0,'VSTP'],[5,pn],[60,'H'],[63,'1'],[66,'1']]);
+        } else if(a.kind==='strut'){
+          /* v25-F8: strut — V(수직)는 VSTP, 전역축은 수직축 일치→VSTP / 배관축 일치→LINE / 그 외→GUID 1슬롯.
+             TOOLEXT STRUT 로 무손실(임포터가 kind/dir 정확 복원). */
+          const dr=a.dir||'V';
+          const d=(dr==='V')?VUP:(({X:0,Y:1,Z:2})[dr]!=null?({X:0,Y:1,Z:2})[dr]:VUP);
+          if(d===VUP){
+            c([[0,'VSTP'],[5,pn],[16,'W'],R(2540,3,48),[60,'R']]);
+          } else if(d===domAxis(nid)){
+            c([[0,'LINE'],[5,pn],[16,'W'],R(2540,3,38)]);
+          } else {
+            c([[0,'GUID'],[5,pn],[16,'W'],R(2540,3,(domAxis(nid)===1)?58:38)]);
+            manual.push(`${pn}(N${nid}) 스트러트(전역 ${dr}) — GUID 근사로 출력, AutoPipe 에서 단축 지지로 확인/수정`);
+          }
           c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
+          toolext(`STRUT ${pn} ${dr}`);
+        } else if(a.kind==='rod'){
+          /* v25-F12: 구현 오류 수정 — 종전 'H 1 1'(행어설계 대상 플래그) 출력이 SOLV HANG 과 결합되어
+             AutoPipe 가 rod 를 가변스프링으로 자동 설계하던 실임포트 버그. 강체 VSTP(W..R)로 출력하고
+             TOOLEXT ROD 마커로 본 도구 재임포트 시 rod 복원. */
+          c([[0,'VSTP'],[5,pn],[16,'W'],R(2540,3,48),[60,'R']]);
+          c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
+          toolext(`ROD ${pn}`);
+          manual.push(`${pn}(N${nid}) 로드 행어 — AutoPipe 에서 지지 타입을 Rigid Rod 로 변경 권장`);
         } else if(a.kind==='vspring_hanger'||a.kind==='vspring_support'){
           const h=hangersByNode[nid];
           const rate=(a.rate>0)?a.rate:(h&&h.rate>0?h.rate:0);
@@ -2307,7 +2391,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
       c([[0,'SEG'],[5,seg.names[0]],[10,seg.letter.charAt(0)],R(s0.x,3,28),R(s0.y,3,38),R(s0.z,3,48)]);
       /* PIPE 정체성 — 고정컬럼 + 5연속행 (미해독 수치는 실물 값 복제) */
       const dn=sp.nominalDN||Math.round(sp.od||0);
-      const schS='S'+String(sp.sch&&sp.sch!=='-'?sp.sch:'STD').replace(/\s/g,'');
+      const schS=(sp.sch==='SUSR')?'SUSR':'S'+String(sp.sch&&sp.sch!=='-'?sp.sch:'STD').replace(/\s/g,'');   /* v25-F9: 사용자 두께는 SUSR 표기(실두께는 *** 주석 권위) */
       c([[0,'PIPE'],[5,('DN'+dn+'_'+pipeNo).slice(0,13)],[19,'N'],R(dn,3,28),[31,schS.slice(0,8)],R(0,3,48),[53,'2.6800'],[79,'N']]);
       c([[0,CONT],[5,'B311-TOOL EXPORT']]);
       const rmat=({'A335-P91':'A335-P91-T1','A335-P92':'A335-P92','A335-P11':'A335-P11','A106-B':'A106-B','A53-B':'A53-B','A312-TP316':'A312-TP316'})[sp.matKey]||sp.matKey||'A106-B';
@@ -2362,9 +2446,14 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
     c([[0,CONT],[5,'Analysis Set No. 1']]);
     c([[0,CONT],[5,'Y    N        1        30   0.0254    44.482     0.100     1.000  Y Y Y N 0']]);
     c([[0,CONT],[5,'GR,,T1,GR,P1,T1,']]);
-    c('SOLV Y    HANG 1        2.540     0.250');
-    c([[0,CONT],[5,'N    N        0         0   0.0000     0.000     0.000     0.000  N N Y N 0']]);
-    c([[0,CONT],[5,'T1']]);
+    /* v25-F12-②: 행어 설계 실행(SOLV HANG)은 모델에 스프링/콘스턴트 행어가 있을 때만 출력 —
+       rod 만 있는 모델에서 AutoPipe 행어 자동설계가 도는 것을 차단 */
+    const hasHang=nodes.some(n=>(n.att||[]).some(a=>/^(vspring|constant)_/.test(a.kind||'')));
+    if(hasHang){
+      c('SOLV Y    HANG 1        2.540     0.250');
+      c([[0,CONT],[5,'N    N        0         0   0.0000     0.000     0.000     0.000  N N Y N 0']]);
+      c([[0,CONT],[5,'T1']]);
+    }
     /* 점명 ↔ 노드ID 매핑 (임포터가 원 노드ID 복원에 사용, AutoPipe 는 주석 무시) */
     c('***');
     mapRows.forEach(([pn,nid])=>c(`***  MAP ${pn} = N${nid}`));
@@ -3155,6 +3244,14 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
         var kk2 = (tk[2] || '').toLowerCase(), axv = (tk[3] || '').toUpperCase();
         var aax = lastAttOf(nid, [kk2]);
         if (aax && 'XYZ'.indexOf(axv) >= 0) aax.axis = axv;
+      } else if (op === 'STRUT') {                      // v25-F8: 직전 VSTP/LINE/GUID 근사카드를 strut 로 정확 복원
+        var dv2 = (tk[2] || 'V').toUpperCase();
+        var ast = lastAttOf(nid, ['rest', 'line_stop', 'guide', 'strut']);
+        if (ast) { ast.kind = 'strut'; delete ast.gap;
+          if ('XYZ'.indexOf(dv2) >= 0) ast.dir = dv2; else delete ast.dir; }
+      } else if (op === 'ROD') {                        // v25-F12: 강체 VSTP 로 나간 rod 복원
+        var ard = lastAttOf(nid, ['rest']);
+        if (ard) ard.kind = 'rod';
       } else {
         warnings.push("[TOOLEXT] 미지원 확장 '" + op + "' 무시.");
       }
@@ -3774,11 +3871,13 @@ function fillSch(){
   const dn=$('#mNps').value, sch=$('#mSch'), custom=dn==='custom';
   $('#customSize').style.display=custom?'grid':'none';
   sch.style.display=custom?'none':'';
+  if($('#schUserRow'))$('#schUserRow').style.display='none';   /* v25-F9: DN 변경 시 초기화 */
   if(custom){ updatePipeInfo(); return; }
   sch.innerHTML='';
   const t=PSA.PIPE_SIZES[dn].t;
   const keys=Object.keys(t).sort((a,b)=>SCH_ORDER.indexOf(a)-SCH_ORDER.indexOf(b));
   for(const s of keys){const o=document.createElement('option');o.value=s;o.textContent='SCH '+s;sch.appendChild(o);}
+  const ou=document.createElement('option'); ou.value='SUSR'; ou.textContent='직접입력…'; sch.appendChild(ou);   /* v25-F9 */
   sch.value = (t['40']!==undefined)?'40':keys[0];
   updatePipeInfo();
 }
@@ -3790,7 +3889,12 @@ function resolveSize(){
     const t =CV.len.toSI(parseFloat($('#mWT').value)||0,U.sys);
     return {od,t,sch:'-',label:`Custom Ø${od.toFixed(1)}×${t.toFixed(2)}mm`};
   }
-  const sz=PSA.PIPE_SIZES[dn], sch=$('#mSch').value, t=sz.t[sch];
+  const sz=PSA.PIPE_SIZES[dn], sch=$('#mSch').value;
+  if(sch==='SUSR'){   /* v25-F9: 표준 DN 외경 + 사용자 두께 */
+    const tu=CV.len.toSI(parseFloat($('#mWTU')&&$('#mWTU').value)||0,U.sys);
+    return {od:sz.od,t:tu,sch:'SUSR',label:`${dn} (NPS ${sz.nps}") t${tu.toFixed(2)}mm 사용자`};
+  }
+  const t=sz.t[sch];
   return {od:sz.od,t,sch,label:`${dn} (NPS ${sz.nps}") SCH ${sch}`};
 }
 function resolveInsul(){
@@ -3814,6 +3918,7 @@ const ATT_META={
   mass:{form:false,param:['질량 kg','num'],dir:false}, force:{form:false,param:null,dir:false,force:true},
   anchor:{form:false,param:null,dir:false,anch:true}, nozzle:{form:false,param:null,dir:false,anch:true}, hx:{form:false,param:null,dir:false,anch:true},   /* v24-F5 */
   rest:{form:true,param:null,dir:false,sup:true}, rod:{form:true,param:null,dir:false,sup:true},
+  strut:{form:true,param:null,dir:false,strut:true},   /* v25-F8 */
   guide:{form:true,param:null,dir:false,axis:true,gap:true}, line_stop:{form:false,param:null,dir:false,axis:true},   /* v22-D4: axis, v23-F2: gap */
   vspring_hanger:{form:true,param:null,dir:false,sup:true,rate:true},
   vspring_support:{form:true,param:null,dir:false,sup:true,rate:true},
@@ -3844,6 +3949,8 @@ function syncAttFields(){
   if($('#attAxisFld'))$('#attAxisFld').style.display=m.axis?'':'none';   /* v22-D4 */
   if($('#attGapFld'))$('#attGapFld').style.display=m.gap?'':'none';      /* v23-F2 */
   if($('#attAnchFld'))$('#attAnchFld').style.display=m.anch?'':'none';   /* v24-F5 */
+  if($('#attStrutFld'))$('#attStrutFld').style.display=m.strut?'':'none';   /* v25-F8 */
+  if($('#strutHint'))$('#strutHint').style.display=m.strut?'':'none';
   if($('#attLoad'))$('#attLoad').placeholder=(k==='snubber'||k==='damper')?'자동(계산값)':'자동(자중반력)';   /* v24-F4: 스너버는 정격 의미 */
   if(m.valve)valvePreview();
 }
@@ -3925,7 +4032,11 @@ function addNode(){
   state.nodes.push({id,x,y,z,att:[]});
   if(from){
     const el={from:from.id,to:id,segId:state.segId};
-    if(state.segId>0) el.spec=currentFormSpec();   // segments after the first carry their own locked spec
+    /* v25-F10: 활성 세그먼트에 이미 잠긴 스펙이 있으면 그 스펙을 상속(다른 세그 스펙 편승 차단),
+       없으면 기존 규칙(세그0=폼 기본, 세그>0=현재 폼 스펙 잠금) */
+    const inh=state.elems.find(e2=>(e2.segId||0)===(state.segId||0)&&e2.spec);
+    if(inh) el.spec={...inh.spec};
+    else if(state.segId>0) el.spec=currentFormSpec();   // segments after the first carry their own locked spec
     // segment type marks the From corner (vertex where direction changes / branches)
     if(state.segType==='bend'){
       const bk=$('#segBendKind')?$('#segBendKind').value:'long';
@@ -3967,8 +4078,90 @@ function startNewSegment(){
   toast(`세그먼트 ${state.segId} 시작 — 좌측에서 온도·압력·규격 등 새 스펙을 입력한 뒤 이어서 절점을 추가하세요.`,true);
   updSegInfo();
 }
-function updSegInfo(){
-  const el=$('#segNow'); if(el) el.textContent=`현재 세그먼트: ${state.segId}`;
+/* ===================== v25-F10: 세그먼트 선택 칩 ===================== */
+const SEG_COLORS=['#39bdf8','#33d399','#f5a623','#8b9bff','#ff8b8f','#4dd0e1','#ba68c8','#aed581','#ffb74d','#90a4ae'];
+function segColor(id){ return SEG_COLORS[(+id||0)%SEG_COLORS.length]; }
+function segLetter(id){ id=+id||0; return id<26?String.fromCharCode(65+id):'S'+id; }
+function segIdsInUse(){
+  return [...new Set([0].concat(state.elems.map(e=>e.segId||0)).concat([state.segId||0]))].sort((a,b)=>a-b);
+}
+function renderSegChips(){
+  const box=$('#segChips'); if(!box)return;
+  box.innerHTML=segIdsInUse().map(id=>{
+    const nEl=state.elems.filter(e=>(e.segId||0)===id).length;
+    return `<span class="segchip${id===(state.segId||0)?' on':''}" data-sid="${id}" style="--sc:${segColor(id)}" title="세그먼트 ${segLetter(id)} — 요소 ${nEl}개. 클릭=활성화(이후 절점이 이 세그먼트로 추가되고 From 이 마지막 절점으로 전환)">${segLetter(id)}<i style="font-style:normal;font-weight:400;color:var(--dim2);font-size:9px">${nEl}</i></span>`;
+  }).join('')+`<span class="segchip new" id="segNewChip" title="현재 폼 스펙을 지금 세그먼트에 잠그고 새 세그먼트를 시작합니다">＋ 새 세그먼트</span>`;
+  box.querySelectorAll('.segchip[data-sid]').forEach(ch=>ch.onclick=()=>activateSegment(parseInt(ch.dataset.sid)));
+  const nc=$('#segNewChip'); if(nc)nc.onclick=startNewSegment;
+}
+function activateSegment(sid){
+  state.segId=sid;
+  { const nt=$('#segEditNote'); if(nt)nt.style.display='none'; }   /* v25-F11b: 세그 전환 시 편집표시 해제 */
+  const els=state.elems.filter(e=>(e.segId||0)===sid);
+  if(els.length){ const last=els[els.length-1].to;   // From = 그 세그먼트의 마지막 절점
+    state.fromNode=last; state.sel=last; }
+  fillFromNode(); renderSegChips(); renderNodes(); renderAttPanel();
+  toast(`세그먼트 ${segLetter(sid)} 활성 — 이후 추가 절점은 이 세그먼트에 귀속됩니다`,true);
+}
+function updSegInfo(){ renderSegChips(); }   // 하위호환 별칭 (기존 호출부 유지)
+
+/* ===================== v25-F11: 세그먼트 스펙 편집 ===================== */
+function loadSegSpecToForm(sid){
+  /* v25-F11b: 편집 진입 시, 명시 spec 이 없는(=전역 폼 상속 중) 요소 전체에 현재 폼 스펙을
+     고정(materialize). 이후 폼을 편집 대상 세그 값으로 바꿔도 다른 세그가 오염되지 않음.
+     (SA6 결함: 샘플 D 에서 세그 B 편집→적용 시 무spec 세그 A(580℃)가 폼 오염으로 400℃가 되던 문제)
+     materialize 는 편집 진입 시에만 수행 — 편집을 안 하면 저장파일/결과 기존과 동일. */
+  const bare=state.elems.filter(e=>!e.spec);
+  if(bare.length){
+    const cur=currentFormSpec();
+    if(!(cur.od>0&&cur.t>0)){ toast('현재 폼 규격(OD/두께)이 유효하지 않아 스펙 편집을 시작할 수 없습니다',false); return; }
+    pushHist();
+    bare.forEach(e=>{ e.spec={...cur}; });   // 결과값 불변(동일 스펙 고정) — 재해석 불필요
+  }
+  const eSp=state.elems.find(e=>(e.segId||0)===sid&&e.spec);
+  if(!eSp){ toast(`세그먼트 ${segLetter(sid)} 에 요소가 없습니다`,false); return; }
+  const sp=eSp.spec;
+  $('#mMat').value=sp.matKey||'A106-B';
+  const dnKey=sp.nominalDN?('DN'+sp.nominalDN):null;
+  if(dnKey&&PSA.PIPE_SIZES[dnKey]&&Math.abs(PSA.PIPE_SIZES[dnKey].od-(sp.od||0))<0.11){
+    $('#mNps').value=dnKey; fillSch();
+    const tt=PSA.PIPE_SIZES[dnKey].t; let hit=null;
+    for(const k in tt){ if(Math.abs(tt[k]-sp.t)<0.011){hit=k;break;} }
+    if(hit){ $('#mSch').value=hit; }
+    else{ $('#mSch').value='SUSR'; if($('#schUserRow'))$('#schUserRow').style.display='grid';
+      if($('#mWTU'))$('#mWTU').value=(+CV.len.fromSI(sp.t,U.sys)).toFixed(3); }   /* v25-F9 연동 */
+  } else {
+    $('#mNps').value='custom'; fillSch();
+    $('#mOD').value=(+CV.len.fromSI(sp.od||0,U.sys)).toFixed(2);
+    $('#mWT').value=(+CV.len.fromSI(sp.t||0,U.sys)).toFixed(3);
+  }
+  $('#mP').value=+(+CV.prs.fromSI(sp.P||0,U.sys)).toFixed(3);
+  $('#mT').value=+(+CV.tmp.fromSI(sp.Tdesign==null?20:sp.Tdesign,U.sys)).toFixed(1);
+  $('#mTa').value=+(+CV.tmp.fromSI(sp.Tamb==null?20:sp.Tamb,U.sys)).toFixed(1);
+  $('#mCA').value=+(+CV.len.fromSI(sp.CA||0,U.sys)).toFixed(2);
+  $('#mSG').value=(sp.SG==null?1:sp.SG); $('#mEff').value=(sp.Eff==null?1:sp.Eff);
+  $('#mCyc').value=(sp.cyc==null?7000:sp.cyc);
+  let ik='custom';
+  for(const k in PSA.INSULATION){ if(PSA.INSULATION[k].name===sp.insulName){ik=k;break;} }
+  if((sp.insulT||0)<=0) ik='none';
+  $('#mInsMat').value=ik; syncInsRho();
+  if(ik==='custom')$('#mInsRho').value=sp.insulRho||0;
+  $('#mInsT').value=+(+CV.len.fromSI(sp.insulT||0,U.sys)).toFixed(1);
+  updatePipeInfo();
+  /* v25-F11b(2): 폼이 편집 중인 세그먼트 값을 표시 중임을 명시 */
+  { const nt=$('#segEditNote'); if(nt){ nt.style.display='';
+      nt.innerHTML=`✎ 좌측 폼은 <b>세그먼트 ${segLetter(sid)}</b> 값을 표시 중 — [✔ 적용] 대상: 세그먼트 ${segLetter(sid)}. (다른 세그먼트는 편집 진입 시 스펙이 고정되어 영향받지 않음)`; } }
+  toast(`세그먼트 ${segLetter(sid)} 스펙을 폼으로 불러왔습니다 — 수정 후 [✔ 이 세그먼트에 적용]`,true);
+}
+function applySpecToSeg(sid){
+  const els=state.elems.filter(e=>(e.segId||0)===sid);
+  if(!els.length){ toast(`세그먼트 ${segLetter(sid)} 에 요소가 없습니다`,false); return; }
+  const sp=currentFormSpec();
+  if(!(sp.od>0&&sp.t>0)){ toast('규격(OD/두께)이 유효하지 않습니다',false); return; }
+  pushHist();
+  els.forEach(e=>{ e.spec={...sp}; });
+  state.result=null; refreshAll(); renderSegChips();
+  toast(`세그먼트 ${segLetter(sid)} 요소 ${els.length}개에 스펙 적용 (${sp.matKey} · ${sp.Tdesign}℃ · ${sp.P}MPa) — 재해석 필요`,true);
 }
 function delNode(id){
   pushHist();
@@ -4009,7 +4202,12 @@ function startBranch(){
 }
 function selectNode(id){
   if(typeof ATT_EDIT!=='undefined'&&ATT_EDIT&&ATT_EDIT.node!==id) endAttEdit();   /* v24-F7: 절점 변경 시 편집 해제 */
-  state.sel=id; state.fromNode=id; renderNodes(); renderAttPanel(); fillFromNode();
+  state.sel=id; state.fromNode=id;
+  /* v25-F10: 선택 절점의 소속 세그먼트를 활성화 — 이후 추가 요소가 그 세그먼트로 귀속 */
+  { const eSeg=state.elems.find(e=>e.to===id)||state.elems.find(e=>e.from===id);
+    if(eSeg && (eSeg.segId||0)!==(state.segId||0)){ state.segId=eSeg.segId||0; }
+    if(typeof renderSegChips==='function') renderSegChips(); }
+  renderNodes(); renderAttPanel(); fillFromNode();
   // load its coords into the input fields (absolute) so they can be edited
   const n=nodeById(id); if(n){ $('#nX').value=(+CV.crd.fromSI(n.x,U.sys)).toFixed(3);
     $('#nY').value=(+CV.crd.fromSI(n.y,U.sys)).toFixed(3); $('#nZ').value=(+CV.crd.fromSI(n.z,U.sys)).toFixed(3);
@@ -4022,10 +4220,11 @@ function selectNode(id){
 
 /* ---- attachments ---- */
 const ATT_LABEL={bend:'Bend',tee:'Tee',valve:'Valve',flange:'Flange',mass:'Mass',force:'Force',
-  anchor:'Anchor',nozzle:'Nozzle',hx:'HX',rest:'Rest',rod:'Rod',guide:'Guide',line_stop:'L-Stop',
+  anchor:'Anchor',nozzle:'Nozzle',hx:'HX',rest:'Rest',strut:'Strut',rod:'Rod',guide:'Guide',line_stop:'L-Stop',
   vspring_hanger:'V.Spring행어',vspring_support:'V.Spring서포트',constant_hanger:'Const행어',constant_support:'Const서포트',
   snubber:'Snubber',damper:'Damper'};
 function attClass(k){ if(['snubber','damper'].includes(k))return 'dyn';
+  if(k==='strut')return 'sup';   /* v25-F8 */
   if(k.startsWith('vspring')||k.startsWith('constant'))return 'spr';
   if(['anchor','nozzle','hx','rest','rod','guide','line_stop'].includes(k))return 'sup'; return ''; }
 function nominalDN(){ const dn=$('#mNps').value;
@@ -4056,6 +4255,7 @@ function addAttachment(){
   if(m.dir) att.dir=$('#attDir').value;
   if(m.axis){ const ax=$('#attAxis')?$('#attAxis').value:'auto'; if(ax&&ax!=='auto') att.axis=ax; }   /* v22-D4 */
   if(m.gap){ const gp=parseFloat($('#attGap').value); if(gp>0) att.gap=gp; }   /* v23-F2: 가이드 갭 mm */
+  if(m.strut){ const sd=$('#attStrutDir')?$('#attStrutDir').value:'V'; if(sd&&sd!=='V') att.dir=sd; }   /* v25-F8: V(기본)는 미저장 */
   if(m.anch){ /* v24-F5: 앵커 부가 F/M/D — 값이 있는 것만 저장 (M: N·m 입력 → 내부 N·mm) */
     const gv=id=>{const v=parseFloat($(id).value); return (!isNaN(v)&&v!==0)?v:null;};
     const fx=gv('#anFx'),fy=gv('#anFy'),fz=gv('#anFz');
@@ -4113,6 +4313,7 @@ function attManagedFields(kind){
   if(m.axis)f.push('axis');
   if(m.gap)f.push('gap');
   if(m.anch)f.push('fx','fy','fz','mx','my','mz','dx','dy','dz');
+  if(m.strut)f.push('dir');   /* v25-F8 */
   return f;
 }
 /* 칩 클릭 → 해당 att 값을 편집기 폼에 로드 */
@@ -4139,6 +4340,7 @@ function startAttEdit(nid,idx){
   if(m.dir) set('#attDir',a.dir||'axial');
   if(m.axis) set('#attAxis',a.axis||'auto');
   if(m.gap) set('#attGap',a.gap>0?a.gap:'');
+  if(m.strut) set('#attStrutDir',a.dir||'V');   /* v25-F8 */
   if(m.anch){ set('#anFx',a.fx||''); set('#anFy',a.fy||''); set('#anFz',a.fz||'');
     set('#anMx',a.mx?a.mx/1000:''); set('#anMy',a.my?a.my/1000:''); set('#anMz',a.mz?a.mz/1000:'');   // N·mm → N·m
     set('#anDx',a.dx||''); set('#anDy',a.dy||''); set('#anDz',a.dz||''); }
@@ -4200,7 +4402,10 @@ function renderNodes(){
       if(tc==='rel')return `<span style="color:#7fb0d0">${d}</span>`;
       return `${a}<br><span style="font-size:8.5px;color:#5d7088">Δ${d}</span>`;
     };
-    tr.innerHTML=`<td class="nid">N${n.id}</td>
+    /* v25-F10/F13: 소속 세그먼트 뱃지(색상) */
+    const eSeg=state.elems.find(e=>e.to===n.id)||state.elems.find(e=>e.from===n.id);
+    const sid=eSeg?(eSeg.segId||0):0;
+    tr.innerHTML=`<td class="nid">N${n.id}<span class="segb" style="background:${segColor(sid)}" title="세그먼트 ${segLetter(sid)}">${segLetter(sid)}</span></td>
       <td>${cell(n.x,p?n.x-p.x:0)}</td><td>${cell(n.y,p?n.y-p.y:0)}</td><td>${cell(n.z,p?n.z-p.z:0)}</td>
       <td>${attBadges(n.att)}</td>`;
     tr.onclick=()=>selectNode(n.id);
@@ -4247,7 +4452,7 @@ function gatherInput(){
 }
 
 /* ===================== SAVE / LOAD model (.json) ===================== */
-const SAVE_FIELDS=['mMat','mNps','mSch','mOD','mWT','mP','mT','mTa','mCA','mSG','mEff','mInsMat','mInsT','mInsRho','mCyc'];
+const SAVE_FIELDS=['mMat','mNps','mSch','mOD','mWT','mWTU','mP','mT','mTa','mCA','mSG','mEff','mInsMat','mInsT','mInsRho','mCyc'];   /* v25-F9: mWTU 추가 */
 function serializeModel(){
   const mat={}; SAVE_FIELDS.forEach(id=>{ const el=$('#'+id); if(el) mat[id]=el.value; });
   return {
@@ -4293,6 +4498,9 @@ function applyLoadedModel(data, opt={}){
   if(m.mSch!=null)$('#mSch').value=m.mSch;
   if(m.mOD!=null)$('#mOD').value=m.mOD;
   if(m.mWT!=null)$('#mWT').value=m.mWT;
+  /* v25-F9: 사용자 두께 복원 + 입력난 표시 */
+  if(m.mWTU!=null&&$('#mWTU'))$('#mWTU').value=m.mWTU;
+  if($('#schUserRow'))$('#schUserRow').style.display=($('#mSch').value==='SUSR')?'grid':'none';
   if(m.mInsMat!=null)$('#mInsMat').value=m.mInsMat; syncInsRho();
   ['mP','mT','mTa','mCA','mSG','mEff','mInsT','mInsRho','mCyc'].forEach(id=>{ if(m[id]!=null)$('#'+id).value=m[id]; });
   /* v22-SA5: 임포트/구버전 모델의 SCH 가 해당 DN 목록에 없으면(예: '-')
@@ -4481,13 +4689,14 @@ function pickNodeAt(clientX,clientY){
 }
 
 /* ===================== 3D LABELS (node no. + attachment names) ===================== */
-const ATT_KO={anchor:'앵커',nozzle:'노즐',hx:'HX노즐',rest:'리지드',rod:'로드행어',guide:'가이드',line_stop:'라인스톱',
+const ATT_KO={anchor:'앵커',nozzle:'노즐',hx:'HX노즐',rest:'리지드',strut:'스트러트',rod:'로드행어',guide:'가이드',line_stop:'라인스톱',
   vspring_hanger:'스프링행어',vspring_support:'스프링서포트',constant_hanger:'콘스턴트행어',constant_support:'콘스턴트서포트',
   snubber:'스너버',damper:'댐퍼',bend:'엘보',tee:'분기',valve:'밸브',flange:'플랜지',mass:'질량',force:'하중',reducer:'이경'};
 function attShort(a){
   let s=ATT_KO[a.kind]||a.kind;
   if(a.kind==='valve'){ const vt=({gate:'게이트',globe:'글로브',check:'체크',ball:'볼',butterfly:'버터플라이',mov:'전동',control:'컨트롤'})[a.vtype||'gate']; s=`${vt}밸브 C${a.vclass||'150'}`; if(a.mass>0)s+=` ${a.mass}kg`; /* v23-F3 */ }
   else if(a.kind==='guide'&&a.gap>0){ s+=`(갭 ${a.gap}mm)`; /* v23-F2 */ }
+  else if(a.kind==='strut'){ s+=`(${a.dir&&a.dir!=='V'?('전역'+a.dir):'V·수직'})`; /* v25-F8 */ }
   else if(a.kind==='anchor'||a.kind==='nozzle'||a.kind==='hx'){ /* v24-F5 */
     const fl=[]; if(a.fx||a.fy||a.fz)fl.push('F'); if(a.mx||a.my||a.mz)fl.push('M'); if(a.dx||a.dy||a.dz)fl.push('D');
     if(fl.length)s+=`(${fl.join('/')})`;
@@ -4991,7 +5200,7 @@ function nodeAxisW(id){ const e=state.elems.find(el=>el.from===id)||state.elems.
   if(!e)return new THREE.Vector3(1,0,0); const a=nodeById(e.from),b=nodeById(e.to);
   return new THREE.Vector3(b.x-a.x,b.y-a.y,b.z-a.z).normalize(); }
 function MATd(color,emi){ return new THREE.MeshStandardMaterial({color,metalness:0.45,roughness:0.45,emissive:color,emissiveIntensity:emi==null?0.18:emi}); }
-const DEV_COLOR={anchor:0xff5a5f,nozzle:0xff7a5f,hx:0x8b9bff,rest:0x39bdf8,rod:0x6fd6f5,guide:0x39bdf8,line_stop:0x39bdf8,
+const DEV_COLOR={anchor:0xff5a5f,nozzle:0xff7a5f,hx:0x8b9bff,rest:0x39bdf8,strut:0x4dd0e1,rod:0x6fd6f5,guide:0x39bdf8,line_stop:0x39bdf8,
   vspring_hanger:0xb69ce6,vspring_support:0xb69ce6,constant_hanger:0x9b7fe0,constant_support:0x9b7fe0,
   snubber:0xe0b87f,damper:0xe0b87f,valve:0xf5a623,flange:0xf5d062,mass:0xcfd8e3,bend:0x33d399,tee:0x33d399,force:0x39bdf8};
 /* build a device as a THREE.Group in LOCAL +Y-up coordinates */
@@ -5002,7 +5211,7 @@ function buildDevice(kind,form){
   if(kind==='anchor'||kind==='nozzle'||kind==='hx'){
     add(new THREE.BoxGeometry(0.42,0.18,0.42),0,-0.16,0);            // ground block
     add(new THREE.BoxGeometry(0.30,0.30,0.30),0,0.04,0);            // body
-  } else if(kind==='rest'){
+  } else if(kind==='rest'||kind==='strut'){                          /* v25-F8: strut 글리프 = rest 형(방향은 drawSupports) */
     add(new THREE.ConeGeometry(0.16,0.30,4),0,-0.20,0,[0,0,Math.PI]); // wedge apex up under pipe
     add(new THREE.BoxGeometry(0.40,0.05,0.24),0,-0.37,0);            // base plate
     if(dbl)add(new THREE.BoxGeometry(0.40,0.05,0.24),0,-0.31,0);
@@ -5056,6 +5265,9 @@ function drawSupports(pos){
       // orientation: pipe-aligned (valve/guide/line_stop), axis-dir (snubber), else vertical(up)
       let dir=up.clone();
       if(a.kind==='valve'||a.kind==='line_stop') dir=nodeAxisW(n.id);
+      else if(a.kind==='strut'){                          /* v25-F8: 구속 전역축을 향해 배치 */
+        dir=(a.dir==='X')?new THREE.Vector3(1,0,0):(a.dir==='Y')?new THREE.Vector3(0,1,0):(a.dir==='Z')?new THREE.Vector3(0,0,1):up.clone();
+      }
       else if(a.kind==='guide') dir=up.clone();           // posts vertical, bar spans pipe
       else if(a.kind==='snubber'||a.kind==='damper'){
         const ax=nodeAxisW(n.id);
@@ -5284,7 +5496,7 @@ function renderSummary(){
    </div>`;
   const af=$('#btnAutoFix'); if(af) af.onclick=autoFix;
 }
-function supName(k){return {anchor:'앵커',nozzle:'노즐',hx:'HX노즐',rest:'리지드',rod:'로드행어',guide:'가이드',line_stop:'라인스톱',
+function supName(k){return {anchor:'앵커',nozzle:'노즐',hx:'HX노즐',rest:'리지드',strut:'스트러트',rod:'로드행어',guide:'가이드',line_stop:'라인스톱',
   vspring_hanger:'V.스프링행어',vspring_support:'V.스프링서포트',constant_hanger:'콘스턴트행어',constant_support:'콘스턴트서포트',
   snubber:'스너버',damper:'댐퍼'}[k]||k;}
 /* v22-FIX-12: 복합 지지('rest+guide+line_stop')를 전 종류 병기로 표기 */
@@ -5701,7 +5913,14 @@ function toast(msg,ok){
 function bind(){
   fillSelects();
   $('#mNps').addEventListener('change',fillSch);
-  $('#mSch').addEventListener('change',updatePipeInfo);
+  $('#mSch').addEventListener('change',()=>{   /* v25-F9 */
+    const usr=$('#mSch').value==='SUSR';
+    if($('#schUserRow'))$('#schUserRow').style.display=usr?'grid':'none';
+    if(usr&&$('#mWTU')&&!$('#mWTU').value){ const dn=$('#mNps').value, sz=PSA.PIPE_SIZES[dn];
+      if(sz&&sz.t['40']!=null)$('#mWTU').value=(+CV.len.fromSI(sz.t['40'],U.sys)).toFixed(2); }
+    updatePipeInfo();
+  });
+  if($('#mWTU'))$('#mWTU').addEventListener('input',updatePipeInfo);   /* v25-F9 */
   ['#mOD','#mWT'].forEach(s=>$(s).addEventListener('input',updatePipeInfo));
   $('#mInsMat').addEventListener('change',syncInsRho);
   $$('#unitSys button').forEach(b=>b.onclick=()=>switchUnits(b.dataset.u));
@@ -5752,6 +5971,10 @@ function bind(){
     updCoordPrev();
   });
   $('#btnNewSeg').onclick=startNewSegment;
+  /* v25-F11: 세그먼트 스펙 편집 버튼 */
+  if($('#btnSegSpecLoad'))$('#btnSegSpecLoad').onclick=()=>loadSegSpecToForm(state.segId||0);
+  if($('#btnSegSpecApply'))$('#btnSegSpecApply').onclick=()=>applySpecToSeg(state.segId||0);
+  renderSegChips();   /* v25-F10: 초기 렌더 */
   $$('#lblCtl button').forEach(b=>b.onclick=()=>{
     const k=b.dataset.lbl;
     if(k==='node') state.showNodeLabels=!state.showNodeLabels;
