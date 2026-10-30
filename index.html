@@ -1639,6 +1639,12 @@ function runAnalysis(input){
       }
     }
   }
+  /* v25-X1: 한 방향은 하나의 지지로만 — 동일 절점·동일 DOF 강체구속 중복 감지 (예: strut Y + rest, anchor + strut) */
+  { const dup={};
+    for(const s of supports){ if(s.type!=='rigid'||s.cases) continue;
+      for(const dd of s.dofs){ const key=s.node+'_'+dd; (dup[key]=dup[key]||[]).push(s.kind); } }
+    for(const key in dup){ if(dup[key].length>1){ const nid=key.split('_')[0], dd=+key.split('_')[1];
+      log('w','W340',`절점 N${nid}: ${dd<3?'XYZ'[dd]+'방향':'회전'+'XYZ'[dd-3]} 강체구속 중복 (${dup[key].join(' + ')}) — 한 방향은 하나의 지지로만 제어하세요.`,'N'+nid); } } }
   if(anchorCount===0) log('e','E201','구속(앵커)이 없어 강체 변위가 발생합니다. 최소 1개의 앵커/노즐을 정의하세요.');
   if(supports.length===0) log('e','E202','정의된 지지/구속이 없습니다.');
 
@@ -2286,15 +2292,21 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
              TOOLEXT STRUT 로 무손실(임포터가 kind/dir 정확 복원). */
           const dr=a.dir||'V';
           const d=(dr==='V')?VUP:(({X:0,Y:1,Z:2})[dr]!=null?({X:0,Y:1,Z:2})[dr]:VUP);
+          /* v25-X1: 방향 1:1 보존 — 수직=VSTP, 배관축=LINE, 수평관의 횡축=GUID(수평관에서 GUID는 단일 횡축이라 정확).
+             라이저(수직관)의 횡방향 단축은 GUID가 X·Z 2축을 동시 구속해 '지정 외 방향까지 제어'되는 과구속을
+             유발하므로 카드를 내지 않고 수동 항목으로 전달(TOOLEXT 로 재임포트 시 정확 복원). */
           if(d===VUP){
             c([[0,'VSTP'],[5,pn],[16,'W'],R(2540,3,48),[60,'R']]);
+            c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
           } else if(d===domAxis(nid)){
             c([[0,'LINE'],[5,pn],[16,'W'],R(2540,3,38)]);
+            c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
+          } else if(domAxis(nid)!==VUP){
+            c([[0,'GUID'],[5,pn],[16,'W'],R(2540,3,38)]);
+            c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
           } else {
-            c([[0,'GUID'],[5,pn],[16,'W'],R(2540,3,(domAxis(nid)===1)?58:38)]);
-            manual.push(`${pn}(N${nid}) 스트러트(전역 ${dr}) — GUID 근사로 출력, AutoPipe 에서 단축 지지로 확인/수정`);
+            manual.push(`${pn}(N${nid}) 스트러트(전역 ${dr}, 라이저 횡방향) — AutoPipe GUID는 횡 2축 동시구속이라 미출력. AutoPipe에서 ${dr}축 단축 병진구속으로 수동 추가`);
           }
-          c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
           toolext(`STRUT ${pn} ${dr}`);
         } else if(a.kind==='rod'){
           /* v25-F12: 구현 오류 수정 — 종전 'H 1 1'(행어설계 대상 플래그) 출력이 SOLV HANG 과 결합되어
@@ -3249,6 +3261,9 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
         var ast = lastAttOf(nid, ['rest', 'line_stop', 'guide', 'strut']);
         if (ast) { ast.kind = 'strut'; delete ast.gap;
           if ('XYZ'.indexOf(dv2) >= 0) ast.dir = dv2; else delete ast.dir; }
+        else {                                          // v25-X1: 라이저 횡방향 스트러트는 카드 없이 TOOLEXT 만으로 전달됨 → 신규 생성
+          var nst = { kind: 'strut' }; if ('XYZ'.indexOf(dv2) >= 0) nst.dir = dv2;
+          addAtt(model, nid, nst, warnings, 'TOOLEXT STRUT'); }
       } else if (op === 'ROD') {                        // v25-F12: 강체 VSTP 로 나간 rod 복원
         var ard = lastAttOf(nid, ['rest']);
         if (ard) ard.kind = 'rod';
