@@ -418,7 +418,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
   <form class="card" id="loginForm" autocomplete="off">
     <div class="logo">
       <div class="mark">PSA</div>
-      <div><h1>B31.1 Piping Stress Analyzer</h1><p>ASME B31.1 Power Piping · v25</p></div>
+      <div><h1>B31.1 Piping Stress Analyzer</h1><p>ASME B31.1 Power Piping · v26</p></div>
     </div>
     <label for="lgId">아이디</label>
     <div class="fld">
@@ -442,7 +442,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 </div>
 <div class="top">
   <div class="brand">
-    <b>PSA</b><span class="v" title="v25 — 스트러트 축선택(F8)·SCH 직접입력(F9)·세그먼트 선택/편집(F10·F11)·rod NTL 수정(F12)·축색 GUI(F13)">B31.1 · v25</span>
+    <b>PSA</b><span class="v" title="v26 — R2 재검증 통합: 엔진 보정 R2 그룹(E1~E17/I5)·S_A (1A)/(1B) 선택·후프응력 보고·지진 2축 포락·반력 6성분·B31.1-2022 재질표·NTL 임포트 보정·보고서 리비전 (v25: F8~F13)">B31.1 · v26</span><!-- v26-C1 -->
     <span class="sub">Power Piping Stress Analyzer</span>
   </div>
   <div class="spacer"></div>
@@ -487,7 +487,8 @@ input[readonly]{opacity:.6;cursor:not-allowed}
           <div class="row"><label>재질</label><select id="mMat"></select></div>
           <div class="row"><label>규격(DN)</label>
             <select id="mNps" style="flex:1"></select>
-            <select id="mSch" style="width:104px"></select>
+            <select id="mSch" style="width:84px"></select>
+            <input id="mMtol" value="12.5" style="width:40px;margin-left:4px" title="밀공차 mill tolerance (%) — 가용두께 t_avail = tn(1−mtol), 후프 t_av = tn(1−mtol)−CA 에 사용. 심리스 ASTM 12.5 % (v26-E15)"><span style="font-size:9px;color:#7e90a4;margin-left:2px" title="밀공차 %">공차%</span><!-- v26-C2 -->
           </div>
           <div class="grid2" id="customSize" style="display:none;margin-bottom:7px">
             <div class="fld"><span>외경 OD <i class="u-len">mm</i></span><input id="mOD" value="168.3"></div>
@@ -503,24 +504,54 @@ input[readonly]{opacity:.6;cursor:not-allowed}
             <div class="fld"><span>운전온도 <i class="u-tmp">℃</i></span><input id="mT" value="250"></div>
             <div class="fld"><span>설치온도 <i class="u-tmp">℃</i></span><input id="mTa" value="20"></div>
           </div>
-          <div class="grid3" style="margin-top:6px">
+          <div class="grid3" style="margin-top:6px;grid-template-columns:1fr 1fr 1fr 1fr">
             <div class="fld"><span>부식여유 <i class="u-len">mm</i></span><input id="mCA" value="1.6"></div>
-            <div class="fld"><span>유체 SG</span><input id="mSG" value="1.0"></div>
+            <div class="fld"><span>유체 SG</span><input id="mSG" value="1.0" title="0 = 증기/기체(유체중량 없음)"></div>
             <div class="fld"><span>이음효율 E</span><input id="mEff" value="1.0"></div>
+            <div class="fld"><span>용접계수 W</span><input id="mW" value="1.0" title="용접강도저감계수 W (B31.1 102.4.7) — t_m = P·Do/[2(S·E·W+P·y)]+A, 후프 허용 Sh·E·W. 심리스/저온 1.0 (v26-E18)"></div><!-- v26-C2 -->
           </div>
           <div class="row" style="margin-top:7px"><label>보온재</label><select id="mInsMat" style="flex:1"></select></div>
           <div class="grid3" style="margin-top:6px">
             <div class="fld"><span>보온두께 <i class="u-len">mm</i></span><input id="mInsT" value="50"></div>
             <div class="fld"><span>밀도 kg/m³</span><input id="mInsRho" value="100" readonly></div>
-            <div class="fld"><span>사이클 N</span><input id="mCyc" value="7000"></div>
+            <div class="fld"><span>사이클 N</span><input id="mCyc" value="7000" title="설계수명 동안의 등가 전범위 사이클 수 N (102.3.2(b): 부분 범위는 (ΔT_i/ΔT_max)^5 가중 환산). f = 6/N^0.2 (0.15≤f≤1, Eq.(1C))"></div>
+          </div>
+          <!-- v26-C2: 일시하중 k · 지진 g -->
+          <div class="grid3" style="margin-top:6px">
+            <div class="fld"><span>일시하중 k</span><select id="mKocc" title="B31.1 104.8.2 일시하중 허용계수 k: 1.15 = 1회 ≤8 h·연 ≤800 h, 1.20 = 1회 ≤1 h·연 ≤80 h"><option value="1.15">1.15 (≤8h/회·≤800h/년)</option><option value="1.2">1.20 (≤1h/회·≤80h/년)</option></select></div>
+            <div class="fld"><span>지진 가속도 g</span><input id="mOccG" value="0.3" title="정적 등가 수평가속도 (g). 상방축을 제외한 수평 2축 각각 해석 후 절점별 포락 (E14 ON)"></div>
+            <div class="fld"><span style="color:#7e90a4">지진: 수평 2축<br>각각 해석·포락</span></div>
           </div>
           <div class="mini" id="pipeInfo"></div>
         </div>
       </div>
 
+      <!-- v26-C4: 보고서 표지 정보 -->
+      <div class="sect closed" id="s-meta">
+        <h3><span class="ico"></span>보고서 정보 · Report Cover<span class="chev">▾</span></h3>
+        <div class="body">
+          <div class="grid2" style="margin-bottom:6px">
+            <div class="fld"><span>프로젝트명</span><input data-meta="project" id="metaProject" placeholder="Project"></div>
+            <div class="fld"><span>라인 번호</span><input data-meta="line" id="metaLine" placeholder="예: MS-001"></div>
+          </div>
+          <div class="grid3" style="margin-bottom:6px">
+            <div class="fld"><span>문서 번호</span><input data-meta="docNo" id="metaDocNo" placeholder="Doc No."></div>
+            <div class="fld"><span>Rev.</span><input data-meta="rev" id="metaRev" placeholder="0"></div>
+            <div class="fld"><span>날짜</span><input data-meta="date" id="metaDate" placeholder="YYYY-MM-DD (공란=오늘)"></div>
+          </div>
+          <div class="row" style="margin-bottom:6px"><label>발주처</label><input data-meta="client" id="metaClient" style="flex:1" placeholder="Client"></div>
+          <div class="grid3">
+            <div class="fld"><span>작성자</span><input data-meta="author" id="metaAuthor" placeholder="Prepared"></div>
+            <div class="fld"><span>검토자</span><input data-meta="checker" id="metaChecker" placeholder="Checked"></div>
+            <div class="fld"><span>승인자</span><input data-meta="approver" id="metaApprover" placeholder="Approved"></div>
+          </div>
+          <div class="mini" style="margin-top:6px;color:#7e90a4">보고서(.doc) 표지·서명란·개정이력·파일명에 반영됩니다. 모델 저장(.json)에 함께 기록되며 [초기화]로 지워지지 않습니다.</div>
+        </div>
+      </div>
+
       <!-- v22: engine correction options (D1~D6) -->
       <div class="sect closed" id="s-engopt">
-        <h3><span class="ico"></span>엔진 보정 옵션 (v22)<span class="chev">▾</span></h3>
+        <h3><span class="ico"></span>엔진 보정 옵션 (v22 D1~D6 · v26 R2)<span class="chev">▾</span></h3>
         <div class="body">
           <label style="display:flex;gap:7px;align-items:center;margin-bottom:8px;font-size:11.5px;color:var(--warn);cursor:pointer">
             <input type="checkbox" id="optV21Compat"> v21 호환 모드 (보정 전부 해제 — 구버전 결과 재현)
@@ -534,6 +565,52 @@ input[readonly]{opacity:.6;cursor:not-allowed}
             <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="Table 102.3.2(C): 응력범위 감소계수 f 를 B31.1 계단표로(하한 0.5) — 고사이클에서 SA 증가(코드 정합)"><input type="checkbox" data-opt="fStepTable" checked> D6 · f 계수 계단표 (Table 102.3.2(C))</label>
           </div>
           <div class="mini" style="margin-top:7px;color:#7e90a4">옵션 변경 시 기존 결과는 초기화됩니다 — <b>[해석 실행]</b>으로 재해석하세요. 옵션 상태는 모델 저장(.json)에 함께 기록됩니다.</div>
+          <!-- v26-C1: 프리셋 -->
+          <div style="margin-top:9px;border-top:1px solid #24333f;padding-top:8px">
+            <div style="font-size:10px;letter-spacing:.6px;color:#8a97aa;text-transform:uppercase;margin-bottom:5px">프리셋 · Preset <span id="presetNow" style="color:#9fdcff;text-transform:none;letter-spacing:0"></span></div>
+            <div style="display:flex;gap:5px">
+              <button type="button" id="btnPresetV26" style="flex:1;padding:6px 4px;border:1px solid #33d399;border-radius:6px;background:#0f2a22;color:#9fe8c8;font-size:10.5px;cursor:pointer" title="R2 보정 전부 적용 · S_A (1A) 기본식 · 후프 보고·종합비 포함 · y 표값 · AP 점명 병기">v26 기본</button>
+              <button type="button" id="btnPresetAP" style="flex:1;padding:6px 4px;border:1px solid #39bdf8;border-radius:6px;background:#0f2230;color:#9fdcff;font-size:10.5px;cursor:pointer" title="v26 기본 + 후프 y=0.4 (AutoPIPE TEST2 재현값 [확인 필요]) — AutoPIPE 비교용">AutoPIPE 기준</button>
+              <button type="button" id="btnPresetV25" style="flex:1;padding:6px 4px;border:1px solid #24333f;border-radius:6px;background:#121a24;color:#aebdcc;font-size:10.5px;cursor:pointer" title="R2 보정 전부 해제 · liberal (1B) · 후프 미보고 · 구 재질표 · f 계단표 — v25 결과 비트 동일 재현(회귀 확인용)">v25 호환</button>
+            </div>
+          </div>
+          <!-- v26-C1: R2 보정 그룹 -->
+          <details id="r2OptWrap" style="margin-top:9px;border-top:1px solid #24333f;padding-top:8px">
+            <summary style="cursor:pointer;font-size:10px;letter-spacing:.6px;color:#8a97aa;text-transform:uppercase">R2 보정 (v26 · E1~E17/I5) <span id="r2OptCnt" style="color:#9fe8c8"></span></summary>
+            <div id="r2OptList" style="display:grid;gap:5px;font-size:11px;color:var(--ink);margin-top:6px">
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="자중 분포하중을 고정단 등가 절점하중(힘 wL/2 + 모멘트 wL²/12)으로 재하하고 요소력 회수 시 f = k·u − f_eq — 경간 내부 모멘트 정확화(손계산 HC-1 일치)"><input type="checkbox" data-r2="fixedEndLoad" checked> E1 · 분포하중 고정단 등가 (wL²/12)</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="스프링/콘스턴트 설계하중(프리로드)은 지속(자중)·운전 케이스에만 적용, 일시(지진 증분) 케이스에서 제외"><input type="checkbox" data-r2="hangerPreloadSusOnly" checked> E2 · 행어 프리로드 지속 케이스 전용</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="패널티 강성 = max(1e12, 1e8·K_dd) DOF 별 — 수치 안정화; 회전 DOF 모멘트 반력(앵커 Mx,My,Mz) 수집"><input type="checkbox" data-r2="adaptivePenalty" checked> E3 · 강체구속 패널티 적응형 + 모멘트 반력</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="직관 요소를 Lmax 이하로 내부 분할해 경간 중앙 응력을 평가. 생성 평가점은 표·보고서에 "N70 +3.0m"(경간 내부)로 표시되고 3D·편집 대상이 아님"><input type="checkbox" data-r2="spanSubdivide" checked> E4 · 경간 내부 자동 분할 (아래 Lmax)</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="열팽창계수 표 첫 항(20℃)=0 결손 → a[0]:=a[1]"><input type="checkbox" data-r2="alphaLowT" checked> E5 · α 표 20℃ 항 결손 보정</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="엘보 유연계수 적용 구간(반호 길이)의 상한을 요소 길이 L 로"><input type="checkbox" data-r2="bendCapFull" checked> E6 · D1 반호 길이 cap 0.5L → L</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="f = 6/N^0.2 (0.15 ≤ f ≤ 1.0), B31.1-2022 102.3.2(b) Eq.(1C) — ON 이면 D6 계단표 무시"><input type="checkbox" data-r2="fContinuous" checked> E7 · f 연속식 Eq.(1C) 6/N^0.2</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="허용응력 S·탄성계수 E·열팽창 α 를 B31.1-2022 Mandatory App.A, Table C-1, Table B-1 값으로 (OFF = v25 구표). P92 는 App.A 미등재 → 구표 유지 + W401"><input type="checkbox" data-r2="materials2022" checked> E8 · B31.1-2022 재질표 (App.A / C-1 / B-1)</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="102.3.2(b) 각주: 최소인장강도 > 480 MPa 재질(P91 등)은 S_A 계산에서 Sc,Sh 상한 20 ksi (SL/Sh 판정의 Sh 는 상한 미적용)"><input type="checkbox" data-r2="saCap20ksi" checked> E9 · S_A 산정 시 Sc,Sh ≤ 137.9 MPa (20 ksi)</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="B31.1-2020+ Eq.(15)/(16)/(17): SL·SOcc 에 |P·Do/4tn + Fa/Ap|, SE 에 |ia·Fc/Ap| (ia = 1.0 — 엘보·티 B31J 미구현 [확인 필요])"><input type="checkbox" data-r2="axialTerm" checked> E12 · 축력항 Fa/Ap · Fc/Ap</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="119.10.1 Eq.(18), C=0 — 반력표/보고서에 hot 열 병기(표시 전용, 수치 영향 없음)"><input type="checkbox" data-r2="hotReaction" checked> E13 · 운전 열반력 Rh = (Eh/Ec)·R 병기</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="상방축을 제외한 수평 2축(X,Z) 각각 정적 등가 해석 후 절점별 최대 포락 (OFF = 전역 X 단일 케이스)"><input type="checkbox" data-r2="seismicEnvelope" checked> E14 · 지진 수평 2축 각각 해석·포락</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="기본 OFF = 부식 후 단면(보수). ON 이면 공칭 두께 단면계수"><input type="checkbox" data-r2="zNominal" checked> E16 · 응력 단면계수 Z·Ap 공칭(비부식)</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="티/리듀서 h 산정에 평균반경 (Do−tn)/2 (D3 와 동일 취지)"><input type="checkbox" data-r2="sifMeanRadiusTee" checked> E17 · 티/리듀서 SIF h 평균반경</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="DN250 → 381 mm (v25: 1.5×Do = 409.6). NTL 임포트/내보내기 벤드 반경 일치"><input type="checkbox" data-r2="bendRadiusNPS" checked> I5 · 장반경 R = 1.5×NPS(in)×25.4</label>
+              <label style="display:flex;gap:7px;align-items:center" title="E4 경간 내부 분할 최대 길이 (mm, ≥100)"><span style="width:14px"></span>E4 분할 Lmax <input id="r2SpanLmax" value="1000" style="width:58px;font-size:11px"> mm</label>
+            </div>
+          </details>
+          <!-- v26-C1: 결과 관례 -->
+          <div id="resOptList" style="display:grid;gap:5px;font-size:11px;color:var(--ink);margin-top:9px;border-top:1px solid #24333f;padding-top:8px">
+            <div style="font-size:10px;letter-spacing:.6px;color:#8a97aa;text-transform:uppercase">결과 관례 · Result Basis</div>
+            <div style="display:flex;gap:7px;align-items:flex-start" title="B31.1 102.3.2(b): (1A) f(1.25Sc+0.25Sh) = AutoPIPE/CAESAR 기본·보수측 / (1B) f(1.25(Sc+Sh)−SL) = liberal(v25 동작, max((1A),(1B))) / 초과 시 (1B) = AutoPIPE 'Sustain margin' 관례">S<sub>A</sub> 식
+              <div style="display:grid;gap:3px">
+                <label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="radio" name="roSa" value="basic" checked> (1A) 기본 f(1.25S<sub>c</sub>+0.25S<sub>h</sub>)</label>
+                <label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="radio" name="roSa" value="liberal"> (1B) liberal f(1.25(S<sub>c</sub>+S<sub>h</sub>)−S<sub>L</sub>)</label>
+                <label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="radio" name="roSa" value="exceed"> (1A), S<sub>E</sub> 초과 절점만 (1B)</label>
+              </div>
+            </div>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="σh = P·Do/(2·t_av) − P·y, t_av = tn(1−밀공차) − CA, 허용 Sh·E·W (AutoPIPE 'Max P' 콤보 관례) — 절점표·KPI·보고서에 보고"><input type="checkbox" id="roHoop" checked> 후프응력 절점별 보고</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="AutoPIPE 'Max ratio' 관례: 후프 비를 종합 최대 응력비·판정에 포함"><input type="checkbox" id="roHoopMax" checked> 종합 최대비에 후프 포함</label>
+            <label style="display:flex;gap:7px;align-items:center" title="후프 식의 y: 재질·온도 표값(Table 104.1.2(A)) 또는 0.4 고정(AutoPIPE TEST2 재현값 [확인 필요])">후프 y <select id="roHoopY" style="font-size:11px"><option value="table">Table 104.1.2(A)</option><option value="0.4">0.4 (AutoPIPE)</option></select></label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="NTL 임포트 시 보존된 AutoPIPE 점명(A00…)을 결과표·보고서에 'A17·N180' 형태로 병기 (재해석 불필요)"><input type="checkbox" id="roApName" checked> AutoPIPE 점명(A00..) 병기</label>
+          </div>
         </div>
       </div>
 
@@ -913,7 +990,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 <script>
 /* ============================================================================
    PSA ENGINE — ASME B31.1 Power Piping stress analysis core
-   3D beam finite element (direct stiffness) + code compliance (Eq.14/15/16)
+   3D beam finite element (direct stiffness) + code compliance (Eq.(15)/(16)/(17), B31.1-2022)  [v26-E11]
    Internal units: length=mm, force=N, stress=MPa(N/mm^2), temp=°C, moment=N·mm
    ============================================================================ */
 
@@ -931,47 +1008,132 @@ const ENGINE_OPTIONS = {
   bendFlexibility:true, coldModulusExpansion:true, sifMeanRadius:true,
   guideAxisFix:true, fStepTable:true, yTableB31:true
 };
+/* v26-E0 (R2 재검증 통합) — 기존 6개 키는 UI('n/6 적용', D1~D6)가 전제하므로 그대로 두고, R2 보정은 별도 객체.
+   Python 레퍼런스: R2_build/engine_v26.py (동명 플래그, 1:1 동일 연산 순서).
+     fixedEndLoad          E1  분포하중 등가절점하중(고정단모멘트 wL²/12) + 요소력 회수 f=k·u−f_eq
+     hangerPreloadSusOnly  E2  행어 프리로드는 지속 케이스에만(일시 케이스 제외)
+     adaptivePenalty       E3  강체구속 패널티 = max(1e12, 1e8·K_dd) DOF 별 (+ 회전 DOF 모멘트 반력 수집)
+     spanSubdivide/Lmax    E4  경간 내부 자동 분할(기본 1000 mm) — 생성 절점 _gen:true, id=from·1000+k
+     alphaLowT             E5  α 표 첫 항(20℃)=0 결손 보정(a[0]:=a[1])
+     bendCapFull           E6  D1 반호 길이 cap 0.5L → L
+     fContinuous           E7  f = 6/N^0.2 (≤1.0, ≥0.15) Eq.(1C) 연속식 (ON 이면 fStepTable 무시)
+     materials2022         E8  B31.1-2022 App.A/B/C 재질표(MATERIALS_2022) 사용, OFF=v25 구표(MATERIALS_V25)
+     saCap20ksi            E9  smts>480 MPa 재질: SA 계산 시 Sc,Sh ≤ 137.9 MPa
+     axialTerm             E12 SL/SOcc 에 |P·Do/4tn + Fa/Ap|, SE 에 |Fc/Ap| (ia=1.0 [확인 필요: B31J])
+     hotReaction           E13 열반력 Rh=(Eh/Ec)·R 병기(reactions.hot / operatingHot) — 표시 전용
+     seismicEnvelope       E14 수평 2축(VUP 제외) 각각 해석 후 절점별 포락
+     zNominal              E16 응력 단면계수 Z·Ap 공칭(기본 OFF=부식단면, 보수)
+     sifMeanRadiusTee      E17 티/리듀서 SIF h 에 평균반경 (Do−tn)/2
+     bendRadiusNPS         I5  장반경 R = 1.5×NPS(in)×25.4 (DN250 → 381 mm)                               */
+const ENGINE_OPTIONS_R2 = {
+  fixedEndLoad:true, hangerPreloadSusOnly:true, adaptivePenalty:true, spanSubdivide:true, spanSubdivLmax:1000,
+  alphaLowT:true, bendCapFull:true, fContinuous:true, materials2022:true, saCap20ksi:true, axialTerm:true,
+  hotReaction:true, seismicEnvelope:true, zNominal:false, sifMeanRadiusTee:true, bendRadiusNPS:true
+};
+/* v26-E10/E15 결과 관례 옵션(PSA.RESULT): 엔진 수치(SL/SE/SOcc)는 불변, 허용치·보고 항목만 제어
+   saBasis 'basic'=(1A) f(1.25Sc+0.25Sh) [AutoPIPE/CAESAR 기본] | 'liberal'=max((1A),(1B)) (v25 동작) | 'exceed'=(1A), SE 초과 절점만 (1B)
+   reportHoop 절점별 후프 σh=P·Do/(2·t_av)−P·y, t_av=tn(1−mtol)−CA ; includeHoopInMax 종합 최대비에 후프 포함
+   hoopY 'table'(Table 104.1.2(A) y) | 숫자(AutoPIPE 프리셋 0.4 [확인 필요]) ; apPointNames AutoPIPE 점명 병기 */
+const RESULT_OPTIONS = { saBasis:'basic', reportHoop:true, includeHoopInMax:true, hoopY:'table', apPointNames:true };
+const PSA_PRESETS = {
+  v26:      { eng:{bendFlexibility:true,coldModulusExpansion:true,sifMeanRadius:true,guideAxisFix:true,fStepTable:true,yTableB31:true},
+              r2:{fixedEndLoad:true,hangerPreloadSusOnly:true,adaptivePenalty:true,spanSubdivide:true,spanSubdivLmax:1000,alphaLowT:true,bendCapFull:true,fContinuous:true,materials2022:true,saCap20ksi:true,axialTerm:true,hotReaction:true,seismicEnvelope:true,zNominal:false,sifMeanRadiusTee:true,bendRadiusNPS:true},
+              res:{saBasis:'basic',reportHoop:true,includeHoopInMax:true,hoopY:'table',apPointNames:true} },
+  autopipe: { eng:{bendFlexibility:true,coldModulusExpansion:true,sifMeanRadius:true,guideAxisFix:true,fStepTable:true,yTableB31:true},
+              r2:{fixedEndLoad:true,hangerPreloadSusOnly:true,adaptivePenalty:true,spanSubdivide:true,spanSubdivLmax:1000,alphaLowT:true,bendCapFull:true,fContinuous:true,materials2022:true,saCap20ksi:true,axialTerm:true,hotReaction:true,seismicEnvelope:true,zNominal:false,sifMeanRadiusTee:true,bendRadiusNPS:true},
+              res:{saBasis:'basic',reportHoop:true,includeHoopInMax:true,hoopY:0.4,apPointNames:true} },
+  v25:      { eng:{bendFlexibility:true,coldModulusExpansion:true,sifMeanRadius:true,guideAxisFix:true,fStepTable:true,yTableB31:true},
+              r2:{fixedEndLoad:false,hangerPreloadSusOnly:false,adaptivePenalty:false,spanSubdivide:false,spanSubdivLmax:1000,alphaLowT:false,bendCapFull:false,fContinuous:false,materials2022:false,saCap20ksi:false,axialTerm:false,hotReaction:false,seismicEnvelope:false,zNominal:false,sifMeanRadiusTee:false,bendRadiusNPS:false},
+              res:{saBasis:'liberal',reportHoop:false,includeHoopInMax:false,hoopY:'table',apPointNames:false} }
+};
+function applyPreset(name){   /* v26-E0: 'v26' | 'autopipe' | 'v25' — 객체는 제자리 갱신(참조 유지). 호출 후 재해석 필요 */
+  const p=PSA_PRESETS[name]; if(!p) return null;
+  Object.assign(ENGINE_OPTIONS,p.eng); Object.assign(ENGINE_OPTIONS_R2,p.r2); Object.assign(RESULT_OPTIONS,p.res);
+  return name;
+}
+const CODE_EDITION='ASME B31.1-2022 (2024 동일 식)';                                          /* v26-E11 */
+const EQ_LABELS={SL:'Eq.(15)',SOcc:'Eq.(16)',SE:'Eq.(17)',SA:'Eq.(1A)/(1B)',f:'Eq.(1C)',tm:'Eq.(7)'};  /* v26-E11 */
+const SA_CAP=137.9;                                                                          /* v26-E9: 20 ksi */
+const DN2NPS={6:0.125,8:0.25,10:0.375,15:0.5,20:0.75,25:1,32:1.25,40:1.5,50:2,65:2.5,80:3,90:3.5,100:4,125:5,150:6,200:8,250:10,300:12,350:14,400:16,450:18,500:20,550:22,600:24,650:26,700:28,750:30,800:32,850:34,900:36,1000:40};  /* v26-I5 */
 
 /* ---- ASTM / B31.1 material database ----------------------------------------
    Sc = basic allowable stress at min(installed) temp,  Sh = at design temp.
    Linear table by temperature (°C, MPa). E in MPa, alpha in 1/°C (mean),
    rho in kg/m^3, y = pressure design coefficient (Table 104.1.2(A)).         */
-const MATERIALS = {
-  /* v22-D5: cls = Table 104.1.2(A) 재질 분류(ferritic/austenitic) — yCoeff 에서 사용
-     v22-M1(참고): A335-P91/P92 저온역 S(20℃=137MPa)는 대표치로 실제 Appendix A 값
-     (P91≈167, P92≈177) 대비 보수측. 적용 에디션 원표 확보 시 교체 권장.            */
-  "A106-B": { name:"ASTM A106 Gr.B (탄소강)",  rho:7850, y:0.4, poisson:0.3, cls:'ferritic',
-    // temp(°C): {S allowable MPa, E MPa, alpha 1/°C from 21°C}
+/* v26-E8: 재질표 2종 — MATERIALS_V25(구표, v25 호환 모드) / MATERIALS_2022(B31.1-2022 Mandatory App.A S, Table C-1 E,
+   Table B-1 α(20℃ 기준 평균)). 2022 표는 E·α 전용 온도배열 TE/Ta 를 따로 가짐(재샘플링 없음). smts=최소인장강도(MPa, E9 상한 판정).
+   활성 표는 MATS() (ENGINE_OPTIONS_R2.materials2022). PSA.MATERIALS 는 UI 용(2022 표 참조). [R2_standards S-02] */
+const MATERIALS_V25 = {
+  "A106-B": { name:"ASTM A106 Gr.B (탄소강)",  rho:7850, y:0.4, poisson:0.3, cls:'ferritic', smts:415,
     T:[20,100,150,200,250,300,350,400],
     S:[118,118,118,116,113,107,102, 95],
     E:[203000,200000,197000,193000,189000,185000,179000,172000],
     a:[0,11.6e-6,11.9e-6,12.3e-6,12.6e-6,12.9e-6,13.2e-6,13.5e-6] },
-  "A53-B": { name:"ASTM A53 Gr.B (탄소강)", rho:7850, y:0.4, poisson:0.3, cls:'ferritic',
+  "A53-B": { name:"ASTM A53 Gr.B (탄소강)", rho:7850, y:0.4, poisson:0.3, cls:'ferritic', smts:415,
     T:[20,100,150,200,250,300,350,400],
     S:[118,118,118,116,113,107,102,95],
     E:[203000,200000,197000,193000,189000,185000,179000,172000],
     a:[0,11.6e-6,11.9e-6,12.3e-6,12.6e-6,12.9e-6,13.2e-6,13.5e-6] },
-  "A335-P11": { name:"ASTM A335 P11 (1¼Cr-½Mo)", rho:7850, y:0.4, poisson:0.3, cls:'ferritic',
+  "A335-P11": { name:"ASTM A335 P11 (1¼Cr-½Mo)", rho:7850, y:0.4, poisson:0.3, cls:'ferritic', smts:415,
     T:[20,200,300,400,450,500,540],
     S:[138,138,134,124,113,97,82],
     E:[207000,198000,191000,182000,176000,170000,165000],
     a:[0,12.0e-6,12.6e-6,13.1e-6,13.4e-6,13.7e-6,13.9e-6] },
-  "A312-TP316":{ name:"ASTM A312 TP316 (STS316)", rho:8000, y:0.4, poisson:0.3, cls:'austenitic',
+  "A312-TP316":{ name:"ASTM A312 TP316 (STS316)", rho:8000, y:0.4, poisson:0.3, cls:'austenitic', smts:515,
     T:[20,200,300,400,500,550],
     S:[138,131,123,116,111,108],
     E:[195000,183000,176000,169000,160000,156000],
     a:[0,16.5e-6,17.0e-6,17.5e-6,18.0e-6,18.3e-6] },
-  "A335-P91": { name:"ASTM A335 P91 / A387 Gr.91 (9Cr-1Mo-V)", rho:7800, y:0.4, poisson:0.3, cls:'ferritic',
+  "A335-P91": { name:"ASTM A335 P91 / A387 Gr.91 (9Cr-1Mo-V)", rho:7800, y:0.4, poisson:0.3, cls:'ferritic', smts:585,
     T:[20,100,200,300,400,450,500,538,550,575,600,625,650],
     S:[137,137,134,131,127,124,117,110,103,90,78,61,47],
     E:[218000,213000,207000,199000,190000,184000,178000,173000,171000,167000,163000,159000,154000],
     a:[0,10.3e-6,10.9e-6,11.4e-6,11.8e-6,12.0e-6,12.2e-6,12.3e-6,12.4e-6,12.5e-6,12.6e-6,12.7e-6,12.8e-6] },
-  "A335-P92": { name:"ASTM A335 P92 / A387 Gr.92 (9Cr-2W)", rho:7800, y:0.4, poisson:0.3, cls:'ferritic',
+  "A335-P92": { name:"ASTM A335 P92 / A387 Gr.92 (9Cr-2W)", rho:7800, y:0.4, poisson:0.3, cls:'ferritic', smts:620,
     T:[20,100,200,300,400,450,500,538,550,575,600,625,650],
     S:[137,137,135,132,129,127,123,118,110,98,85,68,53],
     E:[216000,211000,205000,197000,188000,182000,176000,171000,169000,165000,161000,157000,152000],
     a:[0,10.3e-6,10.9e-6,11.4e-6,11.8e-6,12.0e-6,12.2e-6,12.3e-6,12.4e-6,12.5e-6,12.6e-6,12.7e-6,12.8e-6] }
 };
+const _T_A=[20,93,149,204,260,316,343,371,399,427];
+const _T_B=[20,93,149,204,260,316,343,371,399,427,454,482,510,538,566,593];
+const _T_C=[20,93,149,204,260,316,343,371,399,427,454,482,510,538,566,593,621,649];
+const _TE13=[25,100,150,200,250,300,350,400,450,500,550,600,650];
+const _TA_G1=[20,100,150,200,250,300,350,375,400,425];
+const _A_G1=[11.5e-6,12.1e-6,12.4e-6,12.7e-6,13.0e-6,13.3e-6,13.6e-6,13.7e-6,13.8e-6,13.9e-6];
+const _E_CS=[202000,198000,195000,192000,189000,185000,179000,171000,162000,151000];
+const MATERIALS_2022 = {
+  "A106-B": { name:"ASTM A106 Gr.B (탄소강)", rho:7850, y:0.4, poisson:0.3, cls:'ferritic', smts:415,
+    T:_T_A, S:[117.9,117.9,117.9,117.9,117.9,117.9,117.9,107.6,89.6,74.5],
+    TE:[25,100,150,200,250,300,350,400,450,500], E:_E_CS, Ta:_TA_G1, a:_A_G1 },
+  "A53-B": { name:"ASTM A53 Gr.B (탄소강)", rho:7850, y:0.4, poisson:0.3, cls:'ferritic', smts:415,
+    T:_T_A, S:[117.9,117.9,117.9,117.9,117.9,117.9,117.9,107.6,89.6,74.5],
+    TE:[25,100,150,200,250,300,350,400,450,500], E:_E_CS, Ta:_TA_G1, a:_A_G1 },
+  "A335-P11": { name:"ASTM A335 P11 (1¼Cr-½Mo)", rho:7850, y:0.4, poisson:0.3, cls:'ferritic', smts:415,
+    T:_T_B, S:[117.9,117.9,117.9,115.8,111.7,108.2,106.2,104.1,102.0,99.3,96.5,93.8,64.1,43.4,29.0,19.3],
+    TE:_TE13, E:[204000,200000,197000,193000,190000,186000,183000,179000,174000,169000,164000,157000,150000],
+    Ta:_TA_G1, a:_A_G1 },   /* α Group 1 은 425℃ 까지만 — 이상은 끝값 클램프 [확인 필요] */
+  "A312-TP316":{ name:"ASTM A312 TP316 (STS316)", rho:8000, y:0.4, poisson:0.3, cls:'austenitic', smts:515,
+    T:_T_C, S:[137.9,119.3,107.6,98.6,91.7,86.9,84.8,83.4,82.0,81.4,80.0,79.3,78.6,77.9,77.2,76.5,67.6,51.0],
+    S_hi:[137.9,137.9,137.9,133.1,124.1,117.2,114.5,112.4,111.0,109.6,108.2,107.6,106.2,105.5,104.1,85.5,67.6,51.0],   /* Table A-3 Note(9) 고값행(미사용) */
+    TE:[25,100,150,200,250,300,350,400,450,500,550,600,650,700],
+    E:[195000,189000,186000,183000,179000,176000,172000,169000,165000,160000,156000,151000,146000,140000],
+    Ta:[20,100,150,200,250,300,350,400,450,500,550,600,650],
+    a:[15.3e-6,16.2e-6,16.6e-6,17.0e-6,17.4e-6,17.7e-6,17.9e-6,18.1e-6,18.3e-6,18.4e-6,18.6e-6,18.8e-6,19.0e-6] },
+  "A335-P91": { name:"ASTM A335 P91 / A387 Gr.91 (9Cr-1Mo-V)", rho:7800, y:0.4, poisson:0.3, cls:'ferritic', smts:585,
+    T:_T_C, S:[167.5,167.5,167.5,166.9,166.2,163.4,161.3,157.9,153.1,146.9,140.0,131.7,122.7,111.0,84.1,60.0,39.3,24.1],
+    TE:_TE13, E:[213000,208000,205000,201000,198000,195000,191000,187000,183000,179000,174000,168000,161000],
+    Ta:[20,100,150,200,250,300,350,400,450,500,550,600,650],
+    a:[10.5e-6,10.9e-6,11.1e-6,11.3e-6,11.5e-6,11.7e-6,11.9e-6,12.0e-6,12.2e-6,12.3e-6,12.5e-6,12.7e-6,12.8e-6] },
+  "A335-P92": { name:"ASTM A335 P92 / A387 Gr.92 (9Cr-2W)", note:"B31.1-2022 App.A 미등재 — Code Case/BPVC II-D 값 확인 필요 (v25 표 유지)",
+    rho:7800, y:0.4, poisson:0.3, cls:'ferritic', smts:620, unlisted:true,
+    T:[20,100,200,300,400,450,500,538,550,575,600,625,650],
+    S:[137,137,135,132,129,127,123,118,110,98,85,68,53],
+    E:[216000,211000,205000,197000,188000,182000,176000,171000,169000,165000,161000,157000,152000],
+    a:[0,10.3e-6,10.9e-6,11.4e-6,11.8e-6,12.0e-6,12.2e-6,12.3e-6,12.4e-6,12.5e-6,12.6e-6,12.7e-6,12.8e-6] }
+};
+const MATERIALS = MATERIALS_2022;
+function MATS(){ return ENGINE_OPTIONS_R2.materials2022?MATERIALS_2022:MATERIALS_V25; }   /* v26-E8 */
 
 /* ---- Pipe size database (ASME B36.10M): DN -> {NPS, OD mm, wall mm by SCH}
    Schedules keyed by label. STD/XS/XXS given explicitly where they diverge
@@ -1056,7 +1218,10 @@ function valveWeight(type,cls,end,DN){
    Short radius  R = 1.0 D ; Long radius R = 1.5 D ; 3D, 5D as multiples of D.
    D = nominal pipe size (mm).  (ASME B16.9 elbows: LR=1.5D, SR=1.0D) */
 const BEND_FACTOR = { short:1.0, long:1.5, '3d':3.0, '5d':5.0 };
-function bendRadius(kind, Dnom){ return (BEND_FACTOR[kind]||1.5)*(Dnom||0); }
+function bendRadius(kind, Dnom){   /* v26-I5: 장반경 = 1.5×NPS(in)×25.4 (DN250 → 381 mm), OFF 시 1.5×DN */
+  let base=(Dnom||0);
+  if(ENGINE_OPTIONS_R2.bendRadiusNPS){ const nps=DN2NPS[Math.round(Dnom||0)]; if(nps!=null) base=nps*25.4; }
+  return (BEND_FACTOR[kind]||1.5)*base; }
 
 /* ---- Suggested max pipe support spacing (m), ASME B31.1 Table 121.5 -------
    Two service columns: water service (heavier) and steam/gas/air (lighter).
@@ -1088,25 +1253,30 @@ function lerpTable(T, arr, x){
   }
   return arr[arr.length-1];
 }
+/* v26-E5: a[0](20℃)=0 은 데이터 결손 — 평균계수는 T→기준온도에서 a(100℃) 로 수렴하므로 a[0]:=a[1] (alphaLowT) */
+function alphaArr(m){ const a=m.a; return (ENGINE_OPTIONS_R2.alphaLowT&&a.length>1&&a[0]===0)?[a[1]].concat(a.slice(1)):a; }
 function matProps(key, Tdesign, Tamb){
-  const m=MATERIALS[key];
-  const inRange = Tdesign<=m.T[m.T.length-1]+1;
+  const m=MATS()[key];                                   /* v26-E8: 활성 재질표 */
+  const T=m.T, TE=m.TE||T, Ta=m.Ta||T;                   /* v26-E8: E·α 전용 온도배열 */
+  const inRange = Tdesign<=T[T.length-1]+1;
   return {
-    name:m.name, rho:m.rho, y:m.y, nu:m.poisson, inRange,
-    Tmax:m.T[m.T.length-1],
-    Sc: lerpTable(m.T,m.S,Tamb),    // cold allowable
-    Sh: lerpTable(m.T,m.S,Tdesign), // hot allowable
-    E:  lerpTable(m.T,m.E,Tdesign),
-    Ecold: lerpTable(m.T,m.E,Tamb),
-    alpha: lerpTable(m.T,m.a,Tdesign)  // total expansion coeff over (Tdesign-21)
+    name:m.name, rho:m.rho, y:m.y, nu:m.poisson, inRange, cls:m.cls||'ferritic',
+    Tmax:T[T.length-1], smts:m.smts, unlisted:!!m.unlisted,
+    Sc: lerpTable(T,m.S,Tamb),    // cold allowable
+    Sh: lerpTable(T,m.S,Tdesign), // hot allowable
+    E:  lerpTable(TE,m.E,Tdesign),
+    Ecold: lerpTable(TE,m.E,Tamb),
+    alpha: lerpTable(Ta,alphaArr(m),Tdesign)  // total expansion coeff over (Tdesign-T0)  [v26-E5]
   };
 }
 /* unit total thermal strain from Tamb to Tdesign (mm/mm) */
 function thermalStrain(matKey,Tdesign,Tamb){
-  const m=MATERIALS[matKey];
-  // a[] = total expansion per °C referenced to 21°C; strain = a(Td)*(Td-21)-a(Ta)*(Ta-21)
-  const aD=lerpTable(m.T,m.a,Tdesign), aA=lerpTable(m.T,m.a,Tamb);
-  return aD*(Tdesign-21) - aA*(Tamb-21);
+  const m=MATS()[matKey];
+  // a[] = mean expansion per °C referenced to T0 (21°C v25 table / 20°C Table B-1 SI); strain = a(Td)*(Td-T0)-a(Ta)*(Ta-T0)
+  const a=alphaArr(m), Ta=m.Ta||m.T;
+  const T0=ENGINE_OPTIONS_R2.materials2022?20:21;        /* v26-E8 */
+  const aD=lerpTable(Ta,a,Tdesign), aA=lerpTable(Ta,a,Tamb);
+  return aD*(Tdesign-T0) - aA*(Tamb-T0);
 }
 
 /* section properties (mm) ; nominal wall tn, corroded wall for hoop checks */
@@ -1122,7 +1292,7 @@ function sectionProps(od, t){
 
 /* B31.1 stress intensification factor (Appendix D, simplified) ------------- */
 function sifReducer(od,t,dnL,dnS){    // concentric reducer (B31.1 App.D, simplified)
-  const r2=od/2, Tn=Math.max(t,0.5);
+  const r2=ENGINE_OPTIONS_R2.sifMeanRadiusTee?(od-t)/2:od/2, Tn=Math.max(t,0.5);   /* v26-E17 */
   const i = 0.5 + 0.03*Math.sqrt(r2/Tn);
   return Math.max(1.0, Math.min(i, 2.0));
 }
@@ -1142,7 +1312,7 @@ function sifBend(od, t, R){           // R = bend radius mm (centerline)
    ferritic  : 0.4(≤482℃) / 0.5(510℃) / 0.7(≥538℃)
    austenitic: 0.4(≤566℃) / 0.5(593℃) / 0.7(≥621℃)   (표기 온도 사이 선형보간) */
 function yCoeff(matKey,T){
-  const cls=(MATERIALS[matKey]&&MATERIALS[matKey].cls)||'ferritic';
+  const cls=(MATS()[matKey]&&MATS()[matKey].cls)||'ferritic';   /* v26-E8 */
   const tb=cls==='austenitic'?[[566,.4],[593,.5],[621,.7]]:[[482,.4],[510,.5],[538,.7]];
   if(T<=tb[0][0])return .4;
   if(T>=tb[2][0])return .7;
@@ -1153,18 +1323,25 @@ function yCoeff(matKey,T){
    ≤7,000→1.0 / ≤14,000→0.9 / ≤22,000→0.8 / ≤45,000→0.7 / ≤100,000→0.6 / >100,000→0.5
    (OFF 시 v21 연속식 (7000/N)^0.2, 하한 0.15 — B31.3 차용식) */
 function fCyclic(N){
-  if(!(N>7000)) return 1.0;
-  if(N<=14000) return 0.9;
-  if(N<=22000) return 0.8;
-  if(N<=45000) return 0.7;
-  if(N<=100000) return 0.6;
-  return 0.5;
+  /* v26-E7: B31.1-2022 102.3.2(b) Eq.(1C) f = 6/N^0.2 (≤1.0, ≥0.15) 연속식 — fContinuous ON 이면 계단표(D6) 무시.
+     v25 호환: fContinuous OFF + fStepTable ON = 계단표, 둘 다 OFF = v21 식 (7000/N)^0.2 */
+  if(ENGINE_OPTIONS_R2.fContinuous){ if(!(N>7000)) return 1.0; return Math.min(1.0,Math.max(0.15,6/Math.pow(N,0.2))); }
+  if(ENGINE_OPTIONS.fStepTable){
+    if(!(N>7000)) return 1.0;
+    if(N<=14000) return 0.9;
+    if(N<=22000) return 0.8;
+    if(N<=45000) return 0.7;
+    if(N<=100000) return 0.6;
+    return 0.5;
+  }
+  if(N>7000) return Math.min(Math.max(Math.pow(7000/N,0.2),0.15),1.0);
+  return 1.0;
 }
 /* Branch SIF per ASME B31.1 Appendix D (representative h forms).
    teeType: welding(용접티) / reinforced(보강) / unreinforced(무보강 파브) / sweepolet / weldolet / lateral(Y)
    angle: branch angle (deg, lateral). branchT: branch wall (defaults to run t). */
 function sifTee(od,t,teeType,angle,branchT){
-  const r2=od/2, Tn=t, Tb=branchT>0?branchT:t;
+  const r2=ENGINE_OPTIONS_R2.sifMeanRadiusTee?(od-t)/2:od/2, Tn=t, Tb=branchT>0?branchT:t;   /* v26-E17 */
   let h;
   switch(teeType){
     case 'welding':       h = 3.1*Tn/r2; break;                 // ASME B16.9 welding tee
@@ -1268,6 +1445,8 @@ function solveLin(A,b){
 }
 
 const BIG_K=1e12;
+const PEN_RATIO=1e8;   /* v26-E3: 강체구속 패널티 = max(BIG_K, PEN_RATIO×구조강성 대각항) (adaptivePenalty) */
+const RK6=['fx','fy','fz','mx','my','mz'];   /* v26-E3: 반력 성분 키(회전 DOF 모멘트 포함) */
 /* apply restraints (rigid / spring k / constant-effort force) honouring per-case
    activity. Each restraint: {node,dofs[],k(null=rigid|N/mm),force[[dof,N]],cases[]}
    v23-F2: gap-aware — restraint 가 gap(mm)>0 이고 gapState 가 주어지면, active 인
@@ -1275,21 +1454,27 @@ const BIG_K=1e12;
    gapState 미지정(기존 호출) 시 완전 기존 동작 — 회귀 보장.
    [engine_v2.py apply_restraints(K,F,restraints,idx,load_type,gap_state) 1:1 포팅] */
 function applyRestraints(K,F,restraints,idx,loadType,gapState){
+  /* v26-E3 (adaptivePenalty): 강체구속 패널티 = max(BIG_K, PEN_RATIO×해당 DOF 구조강성 대각항). 절대값 1e12 는 회전 DOF(EI/L 이
+     1e11~1e12 N·mm/rad 인 대구경·짧은 요소)에서 앵커를 회전스프링처럼 만들어 반력·모멘트를 과소평가(DN600 3 m L형 −25 %/−34 %).
+     사용 패널티를 r._pen[d] 에 저장 → 반력(k·u)·갭 접촉력·강제변위 하중에 동일 값 사용. K 는 이 호출 시점에 구조강성만 포함. */
+  const diag0=ENGINE_OPTIONS_R2.adaptivePenalty?K.map((row,i)=>row[i]):null;
   for(let ri=0;ri<restraints.length;ri++){
     const r=restraints[ri];
     if(r.cases && !r.cases.includes(loadType)) continue;
     const k0=idx[r.node]*6;
     const g=r.gap||0;                                        /* v23-F2 */
+    r._pen=r._pen||{};
     for(const d of r.dofs){
+      const P=diag0?Math.max(BIG_K,PEN_RATIO*diag0[k0+d]):BIG_K; r._pen[d]=P;   /* v26-E3 */
       if(g>0 && gapState){                                   /* v23-F2: gapped DOF */
         const st=gapState[ri+'_'+d];
         if(st && st.active){
-          K[k0+d][k0+d]+=BIG_K;
-          F[k0+d]+=BIG_K*st.s*g;                             // [py: F[k0+d]+=BIG_K*st["s"]*g]
+          K[k0+d][k0+d]+=P;
+          F[k0+d]+=P*st.s*g;                                 // [py: F[k0+d]+=P*st["s"]*g]
         }
         continue;
       }
-      if(r.k===null||r.k===undefined) K[k0+d][k0+d]+=BIG_K;  // rigid
+      if(r.k===null||r.k===undefined) K[k0+d][k0+d]+=P;      // rigid
       else                            K[k0+d][k0+d]+=r.k;    // spring stiffness
     }
     if(r.force && (!r.forceCases || r.forceCases.includes(loadType)))
@@ -1298,7 +1483,7 @@ function applyRestraints(K,F,restraints,idx,loadType,gapState){
                                                        [py: if r.get("disp") and load_type=="thermal": if dv and d in dofs: F[k0+d]+=BIG_K*dv] */
       for(let d=0;d<3;d++){
         const dv=r.disp[d];
-        if(dv && r.dofs.includes(d)) F[k0+d]+=BIG_K*dv;
+        if(dv && r.dofs.includes(d)) F[k0+d]+=(r._pen[d]||BIG_K)*dv;   /* v26-E3 */
       }
     }
   }
@@ -1338,7 +1523,7 @@ function _solveWithGaps(K,F,restraints,idx,loadType){
         if(!st.active){
           if(Math.abs(ud)>g+1e-9){ st.active=true; st.s=(ud>0?1:-1); changed=true; }
         }else{
-          const Rr=BIG_K*(ud-st.s*g);
+          const Rr=((r._pen&&r._pen[d])||BIG_K)*(ud-st.s*g);   /* v26-E3 */
           if(Rr*st.s<-1.0){ st.active=false; st.s=0; changed=true; }
         }
       }
@@ -1363,6 +1548,40 @@ function aggNodalFM(elemForcesG){
   return byNode;
 }
 
+/* v26-E1: 등분포 선하중 qg(N/mm, 전역) → 등가 절점하중(국부 12, 고정단모멘트 ±qL²/12 포함). localK 부호규약((1,5)+,(2,4)−)과 일치.
+   [engine_v26.py _consistent_line_load 1:1] */
+function consistentLineLoad(tri,L,qg,flocal){
+  const ql=[tri[0][0]*qg[0]+tri[0][1]*qg[1]+tri[0][2]*qg[2],
+            tri[1][0]*qg[0]+tri[1][1]*qg[1]+tri[1][2]*qg[2],
+            tri[2][0]*qg[0]+tri[2][1]*qg[1]+tri[2][2]*qg[2]];
+  flocal[0]+=ql[0]*L/2; flocal[6]+=ql[0]*L/2;
+  flocal[1]+=ql[1]*L/2; flocal[7]+=ql[1]*L/2; flocal[5]+=ql[1]*L*L/12; flocal[11]-=ql[1]*L*L/12;
+  flocal[2]+=ql[2]*L/2; flocal[8]+=ql[2]*L/2; flocal[4]-=ql[2]*L*L/12; flocal[10]+=ql[2]*L*L/12;
+}
+/* v26-E14: 일시하중 케이스 포락 — 요소단: 합성모멘트가 큰 케이스의 힘벡터(축력 N 은 부호 유지 최대|N|), nodeG·reactions: 성분별 부호 유지 최대|·|
+   [engine_v26.py envelope_occ 1:1] */
+function maxAbs(a,b){ return Math.abs(a)>=Math.abs(b)?a:b; }
+function envelopeOcc(cases){
+  const base=cases[0]; const out={u:base.u,idx:base.idx,elemForces:[],nodeG:{},reactions:{},cases};
+  for(let k=0;k<base.elemForces.length;k++){
+    const ef=Object.assign({},base.elemForces[k]);
+    for(const end of ['i','j']){
+      let best=null; for(const c of cases){ const fe=c.elemForces[k][end]; if(best===null||resMoment(fe)>resMoment(best)) best=fe; }
+      const fe2=Object.assign({},best); for(const c of cases) fe2.N=maxAbs(fe2.N,c.elemForces[k][end].N);
+      ef[end]=fe2;
+    }
+    out.elemForces.push(ef);
+  }
+  for(const c of cases){
+    for(const nid in c.nodeG){ const g=c.nodeG[nid]; const o=out.nodeG[nid];
+      if(!o){ out.nodeG[nid]=Object.assign({},g); continue; }
+      for(const kk of RK6) o[kk]=maxAbs(o[kk],g[kk]); o.Mres=Math.max(o.Mres,g.Mres); o.Fres=Math.max(o.Fres,g.Fres); }
+    for(const nid in c.reactions){ const rv=c.reactions[nid]; const o=out.reactions[nid];
+      if(!o){ out.reactions[nid]=Object.assign({},rv); continue; }
+      for(const kk of RK6) o[kk]=maxAbs(o[kk],rv[kk]); }
+  }
+  return out;
+}
 /* -------- assemble & solve one load case -------------------------------------
    loadType: 'sustained' (gravity+concentrated) or 'thermal'
    returns { u, elemForces, idx, nodeG, reactions } */
@@ -1397,14 +1616,22 @@ function solveCase(model, loadType){
       const N0=EE*e.sec.A*e.eps;           // Ea·A·ε_thermal  [v22-D2: e.E → EE]
       flocal[0]=-N0; flocal[6]=N0;
     }
+    const FEL=ENGINE_OPTIONS_R2.fixedEndLoad;
+    if(loadType==='sustained'&&FEL){
+      /* v26-E1: 분포 자중의 등가절점하중(consistent load). 절점 집중(w·L/2)만으로는 요소 내부 하중의 고정단모멘트 w·L²/12 가
+         누락되어 1요소 경간에서 지지점 모멘트가 0 — 3경간 연속보 검증(3모멘트법), TEST2 N70 SL 44.95→56.02 MPa.
+         단부력 회수는 열하중과 같이 f = k·u − f_eq (아래 recover 루프의 '-ed.flocal[r]'). */
+      const vu=model.vup??2; const qg=[0,0,0]; qg[vu]=-e.wlin;
+      consistentLineLoad(tri,L,qg,flocal);
+    }
     elemData.push({e,L,tri,T,kl,map,flocal:flocal.slice()});
 
-    if(loadType==='sustained'){
+    if(loadType==='sustained'&&!FEL){
       const wlin=e.wlin;                    // N/mm
       const half=wlin*L/2; const vu=model.vup??2;
       F[idx[e.i]*6+vu]-=half; F[idx[e.j]*6+vu]-=half;
     }
-    if(loadType==='thermal'){
+    if(loadType==='thermal'||(loadType==='sustained'&&FEL)){
       const fg=matVec(T,elemData[elemData.length-1].flocal,true); // T^T f_local
       for(let q=0;q<12;q++)F[map[q]]+=fg[q];
     }
@@ -1438,23 +1665,23 @@ function solveCase(model, loadType){
   const reactions={};
   for(const r of restraints){
     if(r.cases && !r.cases.includes(loadType)) continue;
-    const k0=idx[r.node]*6; const rv=reactions[r.node]||(reactions[r.node]={fx:0,fy:0,fz:0,kind:r.kind});
+    const k0=idx[r.node]*6; const rv=reactions[r.node]||(reactions[r.node]={fx:0,fy:0,fz:0,mx:0,my:0,mz:0,kind:r.kind});
     const gs=r._gapState;                                    /* v23-F2 */
     for(const d of r.dofs){
       if((r.gap||0)>0){
         /* v23-F2: gapped DOF — active 면 R=BIG_K·(u−s·gap), 분리 상태면 0
            [engine_v2.py: Rd=BIG_K*(u[k0+d]-st["s"]*r["gap"]) if (st and st["active"]) else 0.0] */
         const st=gs&&gs[d];
-        const Rd=(st&&st.active)?BIG_K*(u[k0+d]-st.s*r.gap):0;
-        if(d===0)rv.fx+=Rd; else if(d===1)rv.fy+=Rd; else if(d===2)rv.fz+=Rd;
+        const Rd=(st&&st.active)?((r._pen&&r._pen[d])||BIG_K)*(u[k0+d]-st.s*r.gap):0;   /* v26-E3 */
+        rv[RK6[d]]+=Rd;   /* v26-E3: 병진+회전 DOF 반력(모멘트) 수집 */
         continue;
       }
-      const kk=(r.k===null||r.k===undefined)?BIG_K:r.k;
+      const kk=(r.k===null||r.k===undefined)?((r._pen&&r._pen[d])||BIG_K):r.k;   /* v26-E3 */
       let ud=u[k0+d];
       if(r.disp && loadType==='thermal' && d<3) ud-=r.disp[d];   /* v24-F5: 강제변위분 차감 후 반력 회수 — 미차감 시 BIG_K 규모 폭주
                                                                     [py: ud=ud-r["disp"][d]; Rd=kk*ud] */
       const Rd=kk*ud;
-      if(d===0)rv.fx+=Rd; else if(d===1)rv.fy+=Rd; else if(d===2)rv.fz+=Rd;
+      rv[RK6[d]]+=Rd;   /* v26-E3 */
     }
   }
   return {u, elemForces, idx, nodeG, reactions};
@@ -1473,16 +1700,23 @@ function solveOccasional(model, g_horiz, dirIdx){
     const kl=localK(e.E,G,e.sec,L),kg=matT_mul(T,kl);const map=[];
     for(let q=0;q<6;q++)map.push(idx[e.i]*6+q);for(let q=0;q<6;q++)map.push(idx[e.j]*6+q);
     for(let r=0;r<12;r++)for(let c=0;c<12;c++)K[map[r]][map[c]]+=kg[r][c];
-    eds.push({e,L,tri,T,kl,map});
-    const lat=e.wlin*g_horiz*L/2;            // horizontal load = w·(a/g)
-    F[idx[e.i]*6+dirIdx]+=lat;F[idx[e.j]*6+dirIdx]+=lat;
+    const flocal=new Float64Array(12);
+    if(ENGINE_OPTIONS_R2.fixedEndLoad){      /* v26-E1: 일시 횡하중도 등가절점하중(고정단모멘트 포함) — solveCase 와 동일 */
+      const qg=[0,0,0]; qg[dirIdx]=e.wlin*g_horiz;
+      consistentLineLoad(tri,L,qg,flocal);
+      const fg=matVec(T,flocal,true); for(let q=0;q<12;q++)F[map[q]]+=fg[q];
+    } else {
+      const lat=e.wlin*g_horiz*L/2;            // horizontal load = w·(a/g)
+      F[idx[e.i]*6+dirIdx]+=lat;F[idx[e.j]*6+dirIdx]+=lat;
+    }
+    eds.push({e,L,tri,T,kl,map,flocal});
   }
   for(const n of nodes){if(n.wpt)F[idx[n.id]*6+dirIdx]+=n.wpt*g_horiz;}
   const u=_solveWithGaps(K,F,restraints,idx,'occasional');   /* v23-F2 */
   const elemForces=[];const elemForcesG=[];
   for(const ed of eds){const ug=new Float64Array(12);for(let q=0;q<12;q++)ug[q]=u[ed.map[q]];
     const ul=matVec(ed.T,ug,false);const f=new Float64Array(12);
-    for(let r=0;r<12;r++){let s=0;for(let c=0;c<12;c++)s+=ed.kl[r][c]*ul[c];f[r]=s;}
+    for(let r=0;r<12;r++){let s=0;for(let c=0;c<12;c++)s+=ed.kl[r][c]*ul[c];f[r]=s-ed.flocal[r];}   /* v26-E1 */
     elemForces.push({eid:ed.e.id,ni:ed.e.i,nj:ed.e.j,
       i:{N:f[0],Vy:f[1],Vz:f[2],Mt:f[3],My:f[4],Mz:f[5]},
       j:{N:f[6],Vy:f[7],Vz:f[8],Mt:f[9],My:f[10],Mz:f[11]}});
@@ -1495,18 +1729,18 @@ function solveOccasional(model, g_horiz, dirIdx){
   const reactions={};
   for(const r of restraints){
     if(r.cases && !r.cases.includes('occasional')) continue;
-    const k0=idx[r.node]*6; const rv=reactions[r.node]||(reactions[r.node]={fx:0,fy:0,fz:0,kind:r.kind});
+    const k0=idx[r.node]*6; const rv=reactions[r.node]||(reactions[r.node]={fx:0,fy:0,fz:0,mx:0,my:0,mz:0,kind:r.kind});
     const gs=r._gapState;                                    /* v23-F2 */
     for(const d of r.dofs){
       if((r.gap||0)>0){
         const st=gs&&gs[d];                                  /* v23-F2: gap-aware 반력 회수 */
-        const Rd=(st&&st.active)?BIG_K*(u[k0+d]-st.s*r.gap):0;
-        if(d===0)rv.fx+=Rd; else if(d===1)rv.fy+=Rd; else if(d===2)rv.fz+=Rd;
+        const Rd=(st&&st.active)?((r._pen&&r._pen[d])||BIG_K)*(u[k0+d]-st.s*r.gap):0;   /* v26-E3 */
+        rv[RK6[d]]+=Rd;   /* v26-E3: 병진+회전 DOF 반력(모멘트) 수집 */
         continue;
       }
-      const kk=(r.k===null||r.k===undefined)?BIG_K:r.k;
+      const kk=(r.k===null||r.k===undefined)?((r._pen&&r._pen[d])||BIG_K):r.k;   /* v26-E3 */
       const Rd=kk*u[k0+d];
-      if(d===0)rv.fx+=Rd; else if(d===1)rv.fy+=Rd; else if(d===2)rv.fz+=Rd;
+      rv[RK6[d]]+=Rd;   /* v26-E3 */
     }
   }
   return {u,elemForces,idx,nodeG,reactions};
@@ -1527,7 +1761,8 @@ function runAnalysis(input){
   const defaultSpec={ matKey:input.matKey, od:input.od, t:input.t, sch:input.sch, sizeLabel:input.sizeLabel,
     P:input.P, Tdesign:input.Tdesign, Tamb:input.Tamb, CA:input.CA, SG:input.SG, Eff:input.Eff,
     insulName:input.insulName, insul:input.insul, insulRho:input.insulRho, insulT:input.insulT,
-    cyc:input.cyc, nominalDN:input.nominalDN };
+    cyc:input.cyc, nominalDN:input.nominalDN,
+    mtol:input.mtol, W:input.W };   /* v26-E15/E18: 밀공차 비율(기본 0.125)·용접계수 W(기본 1.0) — 미지정 시 computeSpec 기본값 */
   const g=9.80665;
   const specCache={};
   function computeSpec(sp){
@@ -1536,7 +1771,7 @@ function runAnalysis(input){
        711.2 vs 요소 700)이 먼저 계산된 스펙의 Dnom 을 재사용하던 v21 결함.
        증상: 밸브 자중 4497.62kg(오) vs 4357.08kg(정), '5d' 벤드 반경 3556mm(오)
        vs 3500mm(정) — SA4 N-07 이 export 쪽에서 잡은 버그와 같은 뿌리. */
-    const sig=[sp.matKey,sp.od,sp.t,sp.P,sp.Tdesign,sp.Tamb,sp.CA,sp.SG,sp.Eff,sp.insulName,sp.insulRho,sp.insulT,sp.cyc,sp.nominalDN].join('|');
+    const sig=[sp.matKey,sp.od,sp.t,sp.P,sp.Tdesign,sp.Tamb,sp.CA,sp.SG,sp.Eff,sp.insulName,sp.insulRho,sp.insulT,sp.cyc,sp.nominalDN,sp.mtol,sp.W].join('|');   /* v26: mtol/W */
     if(specCache[sig])return specCache[sig];
     const m=matProps(sp.matKey,sp.Tdesign,sp.Tamb);
     if(ENGINE_OPTIONS.yTableB31) m.y=yCoeff(sp.matKey,sp.Tdesign);  /* v22-D5: 보고서/수식 일관성 위해 m.y 자체를 갱신 */
@@ -1544,8 +1779,11 @@ function runAnalysis(input){
     const ok=(od>0&&tn>0);
     const s0=ok?sectionProps(od,tn):{A:0,Ai:0,I:1,J:1,Z:1};
     const sC=ok?sectionProps(od,Math.max(tn-sp.CA,0.5)):s0;
-    const tmv=ok?(sp.P*od/(2*(m.Sh*sp.Eff+sp.P*m.y))+sp.CA):0;
-    const tav=tn*0.875;
+    const mtol=(sp.mtol!=null&&sp.mtol>=0)?sp.mtol:0.125;   /* v26-E15: 밀공차 비율(심리스 ASTM 12.5 %) */
+    const W=(sp.W>0)?sp.W:1.0;                              /* v26-E18: 용접강도저감계수 102.4.7 (심리스 1.0) */
+    const Eff=sp.Eff;
+    const tmv=ok?(sp.P*od/(2*(m.Sh*Eff*W+sp.P*m.y))+sp.CA):0;   /* 104.1.2 Eq.(7)  [v26-E18] */
+    const tav=ok?tn*(1-mtol):0;                              /* v26-E15: 가용두께 = tn(1−mtol) (0.125 → 0.875tn, v25 동일) */
     const wsteel=m.rho*(s0.A*1e-6)*g;
     const wfluid=(1000*sp.SG)*(s0.Ai*1e-6)*g;
     const wins=(sp.insulT>0&&sp.insulRho>0)?insulWeightPerM(od,sp.insulT,sp.insulRho):((sp.insul||0)*g);
@@ -1553,17 +1791,30 @@ function runAnalysis(input){
     const eps=thermalStrain(sp.matKey,sp.Tdesign,sp.Tamb);
     const pStress=ok?(sp.P*od/(4*tn)):0;
     const Dnom=sp.nominalDN||od;
-    let fc=1.0;                                             /* v22-D6 */
-    if(ENGINE_OPTIONS.fStepTable) fc=fCyclic(sp.cyc);
-    else if(sp.cyc>7000) fc=Math.min(Math.max(Math.pow(7000/sp.cyc,0.2),0.15),1.0);
-    const r={sp,mp:m,od,tn,sec0:s0,secC:sC,tm:tmv,t_avail:tav,wlin,eps,pStress,Dnom,fcyc:fc,sig,
-             Z:sC.Z, inRange:m.inRange, valid:ok, label:(sp.sizeLabel||'')+' · '+sp.matKey+' · '+sp.Tdesign+'℃/'+sp.P+'MPa'};
+    const fc=fCyclic(sp.cyc);                               /* v26-E7: 분기는 fCyclic 내부(fContinuous/fStepTable/v21) */
+    /* v26-E15: 후프(원주) 응력 σh = P·Do/(2·t_av) − P·y, t_av = tn(1−mtol) − CA, 허용 = E·W·Sh (AutoPIPE 'Max P' 콤보 관례).
+       y: RESULT_OPTIONS.hoopY 'table' → 재질 y(D5 반영) | 숫자(AutoPIPE 프리셋 0.4 [확인 필요]).
+       TEST2 검증: Ø273.05×21.438, P13.5, CA0 → t_av 18.758, y0.4 → 92.855 MPa (AutoPIPE 92.86) */
+    let hoop=null;
+    if(RESULT_OPTIONS.reportHoop&&ok){
+      const tH=Math.max(tn*(1-mtol)-sp.CA,0.5);
+      const hy=RESULT_OPTIONS.hoopY;
+      const yH=(hy==='table'||hy==null)?m.y:+hy;
+      const sH=sp.P*od/(2*tH)-sp.P*yH;
+      const aH=Eff*W*m.Sh;
+      hoop={s:sH, allow:aH, ratio:aH>0?sH/aH:0, t:tH, y:yH, mtol};
+    }
+    const zn=ENGINE_OPTIONS_R2.zNominal;                     /* v26-E16: 응력 단면 Z·Ap 공칭(옵션, 기본 부식단면) */
+    const r={sp,mp:m,od,tn,sec0:s0,secC:sC,tm:tmv,t_avail:tav,wlin,eps,pStress,hoop,Dnom,fcyc:fc,sig,
+             Z:(zn?s0.Z:sC.Z), Ap:(zn?s0.A:sC.A), mtol, W,
+             inRange:m.inRange, valid:ok, label:(sp.sizeLabel||'')+' · '+sp.matKey+' · '+sp.Tdesign+'℃/'+sp.P+'MPa'};
     specCache[sig]=r; return r;
   }
   const D0=computeSpec(defaultSpec);
   const mp=D0.mp;
   if(!mp.inRange) log('e','E401',
-     `설계온도 ${input.Tdesign}℃ 가 ${MATERIALS[input.matKey].name} 의 허용 데이터 범위(≤${mp.Tmax}℃)를 초과합니다.`);
+     `설계온도 ${input.Tdesign}℃ 가 ${MATS()[input.matKey].name} 의 허용 데이터 범위(≤${mp.Tmax}℃)를 초과합니다.`);
+  if(mp.unlisted) log('w','W401',`${input.matKey} 는 B31.1-2022 Mandatory Appendix A 에 등재되지 않은 재질 — 허용응력 출처(B31 Code Case 또는 BPVC II-D) 확인 필요 (v25 표값 유지).`);   /* v26-E8/E19 */
   const od = D0.od, t_nom = D0.tn;
   if(!(od>0) || !(t_nom>0)){ log('e','E403','관 외경/두께가 유효하지 않습니다 (규격 또는 사용자정의 치수를 확인하세요).'); return {logs,ok:false}; }
   const sched={od, t:{[input.sch]:t_nom}};
@@ -1575,14 +1826,38 @@ function runAnalysis(input){
   const nodes = input.nodes.map(n=>{
     let att = n.att;
     if(!att){ att = (n.type&&n.type!=='run') ? [{kind:mapOld[n.type]||n.type, R:n.param, form:'single'}] : []; }
-    return {id:n.id, x:n.x*1000, y:n.y*1000, z:n.z*1000, att};
+    return {id:n.id, x:n.x*1000, y:n.y*1000, z:n.z*1000, att, apName:(n.apName!=null?n.apName:null)};   /* v26-I9: AutoPIPE 점명 보존 */
   });
   const nodeById={}; nodes.forEach(n=>nodeById[n.id]=n);
   const elemsIn = (input.elems&&input.elems.length)
     ? input.elems
     : nodes.slice(0,-1).map((n,k)=>({from:n.id,to:nodes[k+1].id}));
+  /* v26-E4 (spanSubdivide): 요소 자동 분할 — Lmax(ENGINE_OPTIONS_R2.spanSubdivLmax, 기본 1000 mm) 초과 요소를 n=ceil(L/Lmax) 등분.
+     경간 내부 최대 굽힘(처짐 최대점)을 절점 결과로 포착(E1 과 병행). 생성 절점 id = from*1000+k (충돌 시 +1),
+     att=[] (SIF 1.0, 지지 없음), _gen:true, _parent:[from,to,k,nsub], posLabel:'N70 +3.0m' → UI/보고서는 _gen 절점을 '경간 내부' 로 표기.
+     결과 nodeRes 에 포함, result.elems 는 원본 elemsIn 유지, 3D/칩/편집은 state.nodes 기준이라 무영향. [engine_v26.py E4 1:1] */
+  const LMAX=(ENGINE_OPTIONS_R2.spanSubdivide&&ENGINE_OPTIONS_R2.spanSubdivLmax>0)?ENGINE_OPTIONS_R2.spanSubdivLmax:0;
+  let elemsIn2=elemsIn, nGen=0;
+  if(LMAX>0){
+    elemsIn2=[];
+    for(const ed of elemsIn){
+      const a=nodeById[ed.from], b=nodeById[ed.to];
+      if(!a||!b){ elemsIn2.push(ed); continue; }
+      const Le=Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z); const nsub=Math.ceil(Le/LMAX-1e-9);
+      if(nsub<=1){ elemsIn2.push(ed); continue; }
+      let prev=ed.from;
+      for(let k2=1;k2<nsub;k2++){
+        const t=k2/nsub; let nid=ed.from*1000+k2; while(nodeById[nid]) nid++;
+        const nn={id:nid,x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,z:a.z+(b.z-a.z)*t,att:[],_gen:true,_parent:[ed.from,ed.to,k2,nsub],apName:null,
+                  posLabel:'N'+ed.from+' +'+(Le*t/1000).toFixed(1)+'m'};
+        nodes.push(nn); nodeById[nid]=nn; nGen++;
+        elemsIn2.push(Object.assign({},ed,{from:prev,to:nid})); prev=nid;
+      }
+      elemsIn2.push(Object.assign({},ed,{from:prev}));
+    }
+  }
   const elems=[];
-  elemsIn.forEach((ed,k)=>{ if(nodeById[ed.from]&&nodeById[ed.to]){
+  elemsIn2.forEach((ed,k)=>{ if(nodeById[ed.from]&&nodeById[ed.to]){
     const sp = ed.spec ? Object.assign({},defaultSpec,ed.spec) : defaultSpec;
     const cs = computeSpec(sp);
     elems.push({id:k+1,i:ed.from,j:ed.to,sec:cs.secC,E:cs.mp.E,Ecold:cs.mp.Ecold,wlin:cs.wlin,eps:cs.eps,cs,segId:ed.segId!=null?ed.segId:0});  /* v22-D2: Ecold 추가 */
@@ -1591,7 +1866,7 @@ function runAnalysis(input){
   // ---- per-segment pressure design check (one log per unique spec) ----
   const segSeen={};
   for(const e of elems){ const c=e.cs; if(segSeen[c.sig])continue; segSeen[c.sig]=1;
-    if(!c.mp.inRange) log('e','E401',`설계온도 ${c.sp.Tdesign}℃ 가 ${MATERIALS[c.sp.matKey].name} 허용범위 초과 (세그먼트 ${c.sp.sizeLabel||''}).`);
+    if(!c.mp.inRange) log('e','E401',`설계온도 ${c.sp.Tdesign}℃ 가 ${MATS()[c.sp.matKey].name} 허용범위 초과 (세그먼트 ${c.sp.sizeLabel||''}).`);   /* v26-E8 */
     if(c.t_avail < c.tm) log('e','E402',`압력설계 두께 미달 [${c.label}]: 요구 t_m=${c.tm.toFixed(2)}mm > 가용 ${c.t_avail.toFixed(2)}mm.`);
     else log('s','I010',`압력설계 두께 만족 [${c.label}]: t_m=${c.tm.toFixed(2)}mm ≤ ${c.t_avail.toFixed(2)}mm.`);
   }
@@ -1734,6 +2009,7 @@ function runAnalysis(input){
           if(dist[v]===undefined||nd<dist[v]){dist[v]=nd; if(supSet.has(v)&&v!==s)near=Math.min(near,nd); else q.push(v);}}}
       if(near<Infinity&&near>maxSpan){maxSpan=near;worst=s;} }
     const spanM=maxSpan/1000, allow=allowableSpan(Dnom,service);
+    if(input.Tdesign>400) log('i','W312',`지지간격표(B31.1 Table 121.5-1)는 운전온도 ≤400℃·집중하중 없는 경간 조건 — 설계온도 ${input.Tdesign}℃ 모델에서는 참고용.`);   /* v26-E19 */
     /* v22-FIX-10: Table 121.5 는 규정 한계가 아닌 권장(suggested) 경간 — '허용'→'권장' 통일,
        DN600 초과 관경은 DN600 값으로 클램프 평가됨을 명시 */
     const spanNote=(Dnom>600)?' · DN600 초과 관경은 DN600 값 적용':'';
@@ -1769,7 +2045,7 @@ function runAnalysis(input){
         const kflex=Math.max(1.65/h,1.0);
         for(const e of adj[n.id]){
           const L=_elemLen(e); if(L<1e-6)continue;
-          const sHalf=Math.min(Math.PI/4*R,0.5*L);
+          const sHalf=Math.min(Math.PI/4*R,(ENGINE_OPTIONS_R2.bendCapFull?1.0:0.5)*L);   /* v26-E6: cap 0.5·L→L (직렬 등가는 s_half≤L 이면 유효) */
           extraFlex[e.id]=(extraFlex[e.id]||0)+(kflex-1)*sHalf;
         }
       }
@@ -1794,14 +2070,15 @@ function runAnalysis(input){
         const isC=(s.kind==='constant_hanger'||s.kind==='constant_support');
         log('i','I030',`${isC?'콘스턴트':'베리어블 스프링'} 설계하중 ${(s.load/9.80665).toFixed(0)}kg (${(s.load).toFixed(0)}N)${s.userLoad!=null?' [사용자지정]':' [자동]'}`,'N'+s.node); }
     }catch(e){ for(const s of sizing){ s.load=(s.userLoad!=null?s.userLoad:0); s.autoLoad=0; } }
+    log('i','I031','행어 설계하중은 배관 자중반력만 포함 — 행어 부품(클램프·로드) 중량(B31.1 121.7.3(a)) 미포함. 콘스턴트 편차 ≤6 %(121.7.4(a)), 스프링 MSS SP-58(121.6).');   /* v26-E19 */
   }
 
   // ---- build final restraints ----
   const restraints=[];
   for(const s of supports){
     if(s.type==='rigid') restraints.push({node:s.node,dofs:s.dofs,k:null,cases:s.cases,kind:s.kind,gap:s.gap||0,disp:s.disp});   /* v23-F2 gap, v24-F5 disp [py L712] */
-    else if(s.type==='spring') restraints.push({node:s.node,dofs:[VUP],k:s.k,force:[[VUP,s.load||0]],forceCases:['sustained','occasional'],cases:null,kind:s.kind});
-    else if(s.type==='constant') restraints.push({node:s.node,dofs:[VUP],k:0,force:[[VUP,(s.load||0)]],forceCases:['sustained','occasional'],cases:null,kind:s.kind});
+    else if(s.type==='spring') restraints.push({node:s.node,dofs:[VUP],k:s.k,force:[[VUP,s.load||0]],forceCases:(ENGINE_OPTIONS_R2.hangerPreloadSusOnly?['sustained']:['sustained','occasional']),cases:null,kind:s.kind});   /* v26-E2: 프리로드는 지속 케이스에만 — 일시 케이스는 자중이 없어 가짜 수직 굽힘 발생 */
+    else if(s.type==='constant') restraints.push({node:s.node,dofs:[VUP],k:0,force:[[VUP,(s.load||0)]],forceCases:(ENGINE_OPTIONS_R2.hangerPreloadSusOnly?['sustained']:['sustained','occasional']),cases:null,kind:s.kind});   /* v26-E2: 프리로드는 지속 케이스에만 — 일시 케이스는 자중이 없어 가짜 수직 굽힘 발생 */
   }
   const model={nodes,elems,restraints,props,vup:VUP};
 
@@ -1809,7 +2086,12 @@ function runAnalysis(input){
   try{
     sus = solveCase(model,'sustained');
     thr = solveCase(model,'thermal');
-    occ = solveOccasional(model, 0.3, HLAT); // 0.3g lateral seismic (horizontal)
+    /* v26-E14 (seismicEnvelope): 수평 2축(VUP 제외) 각각 정적등가 g 재하 후 절점별 포락. g = input.occG(기본 0.3), k = input.k_occ(1.15/1.2) */
+    const occG=(input.occG>0)?input.occG:0.3;
+    const occDirs=ENGINE_OPTIONS_R2.seismicEnvelope?[0,1,2].filter(d=>d!==VUP):[HLAT];
+    const occCases=occDirs.map(d=>solveOccasional(model,occG,d));
+    occ = occCases.length>1?envelopeOcc(occCases):occCases[0];
+    occ.g=occG; occ.dirs=occDirs.map(d=>'XYZ'[d]);
   }catch(err){
     log('e','E901','수치 해석 중 오류: '+err.message);
     return {logs,ok:false};
@@ -1824,15 +2106,17 @@ function runAnalysis(input){
   const Z = secC.Z;
   const pStress = input.P*sched.od/(4*t_nom);   // P·Do/4tn  (longitudinal pressure)
   const collect=(forceSet)=>{
-    const byNode={}, byElem={};
+    const byNode={}, byElem={}, byElemN={};
     for(const ef of forceSet.elemForces){
-      for(const [nid,fend] of [[ef.ni,ef.i],[ef.nj,ef.j]]){
-        const M=resMoment(fend);
-        if(!byNode[nid]||M>byNode[nid].M) byNode[nid]={M, raw:fend};
+      for(const [nid,fend,sg] of [[ef.ni,ef.i,-1],[ef.nj,ef.j,1]]){
+        const M=resMoment(fend), N=sg*fend.N;   /* v26-E12: 요소단 축력(인장 +) — i단은 f[0] 부호 반전 */
+        if(!byNode[nid]) byNode[nid]={M, N, raw:fend};
+        else { if(M>byNode[nid].M){ byNode[nid].M=M; byNode[nid].raw=fend; } byNode[nid].N=maxAbs(byNode[nid].N,N); }   /* 절점 대표 N = 부호 유지 최대|N| (M 동률 시 결정적) */
         byElem[nid+'_'+ef.eid]=M;   // this element's own end-moment at this node
+        byElemN[nid+'_'+ef.eid]=N;
       }
     }
-    byNode._elem=byElem;
+    byNode._elem=byElem; byNode._elemN=byElemN;
     return byNode;
   };
   const Msus=collect(sus), Mthr=collect(thr), Mocc=collect(occ);
@@ -1843,7 +2127,10 @@ function runAnalysis(input){
   for(const n of nodes){
     const gs=sus.nodeG[n.id]||z6, gt=thr.nodeG[n.id]||z6, go=occ.nodeG[n.id]||z6;
     const op={fx:gs.fx+gt.fx,fy:gs.fy+gt.fy,fz:gs.fz+gt.fz,mx:gs.mx+gt.mx,my:gs.my+gt.my,mz:gs.mz+gt.mz};
-    nodeFM[n.id]={sus:gs,thr:gt,occ:go,op,
+    /* v26-E13: 고온 환산 열성분(Eh/Ec, 119.10.1 Eq.(18) C=0) 병기 — op 는 v25 호환(Ec 기준 범위 R) */
+    const csn=nodeSpec(n.id); const ehc=csn.mp.E/csn.mp.Ecold;
+    const gth={}, oph={}; for(const kk of RK6){ gth[kk]=gt[kk]*ehc; oph[kk]=gs[kk]+gth[kk]; }
+    nodeFM[n.id]={sus:gs,thr:gt,occ:go,op,thrHot:gth,opHot:oph,hotFactor:ehc,
       Fop:Math.hypot(op.fx,op.fy,op.fz), Mop:Math.hypot(op.mx,op.my,op.mz)};
   }
 
@@ -1851,40 +2138,67 @@ function runAnalysis(input){
   const k_occ = input.k_occ||1.15;
 
   const nodeRes=[];
-  let maxSusR=0,maxExpR=0,maxOccR=0, fail=0;
+  let maxSusR=0,maxExpR=0,maxOccR=0, fail=0, maxHoopR=0, worstHoopNode=null;   /* v26-E15: hoop */
   let worstSusNode=null,worstExpNode=null,worstOccNode=null;   /* v22-FIX-19 */
+  const axOn=!!ENGINE_OPTIONS_R2.axialTerm, capOn=!!ENGINE_OPTIONS_R2.saCap20ksi, saMode=RESULT_OPTIONS.saBasis||'basic';
   for(const n of nodes){
     const i = nodeSIF[n.id];
     const f075i=Math.max(0.75*i,1.0);
     const nodeMaxMa=(Msus[n.id]?.M)||0, nodeMaxMc=(Mthr[n.id]?.M)||0, nodeMaxMb=(Mocc[n.id]?.M)||0;
+    const nodeMaxNa=(Msus[n.id]?.N)||0, nodeMaxNc=(Mthr[n.id]?.N)||0, nodeMaxNb=(Mocc[n.id]?.N)||0;   /* v26-E12 */
     // evaluate EACH adjacent element with ITS OWN end-moment and ITS OWN section (consistent at branch joints)
     const es=adj[n.id]&&adj[n.id].length?adj[n.id]:null;
     let best=null;
-    const evalOne=(c,Ma,Mc,Mb)=>{
-      const Z=c.Z, pS=c.pStress, Sh=c.mp.Sh, Sc=c.mp.Sc, fc=c.fcyc;
-      const SL=pS+f075i*Ma/Z, SE=i*Mc/Z, SOcc=pS+f075i*Ma/Z+f075i*Mb/Z;
-      const SA_base=fc*(1.25*Sc+0.25*Sh), SA=Math.max(SA_base,fc*(1.25*(Sc+Sh)-SL));
-      const rSus=SL/Sh, rExp=SE/SA, rOcc=SOcc/(k_occ*Sh), ratio=Math.max(rSus,rExp,rOcc);
-      if(!best||ratio>best.ratio) best={SL,SE,SOcc,Sh,SA,rSus,rExp,rOcc,ratio};
+    const evalOne=(c,Ma,Mc,Mb,Na,Nc,Nb)=>{
+      const Z=c.Z, Ap=c.Ap, pS=c.pStress, Sh=c.mp.Sh, Sc=c.mp.Sc, fc=c.fcyc;
+      /* v26-E12 (axialTerm): B31.1-2020+ Eq.(15)/(16)/(17) 축력항 — SL·SOcc 에 |P·Do/4tn + Fa/Ap|, SE 에 |ia·Fc/Ap| (ia=1.0, 엘보 B31J 미구현 [확인 필요]).
+         일시 축력은 부호 없는 포락값이라 |Fa+P항| + |Fb|/Ap 보수 조합. OFF 시 v25 식과 동일. */
+      let axS, axE, axO;
+      if(axOn){ axS=Math.abs(pS+Na/Ap); axE=Math.abs(Nc/Ap); axO=Math.abs(pS+Na/Ap)+Math.abs(Nb)/Ap; }
+      else { axS=pS; axE=0; axO=pS; }
+      const SL=axS+f075i*Ma/Z, SE=axE+i*Mc/Z, SOcc=axO+f075i*Ma/Z+f075i*Mb/Z;
+      /* v26-E9 (saCap20ksi): 102.3.2(b) 각주 — smts>480 MPa 재질은 SA 계산 시 Sc,Sh ≤ 137.9 MPa (SL/Sh 판정의 Sh 는 상한 미적용) */
+      let ScA=Sc, ShA=Sh;
+      if(capOn&&(c.mp.smts||0)>480){ ScA=Math.min(Sc,SA_CAP); ShA=Math.min(Sh,SA_CAP); }
+      /* v26-E10 (RESULT_OPTIONS.saBasis): (1A) f(1.25Sc+0.25Sh) 기본 / 'liberal' max((1A),(1B)) = v25 동작 / 'exceed' SE>(1A) 절점만 (1B) */
+      const SA1A=fc*(1.25*ScA+0.25*ShA), SA1B=fc*(1.25*(ScA+ShA)-SL);
+      const SA=(saMode==='liberal')?Math.max(SA1A,SA1B):(saMode==='exceed'&&SE>SA1A)?SA1B:SA1A;
+      const saEq=(SA===SA1A)?'(1A)':(saMode==='exceed'?'(1B)*':'(1B)');
+      const hp=(RESULT_OPTIONS.reportHoop&&c.hoop)?c.hoop:null;        /* v26-E15 */
+      const rHoop=hp?hp.ratio:0;
+      const rSus=SL/Sh, rExp=SE/SA, rOcc=SOcc/(k_occ*Sh);
+      const ratioL=Math.max(rSus,rExp,rOcc);
+      const ratio=(RESULT_OPTIONS.includeHoopInMax&&hp)?Math.max(ratioL,rHoop):ratioL;
+      if(!best||ratio>best.ratio) best={SL,SE,SOcc,Sh,SA,SA1A,SA1B,saEq,rSus,rExp,rOcc,ratio,ratioL,
+                                       hoop:hp?hp.s:null,hoopAllow:hp?hp.allow:null,rHoop,hoopT:hp?hp.t:null,hoopY:hp?hp.y:null,axS,axE,axO};
     };
     if(es){ for(const e of es){ const c=e.cs||D0;
       const Ma=(Msus._elem[n.id+'_'+e.id]!=null)?Msus._elem[n.id+'_'+e.id]:nodeMaxMa;
       const Mc=(Mthr._elem[n.id+'_'+e.id]!=null)?Mthr._elem[n.id+'_'+e.id]:nodeMaxMc;
       const Mb=(Mocc._elem[n.id+'_'+e.id]!=null)?Mocc._elem[n.id+'_'+e.id]:nodeMaxMb;
-      evalOne(c,Ma,Mc,Mb); } }
-    else evalOne(D0,nodeMaxMa,nodeMaxMc,nodeMaxMb);
-    const {SL,SE,SOcc,Sh,SA,rSus,rExp,rOcc,ratio}=best;
+      const Na=(Msus._elemN[n.id+'_'+e.id]!=null)?Msus._elemN[n.id+'_'+e.id]:nodeMaxNa;
+      const Nc=(Mthr._elemN[n.id+'_'+e.id]!=null)?Mthr._elemN[n.id+'_'+e.id]:nodeMaxNc;
+      const Nb=(Mocc._elemN[n.id+'_'+e.id]!=null)?Mocc._elemN[n.id+'_'+e.id]:nodeMaxNb;
+      evalOne(c,Ma,Mc,Mb,Na,Nc,Nb); } }
+    else evalOne(D0,nodeMaxMa,nodeMaxMc,nodeMaxMb,nodeMaxNa,nodeMaxNc,nodeMaxNb);
+    const {SL,SE,SOcc,Sh,SA,SA1A,SA1B,saEq,rSus,rExp,rOcc,ratio,ratioL,hoop,hoopAllow,rHoop,hoopT,hoopY}=best;
     const Ma=nodeMaxMa,Mc=nodeMaxMc,Mb=nodeMaxMb;
     if(rSus>maxSusR){maxSusR=rSus;worstSusNode=n.id;}          /* v22-FIX-19: 워스트 절점 추적 */
     if(rExp>maxExpR){maxExpR=rExp;worstExpNode=n.id;}
     if(rOcc>maxOccR){maxOccR=rOcc;worstOccNode=n.id;}
+    if(rHoop>maxHoopR){maxHoopR=rHoop;worstHoopNode=n.id;}      /* v26-E15 */
     if(ratio>1.0) fail++;
-    nodeRes.push({id:n.id,i,SL,SE,SOcc,Sh,SA,k:k_occ,rSus,rExp,rOcc,ratio,
-                  Ma,Mc,Mb, fm:nodeFM[n.id],
-                  d:{x:thr.u[thr.idx[n.id]*6]/1000,y:thr.u[thr.idx[n.id]*6+1]/1000,z:thr.u[thr.idx[n.id]*6+2]/1000}});
+    const nr={id:n.id,apName:n.apName,i,SL,SE,SOcc,Sh,SA,SA1A,SA1B,saEq,saBasis:saMode,   /* v26-E10/E15/I9 */
+                  hoop,hoopAllow,rHoop,hoopT,hoopY,
+                  k:k_occ,rSus,rExp,rOcc,ratio,ratioL,
+                  Ma,Mc,Mb,Na:nodeMaxNa,Nc:nodeMaxNc,Nb:nodeMaxNb, fm:nodeFM[n.id],
+                  d:{x:thr.u[thr.idx[n.id]*6]/1000,y:thr.u[thr.idx[n.id]*6+1]/1000,z:thr.u[thr.idx[n.id]*6+2]/1000}};
+    if(n._gen){ nr._gen=true; nr._parent=n._parent; nr.posLabel=n.posLabel; }   /* v26-E4: 경간 내부 생성 절점 */
+    nodeRes.push(nr);
     if(rSus>1.0) log('w','W301',`지속하중 응력 초과 SL=${SL.toFixed(1)} > Sh=${Sh.toFixed(1)} MPa (비 ${rSus.toFixed(2)})`,'N'+n.id);
-    if(rExp>1.0) log('w','W302',`열팽창 응력범위 초과 SE=${SE.toFixed(1)} > SA=${SA.toFixed(1)} MPa (비 ${rExp.toFixed(2)})`,'N'+n.id);
+    if(rExp>1.0) log('w','W302',`열팽창 응력범위 초과 SE=${SE.toFixed(1)} > SA=${SA.toFixed(1)} MPa ${saEq} (비 ${rExp.toFixed(2)})`,'N'+n.id);
     if(rOcc>1.0) log('w','W303',`일시하중(지진) 응력 초과 SOcc=${SOcc.toFixed(1)} > kSh=${(k_occ*Sh).toFixed(1)} MPa (비 ${rOcc.toFixed(2)})`,'N'+n.id);
+    if(rHoop>1.0) log('w','W304',`후프(압력) 응력 초과 σh=${hoop.toFixed(1)} > Sh·E·W=${hoopAllow.toFixed(1)} MPa (비 ${rHoop.toFixed(2)})`,'N'+n.id);   /* v26-E15 */
   }
   const fcyc=D0.fcyc;
 
@@ -1893,27 +2207,35 @@ function runAnalysis(input){
   /* v22-FIX-12: 복합 지지 절점은 전 종류를 '+' 병기 (예: rest+guide+line_stop) */
   const kindByNode={}; supports.forEach(s=>{ if(s.reaction) kindByNode[s.node]=(kindByNode[s.node]?kindByNode[s.node]+'+':'')+s.kind; });
   const vKey=['fx','fy','fz'][VUP];
+  /* v26-E3: 반력 6성분(fx,fy,fz,mx,my,mz)+mag(힘)+mmag(모멘트) 패킹 */
+  const pack6=(v,extra)=>{ const o={}; for(const kk of RK6) o[kk]=(v[kk]||0); o.mag=Math.hypot(o.fx,o.fy,o.fz); o.mmag=Math.hypot(o.mx,o.my,o.mz); if(extra)Object.assign(o,extra); return o; };
+  const z6r={fx:0,fy:0,fz:0,mx:0,my:0,mz:0};
   const reactions = supNodes.map(nid=>{
-    const rt0=thr.reactions[nid]||{fx:0,fy:0,fz:0}, rs0=sus.reactions[nid]||{fx:0,fy:0,fz:0};
-    const rs={fx:rs0.fx,fy:rs0.fy,fz:rs0.fz}, rt={fx:rt0.fx,fy:rt0.fy,fz:rt0.fz};
+    const rt0=thr.reactions[nid]||z6r, rs0=sus.reactions[nid]||z6r;
+    const rs={}, rt={}; for(const kk of RK6){ rs[kk]=(rs0[kk]||0); rt[kk]=(rt0[kk]||0); }
     /* v22-FIX-04: 스프링/콘스턴트 지지의 프리로드(설계하중)를 수직 반력에 포함.
        솔버 반력은 k·u(탄성 변동분)만 담으므로 콘스턴트(k=0)는 0으로 인쇄되던 결함.
        부호: '배관→지지물' 규약 — 행어가 pre(N)를 들고 있으면 지지물이 받는 힘은 하향(−VUP). */
     const pre=supports.filter(s=>s.node===nid&&(s.type==='spring'||s.type==='constant')).reduce((a,s)=>a+(s.load||0),0);
     if(pre) rs[vKey]-=pre;
-    const op={fx:rs.fx+rt.fx,fy:rs.fy+rt.fy,fz:rs.fz+rt.fz};
-    return {node:nid,kind:kindByNode[nid]||'', pre,
-      thermal:{fx:op.fx,fy:op.fy,fz:op.fz,mag:Math.hypot(op.fx,op.fy,op.fz)},        // (호환 유지) thermal = 운전(지속+열)
-      thermalOnly:{fx:rt.fx,fy:rt.fy,fz:rt.fz,mag:Math.hypot(rt.fx,rt.fy,rt.fz)},    /* v22-U1/FIX-02: 순수 열팽창 성분 */
-      sustained:{fx:rs.fx,fy:rs.fy,fz:rs.fz,mag:Math.hypot(rs.fx,rs.fy,rs.fz)}};
+    const op={}; for(const kk of RK6) op[kk]=rs[kk]+rt[kk];
+    /* v26-E13 (hotReaction 표시 전용): 열반력 범위 R(Ec 기준) 외에 운전 열반력 Rh=(Eh/Ec)·R (119.10.1 Eq.(18), C=0) 병기 */
+    const csn=nodeSpec(nid); const ehc=csn.mp.E/csn.mp.Ecold;
+    const rh={}, oph={}; for(const kk of RK6){ rh[kk]=rt[kk]*ehc; oph[kk]=rs[kk]+rh[kk]; }
+    return {node:nid,apName:nodeById[nid].apName,kind:kindByNode[nid]||'', pre,
+      thermal:pack6(op),          // (호환 유지) thermal = 운전(지속+열) ; v26: +mx,my,mz,mmag
+      thermalOnly:pack6(rt),      /* v22-U1/FIX-02: 순수 열팽창 성분(Ec 기준 범위 R) */
+      sustained:pack6(rs),
+      hot:pack6(rh,{factor:ehc}), /* v26-E13: Rh=(Eh/Ec)·R */
+      operatingHot:pack6(oph)};   /* v26-E13: 지속 + Rh */
   });
   /* v22-FIX-17: 일시하중(지진 0.3g 정적 등가) 케이스 지지 반력 — 스너버 사이징용 */
   const kindAllByNode={}; supports.forEach(s=>{ kindAllByNode[s.node]=(kindAllByNode[s.node]?kindAllByNode[s.node]+'+':'')+s.kind; });
   const occNodes=[...new Set(supports.filter(s=>s.reaction||(s.cases&&s.cases.includes('occasional'))).map(s=>s.node))];
   const reactionsOcc=occNodes.map(nid=>{
-    const ro=(occ.reactions&&occ.reactions[nid])||{fx:0,fy:0,fz:0};
-    const ent={node:nid,kind:kindAllByNode[nid]||'',fx:ro.fx,fy:ro.fy,fz:ro.fz,mag:Math.hypot(ro.fx,ro.fy,ro.fz),
-            snub:supports.some(s=>s.node===nid&&(s.kind==='snubber'||s.kind==='damper'))};
+    const ro=(occ.reactions&&occ.reactions[nid])||z6r;
+    const ent=pack6(ro,{node:nid,apName:nodeById[nid].apName,kind:kindAllByNode[nid]||'',
+            snub:supports.some(s=>s.node===nid&&(s.kind==='snubber'||s.kind==='damper'))});   /* v26-E3/E14: 6성분·포락값 */
     /* v24-F4: 스너버별 계산 일시하중(해당 구속 DOF 반력 성분) vs 사용자 정격(userLoad).
        정격 미입력 → rated:null(계산값만 표시). 계산 > 정격 → over + W331 경고.
        ※ 동일 절점·동일 DOF 에 다른 강체지지가 공존하면 성분은 합산 전달력(보수측). */
@@ -1952,7 +2274,7 @@ function runAnalysis(input){
   let maxDisp=0,maxDispNode=null;
   for(const nr of nodeRes){const d=Math.hypot(nr.d.x,nr.d.y,nr.d.z);if(d>maxDisp){maxDisp=d;maxDispNode=nr.id;}}
 
-  if(fail===0 && anchorCount>0) log('s','I001',`전체 코드 체크 통과 — 최대 응력비 ${Math.max(maxSusR,maxExpR,maxOccR).toFixed(2)}.`);
+  if(fail===0 && anchorCount>0) log('s','I001',`전체 코드 체크 통과 — 최대 응력비 ${Math.max(maxSusR,maxExpR,maxOccR,(RESULT_OPTIONS.includeHoopInMax&&RESULT_OPTIONS.reportHoop)?maxHoopR:0).toFixed(2)}${(RESULT_OPTIONS.includeHoopInMax&&RESULT_OPTIONS.reportHoop)?' (후프 포함)':''}.`);   /* v26-E15 */
 
   // ---- Fail cause & solution advisor -------------------------------------
   // For each violated check, give the engineering cause and concrete success conditions.
@@ -1973,7 +2295,7 @@ function runAnalysis(input){
     const seenNG={}, segNG=[];
     for(const e of elems){ const c=e.cs; if(seenNG[c.sig])continue; seenNG[c.sig]=1; if(c.t_avail<c.tm)segNG.push(c); }
     solutions.push({code:'E402',title:'압력설계두께 부족 (Pressure Thickness)',sev:'error',
-      cause:'요구 최소두께 t_m = P·D₀/(2(S·E+P·y)) + A 가 가용두께(공칭×0.875)를 초과. 압력/온도 대비 벽두께가 얇음.',
+      cause:'요구 최소두께 t_m = P·D₀/[2(S·E·W+P·y)] + A (104.1.2 Eq.(7)) 가 가용두께 tn(1−밀공차)를 초과. 압력/온도 대비 벽두께가 얇음.',   /* v26-E11/E18 */
       fix:['더 두꺼운 SCH 또는 사용자정의 두께 적용 (t_avail ≥ t_m)','허용응력이 높은 재질로 상향 (예: 고온부 P22→P91/P92)','설계압력·온도 재검토, 부식여유(CA) 적정화'],
       target: segNG.length
         ? segNG.map(sg=>`[${sg.sp.sizeLabel||sg.sp.matKey}] t_avail ≥ ${sg.tm.toFixed(1)} mm (현재 ${sg.t_avail.toFixed(1)} mm)`).join(' · ')
@@ -1981,21 +2303,21 @@ function runAnalysis(input){
   }
   if(susFail.length){
     const w=susFail[0];
-    solutions.push({code:'W301',title:'지속하중 응력 초과 — Eq.15 (Sustained)',sev:'fail',
+    solutions.push({code:'W301',title:'지속하중 응력 초과 — '+EQ_LABELS.SL+' (Sustained)',sev:'fail',   /* v26-E11 */
       cause:'압력 종응력 + 자중 굽힘(1차 응력)이 Sh 초과. 지지 간격이 길거나 집중하중(밸브 등)이 크거나 두께가 얇음.',
       fix:['해당 구간에 리지드/스프링 지지를 추가해 무지지 경간 단축 (B31.1 Table 121.5 이내)','밸브·플랜지 등 집중하중 인접부에 지지 배치','상위 SCH로 단면계수 Z 증대','재질 상향으로 Sh 증대'],
       target:`SL ≤ Sh = ${mp.Sh.toFixed(0)} MPa  (최대 절점 ${list(susFail)}, 현재비 ${w.rSus.toFixed(2)})`});
   }
   if(expFail.length){
     const w=expFail[0];
-    solutions.push({code:'W302',title:'열팽창 응력범위 초과 — Eq.14 (Expansion)',sev:'fail',
+    solutions.push({code:'W302',title:'열팽창 응력범위 초과 — '+EQ_LABELS.SE+' (Expansion)',sev:'fail',   /* v26-E11 */
       cause:'열팽창이 과도하게 구속되어 2차 응력범위 SE가 허용 SA 초과. 직선 구간이 길고 유연성(신축 흡수)이 부족.',
       fix:['신축 흡수 요소 추가: 익스팬션 루프 / 오프셋(ㄷ자) / 신축이음','앵커 간 거리를 늘리거나 위치 조정으로 유연성 확보','중간 구속을 가이드·스프링으로 완화(불필요한 앵커/리지드 제거)','루프 크기(높이·폭) 증대로 흡수능력 향상','사이클 수 재검토(N 감소 시 SA 증가)'],
       target:`SE ≤ SA  (최대 절점 ${list(expFail)}, 현재비 ${w.rExp.toFixed(2)} → 루프/유연성으로 SE 저감)`});
   }
   if(occFail.length){
     const w=occFail[0];
-    solutions.push({code:'W303',title:'일시하중 응력 초과 — Eq.16 (Occasional)',sev:'fail',
+    solutions.push({code:'W303',title:'일시하중 응력 초과 — '+EQ_LABELS.SOcc+' (Occasional)',sev:'fail',   /* v26-E11 */
       cause:'지진·수격 등 단기 횡하중에 의한 응력이 k·Sh 초과. 횡방향 구속이 부족.',
       fix:['스너버/스웨이 브레이스를 횡방향에 추가(열이동은 구속하지 않음)','가이드 추가로 횡변형 억제','동적하중 경로의 지지 보강'],
       target:`SOcc ≤ k·Sh = ${(k_occ*mp.Sh).toFixed(0)} MPa  (최대 절점 ${list(occFail)}, 현재비 ${w.rOcc.toFixed(2)})`});
@@ -2010,7 +2332,7 @@ function runAnalysis(input){
     solutions.push({code:'W311',title:'베리어블 스프링 하중변동 과다 (>25%)',sev:'warn',
       cause:'스프링율×열이동/설계하중 = 하중변동률이 25% 초과 → 운전 중 지지력 변동이 큼.',
       fix:['해당 행어를 콘스턴트(정하중) 행어로 변경','스프링율이 낮은(이동에 둔감한) 스프링으로 선정','지지 위치 조정으로 열이동 감소'],
-      target:'하중변동률 ≤ 25% (MSS SP-58 / B31.1 관행)'});
+      target:'하중변동률 ≤ 25% (B31.1 121.7.3(d) 권장)'});   /* v26-E19 */
   }
   if(anchorCount===0){
     solutions.push({code:'E201',title:'구속(앵커) 없음',sev:'error',
@@ -2025,8 +2347,11 @@ function runAnalysis(input){
   // per-segment summary (unique specs in use)
   const segMap={}; const segments=[];
   for(const e of elems){ const c=e.cs; if(segMap[c.sig])continue; segMap[c.sig]=1;
+    const hp=c.hoop;
     segments.push({ matKey:c.sp.matKey, sizeLabel:c.sp.sizeLabel, od:c.od, t:c.tn,
-      P:c.sp.P, Tdesign:c.sp.Tdesign, CA:c.sp.CA, Sh:c.mp.Sh, tm:c.tm, t_avail:c.t_avail,
+      P:c.sp.P, Tdesign:c.sp.Tdesign, CA:c.sp.CA, Sh:c.mp.Sh, Sc:c.mp.Sc, tm:c.tm, t_avail:c.t_avail,
+      mtol:c.mtol, W:c.W, y:c.mp.y,                                                 /* v26-E15/E18 */
+      hoop:hp?hp.s:null, hoopAllow:hp?hp.allow:null, rHoop:hp?hp.ratio:null, hoopT:hp?hp.t:null,   /* v26-E15: 세그먼트별 후프 */
       pass:(c.t_avail>=c.tm && c.mp.inRange), label:c.label }); }
 
   return {
@@ -2034,9 +2359,17 @@ function runAnalysis(input){
     logs, mp, sec0, secC, tm, t_avail, pStress, fcyc, k_occ, wlin, solutions, segments,
     nodes:input.nodes, elems:elemsIn, model, nodeRes, reactions, reactionsOcc, hangers, nodeFM,
     engineOptions:Object.assign({},ENGINE_OPTIONS),        /* v22: 결과에 사용 옵션 스냅샷 */
-    summary:{ maxSusR, maxExpR, maxOccR, maxRatio:Math.max(maxSusR,maxExpR,maxOccR),
-              fail, maxDisp, maxDispNode, anchorCount, nNode:nodes.length, nElem:elems.length, nSeg:segments.length,
-              worstSusNode, worstExpNode, worstOccNode },  /* v22-FIX-19 */
+    engineOptionsR2:Object.assign({},ENGINE_OPTIONS_R2),   /* v26: R2 보정 옵션 스냅샷 */
+    resultOptions:Object.assign({},RESULT_OPTIONS),        /* v26: 결과 관례 옵션 스냅샷 */
+    codeEdition:CODE_EDITION, eqLabels:Object.assign({},EQ_LABELS),   /* v26-E11 */
+    occG:occ.g, occDirs:occ.dirs,                          /* v26-E14 */
+    summary:{ maxSusR, maxExpR, maxOccR, maxHoopR, worstHoopNode,                 /* v26-E15 */
+              maxRatioL:Math.max(maxSusR,maxExpR,maxOccR),                          /* 종방향(후프 제외) */
+              maxRatio:Math.max(maxSusR,maxExpR,maxOccR,(RESULT_OPTIONS.includeHoopInMax&&RESULT_OPTIONS.reportHoop)?maxHoopR:0),
+              saBasis:RESULT_OPTIONS.saBasis, hoopIncluded:!!(RESULT_OPTIONS.includeHoopInMax&&RESULT_OPTIONS.reportHoop),
+              occG:occ.g, occDirs:occ.dirs,
+              fail, maxDisp, maxDispNode, anchorCount, nNode:nodes.length, nNodeGen:nGen, nElem:elems.length, nSeg:segments.length,
+              worstSusNode, worstExpNode, worstOccNode },  /* v22-FIX-19 / v26 */
     disp, sus, thr, occ, input
   };
 }
@@ -2045,6 +2378,8 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
                VALVE_TYPE, VALVE_CLASS, VALVE_END, valveWeight, BEND_FACTOR, bendRadius,
                SUPPORT_SPAN, allowableSpan,
                OPTIONS:ENGINE_OPTIONS, yCoeff, fCyclic,     /* v22: 엔진 보정 옵션 + D5/D6 함수 노출 */
+               OPTIONS_R2:ENGINE_OPTIONS_R2, RESULT:RESULT_OPTIONS, PRESETS:PSA_PRESETS, applyPreset,   /* v26 */
+               CODE_EDITION, EQ_LABELS, MATERIALS_V25, MATERIALS_2022, MATS, DN2NPS, SA_CAP, sifReducer, /* v26 */
                sectionProps, matProps, runAnalysis, sifBend, sifTee, thermalStrain };
 
 </script>
@@ -2344,6 +2679,13 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
     const manual=[];                                 // README 수동입력 목록
     const text8=v=>(+v).toFixed(3);
     function toolext(s){ c('***  TOOLEXT '+s); }
+    /* v26-I2 (R2-SA4 F2): GUID 카드 — 쌍1=(col31-38,41-48), 쌍2=(51-58,61-68), 쌍 순서 = 배관축의 순환. 자유 쌍 = 2540, 구속 쌍 = 갭(0=밀착·공란) */
+    const pairSlots=[[38,48],[58,68]];
+    const guidCard=(pn,ax,restrainedAxes,gap)=>{      // ax: 배관축 0|1|2, restrainedAxes: 전역축 배열, gap: mm(0=밀착)
+      const pairAxes=[(ax+1)%3,(ax+2)%3]; const parts=[[0,'GUID'],[5,pn],[16,'W']];
+      for(let q=0;q<2;q++){ const free=!restrainedAxes.includes(pairAxes[q]); const v=free?2540:(gap>0?gap:null);
+        if(v!=null){ parts.push(R(v,3,pairSlots[q][0])); parts.push(R(v,3,pairSlots[q][1])); } }
+      c(parts); c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]); };
     function emitSupports(nid,pn,sp){
       const n=byId[nid];
       (n.att||[]).forEach(a=>{
@@ -2372,11 +2714,8 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           } else if(d===domAxis(nid)){
             c([[0,'LINE'],[5,pn],[16,'W'],R(2540,3,38)]);
             c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
-          } else if(domAxis(nid)!==VUP){
-            c([[0,'GUID'],[5,pn],[16,'W'],R(2540,3,38)]);
-            c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
-          } else {
-            manual.push(`${pn}(N${nid}) 스트러트(전역 ${dr}, 라이저 횡방향) — AutoPipe GUID는 횡 2축 동시구속이라 미출력. AutoPipe에서 ${dr}축 단축 병진구속으로 수동 추가`);
+          } else {                                   /* v26-I2: 횡 단축(수평관·라이저 공통) — F1 순환규칙으로 1:1 출력 */
+            guidCard(pn,domAxis(nid),[d],0);
           }
           toolext(`STRUT ${pn} ${dr}`);
         } else if(a.kind==='rod'){
@@ -2392,7 +2731,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           const rate=(a.rate>0)?a.rate:(h&&h.rate>0?h.rate:0);
           const load=(a.load>0)?a.load:(h&&h.load>0?h.load:0);
           c([[0,'SPRG'],[5,pn],[16,(up==='Z'?'Z':'Y')+'1'],R(load,3,28),R(rate,3,38),[44,'FIG B-268'],[60,'H']]);
-          c([[0,CONT],[50,'N'],R(1000,2,79)]);
+          c([[0,CONT],[50,'N'],R(1000,2,78)]);   /* v26-I3: 끝컬럼 78 (실물) */
           c([[0,CONT],R(0.150,3,58),R(0,3,68),R(0,3,78)]);
           if(!(rate>0)||!(load>0)) manual.push(`${pn}(N${nid}) 스프링 값 미확정(0) — 해석 후 내보내면 도구 설계값이 기입됨`);
           if(a.form==='double') manual.push(`${pn}(N${nid}) 스프링 DOUBLE — 기입값은 유효 총량, AutoPipe 에서 확인`);
@@ -2403,11 +2742,10 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
           if(!(load>0)) manual.push(`${pn}(N${nid}) 콘스턴트 하중 미확정(0) — 해석 후 내보내면 도구 설계값이 기입됨`);
         } else if(a.kind==='guide'){
-          const gv=(a.gap>0)?a.gap:2540.0;
-          const ax=domAxis(nid);
-          const slots=(ax===1)?[R(gv,3,58),R(gv,3,68)]:[R(gv,3,38),R(gv,3,48)];   // 실물: X축 배관→슬롯1,2 / Y축 라이저→슬롯3,4
-          c([[0,'GUID'],[5,pn],[16,'W']].concat(slots));
-          c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
+          /* v26-I2: 엔진 guide 구속축과 동일 규칙(수평관=횡1축, 라이저=X·Z) — 구속 쌍에 갭, 자유 쌍에 2540 */
+          const ax=domAxis(nid); const lat=[0,1,2].filter(d=>d!==ax&&d!==VUP);
+          guidCard(pn,ax,lat,(a.gap>0)?a.gap:0);
+          if(ax===VUP) manual.push(`${pn}(N${nid}) 라이저 가이드 — X·Z 2축 구속으로 출력(갭슬롯 전부 밀착). AutoPipe 에서 의도한 횡축만 구속하려면 반대쪽 쌍에 2540 입력`);
           if(a.axis) toolext(`AXIS ${pn} guide ${a.axis}`);
         } else if(a.kind==='line_stop'){
           c([[0,'LINE'],[5,pn],[16,'W'],R(2540,3,38)]);
@@ -2453,7 +2791,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
     c([[0,'HED'],[5,'B311-TOOL EXPORT']]);
     const Tamb0=(elems.length?specOf(elems[0]):col.base).Tamb;
     c([[0,'CTL'],[5,'B31.1'],[16,'Y'],[20,'1'],[25,'1'],R(Tamb0==null?21.1:Tamb0,2,37),[41,'SI'],[51,'SI'],[61,'AUTOPIPE'],[71,'B311-24']]);
-    c([[0,CONT],[25,'2024'],[30,'NY'],[33,'2023'],[40,(up==='Z'?'Z-X':'Y-X')]]);
+    c([[0,CONT],[25,'2024'],[31,'NY'],[34,'2023'],[40,(up==='Z'?'Z-X':'Y-X')]]);   /* v26-I3: 실물 컬럼(NY@31, 2023@34) */
     c('***  Support rigid stiffness - Translation   .1000E+11');
     c('***  Support rigid stiffness - Rotation      .1000E+11');
     c('***  Anchor rigid stiffness - Translation    .1000E+11');
@@ -2475,13 +2813,13 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
       /* PIPE 정체성 — 고정컬럼 + 5연속행 (미해독 수치는 실물 값 복제) */
       const dn=sp.nominalDN||Math.round(sp.od||0);
       const schS=(sp.sch==='SUSR')?'SUSR':'S'+String(sp.sch&&sp.sch!=='-'?sp.sch:'STD').replace(/\s/g,'');   /* v25-F9: 사용자 두께는 SUSR 표기(실두께는 *** 주석 권위) */
-      c([[0,'PIPE'],[5,('DN'+dn+'_'+pipeNo).slice(0,13)],[19,'N'],R(dn,3,28),[31,schS.slice(0,8)],R(0,3,48),[53,'2.6800'],[79,'N']]);
+      c([[0,'PIPE'],[5,('DN'+dn+'_'+pipeNo).slice(0,13)],[19,'N'],R(dn,3,28),[31,schS.slice(0,8)],R(0,3,48),R(((sp.mtol!=null&&sp.mtol>=0)?sp.mtol:0.125)*(sp.t||0),4,58),[79,'N']]);   /* v26-I6: 밀공차 mm = mtol×tn */
       c([[0,CONT],[5,'B311-TOOL EXPORT']]);
       const rmat=({'A335-P91':'A335-P91-T1','A335-P92':'A335-P92','A335-P11':'A335-P11','A106-B':'A106-B','A53-B':'A53-B','A312-TP316':'A312-TP316'})[sp.matKey]||sp.matKey||'A106-B';
       const rho=(PSA&&PSA.MATERIALS&&PSA.MATERIALS[sp.matKey])?PSA.MATERIALS[sp.matKey].rho:7850;
       const nu =(PSA&&PSA.MATERIALS&&PSA.MATERIALS[sp.matKey])?PSA.MATERIALS[sp.matKey].poisson:0.3;
       c([[0,CONT],[5,rmat.slice(0,16)],R(167.540,3,28),[30,'.213738203'],R(rho,3,58),R(nu,5,68),[70,'.213738203']]);
-      c([[0,CONT],[5,'W'],R(0,4,18),R(sp.insulT||0,4,28),R(sp.insulRho||0,4,38),R(0.3,4,48),R(0,4,58),R(0,4,68)]);
+      c([[0,CONT],[5,'W'],R(sp.SG==null?1:sp.SG,4,18),R(sp.insulT||0,4,28),R(sp.insulRho||0,4,38),R(0.3,4,48),R(0,4,58),R(0,4,68)]);   /* v26-I4: 유체 비중 기록 */
       c([[0,CONT],[5,'          0.00    1.0000    1.0000 .082207002  413.690 1.0000     1.00 1.00']]);   // 실물 행 복제
       c([[0,CONT]]);
       c([[0,CONT],[13,'ZP92'],[30,'NONE']]);
@@ -2489,7 +2827,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
       /* 권위값 주석 — 임포터가 이 값을 정본으로 복원 */
       c([[0,'***  Pipe OD'],R(sp.od||0,3,53)]);
       c([[0,'***  Wall Thickness'],R(sp.t||0,3,53)]);
-      toolext(`SPEC ${seg.names[0]} CA ${sp.CA||0} SG ${sp.SG==null?1:sp.SG} CYC ${sp.cyc||7000} EFF ${sp.Eff==null?1:sp.Eff}`);
+      toolext(`SPEC ${seg.names[0]} CA ${sp.CA||0} SG ${sp.SG==null?1:sp.SG} CYC ${sp.cyc||7000} EFF ${sp.Eff==null?1:sp.Eff} MTOL ${sp.mtol==null?0.125:sp.mtol} W ${sp.W==null?1:sp.W}`);   /* v26-I6/E18 */
       /* 시작점 지지 + OPER */
       if(!supDone.has(seg.start)){ supDone.add(seg.start); emitSupports(seg.start,seg.names[0],sp); }
       c([[0,'OPER'],[5,seg.names[0]],[14,'1'],R(sp.Tdesign==null?20:sp.Tdesign,3,28),R(sp.P||0,3,43)]);
@@ -2755,7 +3093,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
     (result.nodeRes||[]).forEach((nr,k)=>{
       const r=r0+k;
       const d=nr.d||{};
-      push(['N'+nr.id, f(nr.i==null?1:nr.i,3),
+      push([(nr._gen?String(nr.posLabel||('N'+nr.id)):'N'+nr.id)+(nr.apName?' ('+nr.apName+')':''), f(nr.i==null?1:nr.i,3),   /* v26-C3 */
         f((d.x||0)*1000,3), f((d.y||0)*1000,3), f((d.z||0)*1000,3),
         f(nr.SL,2), '', `"=IF(G${r}="""","""",(G${r}-F${r})/F${r}*100)"`,
         f(nr.SE,2), '', `"=IF(J${r}="""","""",(J${r}-I${r})/I${r}*100)"`,
@@ -3243,6 +3581,27 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
       curSpec.nominalDN = curSpec._dn || dnFromOD(curSpec.od) || null;
       curSpec.sch = curSpec._sch || '-';
       curSpec.sizeLabel = (curSpec.nominalDN ? 'DN' + curSpec.nominalDN + ' ' : '') + 'Ø' + curSpec.od + ' x ' + curSpec.t;
+      /* v26-I6: PIPE 카드 col53-58 = 밀공차(mm) → spec.mtol = 값/tn (TOOLEXT SPEC MTOL 가 있으면 그 값 우선) */
+      if (curSpec.mtol == null && curSpec._mtolMM != null && curSpec._mtolMM > 0 && curSpec.t > 0) {
+        curSpec.mtol = curSpec._mtolMM / curSpec.t;
+        warnings.push('[PIPE] 밀공차 ' + curSpec._mtolMM + ' mm → mtol=' + (curSpec.mtol * 100).toFixed(2) + ' % (후프응력·가용두께에 적용).');
+      }
+      /* v26-I8: NTL 재질 수치(Sc, Ec, Eh, Sh, ρ, 열팽창) vs PSA 재질표 Δ% (정보, 모델에는 미반영) */
+      if (curSpec._ntl && typeof window !== 'undefined' && window.PSA && window.PSA.matProps) {
+        try {
+          var nt = curSpec._ntl, mpP = window.PSA.matProps(curSpec.matKey, curSpec.Tdesign, curSpec.Tamb);
+          var exP = window.PSA.thermalStrain(curSpec.matKey, curSpec.Tdesign, curSpec.Tamb) * 1000;
+          var dpct = function (a, b) { return (a == null || b == null || !b) ? '' : ' (Δ' + ((a - b) / b * 100 >= 0 ? '+' : '') + ((a - b) / b * 100).toFixed(1) + '%)'; };
+          var parts = [];
+          if (nt.Sc != null) parts.push('Sc ' + nt.Sc + ' vs PSA ' + mpP.Sc.toFixed(1) + dpct(nt.Sc, mpP.Sc));
+          if (nt.Ec != null) parts.push('Ec ' + Math.round(nt.Ec) + ' vs ' + Math.round(mpP.Ecold) + dpct(nt.Ec, mpP.Ecold));
+          if (curSpec._ntlEh != null) parts.push('Eh ' + Math.round(curSpec._ntlEh) + ' vs ' + Math.round(mpP.E) + dpct(curSpec._ntlEh, mpP.E));
+          if (curSpec._ntlSh != null) parts.push('Sh ' + curSpec._ntlSh + ' vs ' + mpP.Sh.toFixed(1) + dpct(curSpec._ntlSh, mpP.Sh));
+          if (nt.rho != null) parts.push('ρ ' + nt.rho + ' vs ' + mpP.rho + dpct(nt.rho, mpP.rho));
+          if (curSpec._ntlEx != null) parts.push('팽창 ' + curSpec._ntlEx + ' vs ' + exP.toFixed(3) + ' mm/m' + dpct(curSpec._ntlEx, exP));
+          if (parts.length) warnings.push('[재질 교차검증] NTL(' + nt.name + ') ' + parts.join(' · ') + ' — PSA 표값 적용, NTL 값은 참고.');
+        } catch (e9) { }
+      }
       if (!firstSpec) firstSpec = curSpec;
       curSpec._fin = true;
     }
@@ -3259,7 +3618,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
       }
       var id = (mapIds[name] != null) ? mapIds[name] : (model.nodes.length + 1) * 10;
       while (model.nodes.some(function (n2) { return n2.id === id; })) id += 1;
-      model.nodes.push({ id: id, x: absMM[0] / 1000, y: absMM[1] / 1000, z: absMM[2] / 1000, att: [] });
+      model.nodes.push({ id: id, x: absMM[0] / 1000, y: absMM[1] / 1000, z: absMM[2] / 1000, att: [], apName: name });   /* v26-I9: AutoPIPE 점명(A00…) 보존 */
       byName[name] = id;
       return id;
     }
@@ -3287,6 +3646,8 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           if (kv.SG != null) curSpec.SG = num(kv.SG, 1);
           if (kv.CYC != null) curSpec.cyc = num(kv.CYC, 7000);
           if (kv.EFF != null) curSpec.Eff = num(kv.EFF, 1);
+          if (kv.MTOL != null) curSpec.mtol = num(kv.MTOL, 0.125);   /* v26-I6 */
+          if (kv.W != null) curSpec.W = num(kv.W, 1);               /* v26-E18 */
           if (!firstSpec || firstSpec === curSpec) {
             g.CA = curSpec.CA; g.SG = curSpec.SG; g.cyc = curSpec.cyc; g.Eff = curSpec.Eff;
           }
@@ -3355,12 +3716,20 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
             if (pipeCont === 2 && curSpec) {            // 재질명
               var mn = l.slice(5).trim().split(/\s+/)[0];
               if (mn) curSpec.matKey = matReal(mn);
-            } else if (pipeCont === 3 && curSpec) {     // 'W' + 보온두께 + 보온밀도
+              /* v26-I8: 재질 카드 수치 — Sc(col22-28), Ec(col30-39, ×1e6 MPa), ρ(col51-58) */
+              curSpec._ntl = { name: mn, Sc: num(l.slice(22, 29), null), Ec: (num(l.slice(30, 40), null) != null ? num(l.slice(30, 40), null) * 1e6 : null), rho: num(l.slice(51, 59), null) };
+            } else if (pipeCont === 3 && curSpec) {     // 'W' + 유체비중 + 보온두께 + 보온밀도
               var it = num(l.slice(19, 29), 0), ir = num(l.slice(29, 39), 0);
+              var sgW = num(l.slice(9, 19), -1);          /* v26-I4: 내용물 비중(col13-18); 0.0 = 증기/빈관 */
+              if (sgW >= 0) { curSpec.SG = sgW; g.SG = sgW;
+                if (sgW === 0) warnings.push('[유체] NTL 내용물 비중 0 → 빈관(증기)으로 임포트 (자중에 유체 미포함, 지속응력·행어하중 감소).');
+                else warnings.push('[유체] NTL 내용물 비중 ' + sgW + ' 적용.'); }
               if (it > 0) { curSpec.insulT = it; curSpec.insulRho = ir || 0; curSpec.insulName = 'mineral';
                 g.insT = it; g.insRho = ir || 0; g.insName = 'mineral';
                 warnings.push('[보온재] 실물 NTL 은 보온재 종류 미기록 — mineral 로 가정(두께·밀도는 파일값).'); }
             }
+          } else if (lastKw === 'OPER' && curSpec) {   /* v26-I8: OPER 연속행 'A 107.886' = Sh(설계온도) */
+            var shN = num(l.slice(17, 30), null); if (shN != null) curSpec._ntlSh = shN;
           } else if (lastKw === 'DAMP' && lastDamp && lastDamp.cont === 0) {
             lastDamp.cont = 1;                          // 연속행1 = 방향벡터 → 지배축
             var vx = num(l.slice(49, 59), 0), vy = num(l.slice(59, 69), 0), vz = num(l.slice(69, 79), 0);
@@ -3391,8 +3760,10 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           curSpec = newSpec(); pipeCont = 0;
           curSpec._dn = Math.round(num(l.slice(20, 29), 0)) || null;
           var ms2 = /S(\S+)/.exec(l.slice(29, 40)); if (ms2) curSpec._sch = ms2[1];
+          curSpec._mtolMM = num(l.slice(49, 60), null);   /* v26-I6: 밀공차 mm (col53-58, 실물 2.6800) */
         } else if (kw === 'OPER') {
           var tv = num(l.slice(15, 29), null), pv2 = num(l.slice(29, 45), null);
+          if (curSpec) { var ehN = num(l.slice(64, 75), null); curSpec._ntlEh = (ehN != null ? ehN * 1e6 : null); curSpec._ntlEx = num(l.slice(49, 59), null); }   /* v26-I8: Eh(×1e6 MPa), 열팽창 mm/m */
           if (tv != null) { if (curSpec) curSpec.Tdesign = tv;
             if (!g._t0) { g.T = tv; g._t0 = 1; }
             else if (Math.abs(g.T - tv) > 1e-6) warnings.push('[OPER] 세그별 설계온도 상이 — 폼 기본값은 첫 값(' + g.T + '℃), 요소별 스펙은 각자 유지.'); }
@@ -3416,6 +3787,11 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           attTo(l.slice(5, 10), { kind: 'anchor' }, 'ANC');
         } else if (kw === 'VSTP') {
           attTo(l.slice(5, 10), { kind: 'rest', form: 'single' }, 'VSTP');   // W/R·H 변형 모두 수직지지
+          /* v26-I7: 1방향 가능성 경고만 (수치 미변경) */
+          if (l.charAt(60) === 'H') warnings.push('[VSTP] ' + l.slice(5, 10).trim() + " 로드행어형('H') — 인장 전용(들림 불가)은 미지원, 양방향 강체 수직지지로 근사. 해석 후 반력 부호 확인. [W350]");
+          else { var vs1 = num(l.slice(31, 39), null), vs2 = num(l.slice(41, 49), null);
+            if ((vs1 != null && Math.abs(vs1 - 2540) < 0.5) !== (vs2 != null && Math.abs(vs2 - 2540) < 0.5))
+              warnings.push('[VSTP] ' + l.slice(5, 10).trim() + ' 1방향(들림 허용) 지지 가능성(갭 ' + vs1 + '/' + vs2 + ') — 양방향 강체로 근사; 해석 후 반력 부호(들림) 확인. [W351]'); }
         } else if (kw === 'SPRG') {
           var as2 = { kind: 'vspring_hanger', form: 'single' };
           var ld = num(l.slice(18, 29), 0), rt = num(l.slice(29, 39), 0);
@@ -3426,17 +3802,53 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           var ld2 = num(l.slice(18, 29), 0); if (ld2 > 0) ac2.load = ld2;
           attTo(l.slice(5, 10), ac2, 'CONS');
         } else if (kw === 'GUID') {
-          var ag2 = { kind: 'guide', form: 'single' };
-          var gv2 = [num(l.slice(31, 39), null), num(l.slice(41, 49), null), num(l.slice(51, 59), null), num(l.slice(61, 69), null)]
-            .filter(function (v) { return v != null && v > 0; });
-          var realGap = gv2.filter(function (v) { return Math.abs(v - 2540) > 0.5; });
-          if (realGap.length) ag2.gap = realGap[0];     // 2540.000 = 관례 기본값 → 밀착(gap 미설정)
-          attTo(l.slice(5, 10), ag2, 'GUID');
+          /* v26-I1 (R2-SA4 F1): 갭 4슬롯 = 횡축 2쌍 [(+,-),(+,-)], 쌍 순서 = 배관축의 순환(X→(Y,Z), Y→(Z,X), Z→(X,Y)).
+             2540(=100in) 쌍은 자유. 구속축이 PSA guide 와 다르면 strut(dir) 로 축 단위 정확 임포트. [R2_import/ntl_real_import.py 1:1] */
+          var gsl = [num(l.slice(31, 39), 0), num(l.slice(41, 49), 0), num(l.slice(51, 59), 0), num(l.slice(61, 69), 0)];
+          var isFreeG = function (v) { return Math.abs(v - 2540) < 0.5 || v >= 1000; };
+          var pairFree = [isFreeG(gsl[0]) || isFreeG(gsl[1]), isFreeG(gsl[2]) || isFreeG(gsl[3])];
+          var pairGap = [Math.max(gsl[0], gsl[1]), Math.max(gsl[2], gsl[3])];
+          var nmG = l.slice(5, 10).trim() || lastPt, nidG = (nmG && byName[nmG] != null) ? byName[nmG] : null;
+          var axG = null;
+          if (nidG != null) {
+            var eIn = null; for (var qq = model.elems.length - 1; qq >= 0; qq--) if (model.elems[qq].to === nidG) { eIn = model.elems[qq]; break; }
+            if (eIn) { var nA = null, nB = null;
+              model.nodes.forEach(function (n3) { if (n3.id === eIn.from) nA = n3; if (n3.id === eIn.to) nB = n3; });
+              var dvG = [Math.abs(nB.x - nA.x), Math.abs(nB.y - nA.y), Math.abs(nB.z - nA.z)];
+              axG = (dvG[0] >= dvG[1] && dvG[0] >= dvG[2]) ? 0 : (dvG[1] >= dvG[2] ? 1 : 2); }
+          }
+          var vupG = (model.upAxis === 'Z') ? 2 : 1;
+          var gAtts = [];
+          if (axG != null) {
+            var pairAxes = [(axG + 1) % 3, (axG + 2) % 3];
+            var restrained = []; for (var pq = 0; pq < 2; pq++) if (!pairFree[pq]) restrained.push(pairAxes[pq]);
+            var psaLat = [0, 1, 2].filter(function (d) { return d !== axG && d !== vupG; });
+            if (!restrained.length) {
+              warnings.push('[GUID] ' + nmG + ' 두 횡축 모두 자유(2540) — 구속 없음, 카드 무시.');
+            } else if (restrained.join() === psaLat.join()) {
+              var agG = { kind: 'guide', form: 'single' };
+              var rgG = pairGap.filter(function (v) { return v > 0 && !isFreeG(v); }); if (rgG.length) agG.gap = rgG[0];
+              gAtts.push(agG);
+            } else {
+              restrained.forEach(function (d) { gAtts.push({ kind: 'strut', dir: 'XYZ'.charAt(d) }); });
+              warnings.push('[GUID] ' + nmG + ' 실물 갭슬롯 ' + gsl.join('/') + ' → 횡 ' + restrained.map(function (d) { return 'XYZ'.charAt(d); }).join(',') + '축 단축 구속(strut)으로 임포트 (2540 쌍은 자유). [R2-SA4 F1]');
+            }
+          } else {                                        // 배관축 미상(코너 등) — 종전 로직
+            var ag2 = { kind: 'guide', form: 'single' };
+            var gv2 = gsl.filter(function (v) { return v > 0; });
+            var realGap = gv2.filter(function (v) { return Math.abs(v - 2540) > 0.5; });
+            if (realGap.length) ag2.gap = realGap[0];
+            gAtts.push(ag2);
+          }
+          gAtts.forEach(function (a9) { attTo(l.slice(5, 10), a9, 'GUID'); });
         } else if (kw === 'LINE') {
           attTo(l.slice(5, 10), { kind: 'line_stop' }, 'LINE');
-          var lv2 = num(l.slice(31, 39), null);
+          var lv2 = num(l.slice(31, 39), null), lv3 = num(l.slice(41, 49), null);
           if (lv2 != null && Math.abs(lv2 - 2540) > 0.5)
             warnings.push('[LINE] 라인스톱 갭 ' + lv2 + 'mm — 본 도구 라인스톱은 갭 미지원(밀착으로 임포트).');
+          /* v26-I7: 한쪽 슬롯만 2540(자유) → 축방향 1방향 스톱 가능성 경고 */
+          if ((lv2 != null && Math.abs(lv2 - 2540) < 0.5) !== (lv3 != null && Math.abs(lv3 - 2540) < 0.5))
+            warnings.push('[LINE] ' + l.slice(5, 10).trim() + ' 축방향 1방향 스톱 가능성(갭 ' + lv2 + '/' + lv3 + ') — 양방향 밀착으로 근사, 해석 후 반력 부호 확인. [W352]');
         } else if (kw === 'DAMP') {
           var ad2 = { kind: 'snubber', form: 'single', dir: 'X' };
           var nidD = attTo(l.slice(5, 10), ad2, 'DAMP');
@@ -3880,7 +4292,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
    PSA APP — UI, 3D visualization (contour + animation), Word report
    ============================================================================ */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const state={ nodes:[], elems:[], nextId:10, result:null, viewMode:'ratio',
+const state={ nodes:[], elems:[], nextId:10, result:null, viewMode:'ratio', meta:{},   /* v26-C4: 보고서 표지 정보 */
               anim:{playing:true, amp:60, phase:0}, sel:null, fromNode:null, coordMode:'rel',
               upAxis:'Y', treeCoord:'both', view:'iso', segType:'run', segId:0,
               showNodeLabels:true, showAttLabels:false, showDimLabels:false };
@@ -4227,6 +4639,8 @@ function loadSegSpecToForm(sid){
   $('#mCA').value=+(+CV.len.fromSI(sp.CA||0,U.sys)).toFixed(2);
   $('#mSG').value=(sp.SG==null?1:sp.SG); $('#mEff').value=(sp.Eff==null?1:sp.Eff);
   $('#mCyc').value=(sp.cyc==null?7000:sp.cyc);
+  if($('#mMtol'))$('#mMtol').value=(sp.mtol==null?12.5:+(sp.mtol*100).toFixed(3));   /* v26-C2 */
+  if($('#mW'))$('#mW').value=(sp.W==null?1:sp.W);                                     /* v26-C2 */
   let ik='custom';
   for(const k in PSA.INSULATION){ if(PSA.INSULATION[k].name===sp.insulName){ik=k;break;} }
   if((sp.insulT||0)<=0) ik='none';
@@ -4523,22 +4937,26 @@ function currentFormSpec(){
     Tamb:CV.tmp.toSI(parseFloat($('#mTa').value)||20,U.sys),
     CA:CV.len.toSI(parseFloat($('#mCA').value)||0,U.sys),
     insulRho:ins.insulRho, insulT:ins.insulT, insulName:ins.insulName,
-    SG:parseFloat($('#mSG').value)||1,
+    SG:(v=>isFinite(v)?v:1)(parseFloat($('#mSG').value)),   /* v26-I4: SG=0(증기) 보존 — 종전 '||1' 은 0 을 1 로 바꿈 */
     Eff:parseFloat($('#mEff').value)||1,
-    cyc:parseFloat($('#mCyc').value)||7000, nominalDN:nominalDN()
+    cyc:parseFloat($('#mCyc').value)||7000, nominalDN:nominalDN(),
+    mtol:optNum('#mMtol',12.5)/100,   /* v26-E15/C2: UI #mMtol 은 % (기본 12.5) → 비율 */
+    W:optNum('#mW',1.0)            /* v26-E18: 용접강도저감계수 — Builder-2: <input id="mW"> */
   };
 }
+/* v26: 선택 입력란 읽기 — 요소가 없거나 숫자가 아니면 기본값 (UI 는 Builder-2 가 추가) */
+function optNum(sel,dflt){ const el=document.querySelector(sel); if(!el) return dflt; const v=parseFloat(el.value); return isFinite(v)?v:dflt; }
 function gatherInput(){
   const sp=currentFormSpec();
   return Object.assign({}, sp, {
-    k_occ:1.15, upAxis:state.upAxis,
-    nodes:state.nodes.map(n=>({id:n.id,x:n.x,y:n.y,z:n.z,att:(n.att||[]).map(a=>({...a}))})),
+    k_occ:optNum('#mKocc',1.15), occG:optNum('#mOccG',0.3), upAxis:state.upAxis,   /* v26-E14: Builder-2: <select id="mKocc">(1.15|1.2), <input id="mOccG"> */
+    nodes:state.nodes.map(n=>({id:n.id,x:n.x,y:n.y,z:n.z,att:(n.att||[]).map(a=>({...a})),apName:n.apName})),   /* v26-I9 */
     elems:state.elems.map(e=>({...e}))
   });
 }
 
 /* ===================== SAVE / LOAD model (.json) ===================== */
-const SAVE_FIELDS=['mMat','mNps','mSch','mOD','mWT','mWTU','mP','mT','mTa','mCA','mSG','mEff','mInsMat','mInsT','mInsRho','mCyc'];   /* v25-F9: mWTU 추가 */
+const SAVE_FIELDS=['mMat','mNps','mSch','mOD','mWT','mWTU','mP','mT','mTa','mCA','mSG','mEff','mInsMat','mInsT','mInsRho','mCyc','mMtol','mW','mKocc','mOccG'];   /* v25-F9: mWTU 추가 / v26: mtol·W·k·g (요소 없으면 건너뜀) */
 function serializeModel(){
   const mat={}; SAVE_FIELDS.forEach(id=>{ const el=$('#'+id); if(el) mat[id]=el.value; });
   return {
@@ -4546,7 +4964,9 @@ function serializeModel(){
     units:U.sys, upAxis:state.upAxis, coordMode:state.coordMode, view:state.view,
     nextId:state.nextId, segId:state.segId||0, material:mat,
     engineOptions:Object.assign({},PSA.OPTIONS),   /* v22: 엔진 보정 옵션 저장 */
-    nodes:state.nodes.map(n=>({id:n.id,x:n.x,y:n.y,z:n.z,att:(n.att||[]).map(a=>({...a}))})),
+    engineOptionsR2:Object.assign({},PSA.OPTIONS_R2), resultOptions:Object.assign({},PSA.RESULT),   /* v26: R2 보정·결과 관례 옵션 저장 */
+    meta:Object.assign({},state.meta||{}),   /* v26-C4: 보고서 표지 정보 */
+    nodes:state.nodes.map(n=>({id:n.id,x:n.x,y:n.y,z:n.z,att:(n.att||[]).map(a=>({...a})),apName:n.apName})),   /* v26-I9 */
     elems:state.elems.map(e=>({from:e.from,to:e.to,segId:e.segId||0,spec:e.spec?{...e.spec}:undefined}))
   };
 }
@@ -4588,7 +5008,7 @@ function applyLoadedModel(data, opt={}){
   if(m.mWTU!=null&&$('#mWTU'))$('#mWTU').value=m.mWTU;
   if($('#schUserRow'))$('#schUserRow').style.display=($('#mSch').value==='SUSR')?'grid':'none';
   if(m.mInsMat!=null)$('#mInsMat').value=m.mInsMat; syncInsRho();
-  ['mP','mT','mTa','mCA','mSG','mEff','mInsT','mInsRho','mCyc'].forEach(id=>{ if(m[id]!=null)$('#'+id).value=m[id]; });
+  ['mP','mT','mTa','mCA','mSG','mEff','mInsT','mInsRho','mCyc','mMtol','mW','mKocc','mOccG'].forEach(id=>{ if(m[id]!=null&&$('#'+id))$('#'+id).value=m[id]; });   /* v26: 신규 입력란(없으면 건너뜀) */
   /* v22-SA5: 임포트/구버전 모델의 SCH 가 해당 DN 목록에 없으면(예: '-')
      t 가 undefined 로 풀려 E403 이 나므로, mOD/mWT 가 있으면 사용자정의 치수로 폴백 */
   { const chk=resolveSize();
@@ -4597,11 +5017,16 @@ function applyLoadedModel(data, opt={}){
       $('#mOD').value=m.mOD; $('#mWT').value=m.mWT; updatePipeInfo();
     } }
   // 4) geometry
-  state.nodes=data.nodes.map(n=>({id:n.id,x:+n.x,y:+n.y,z:+n.z,att:(n.att||[]).map(a=>({...a}))}));
+  state.nodes=data.nodes.map(n=>({id:n.id,x:+n.x,y:+n.y,z:+n.z,att:(n.att||[]).map(a=>({...a})),apName:(n.apName!=null?n.apName:undefined)}));   /* v26-I9: AutoPIPE 점명 복원 */
   state.elems=data.elems.map(e=>({from:e.from,to:e.to,segId:e.segId||0,spec:e.spec?{...e.spec}:undefined}));
   state.segId=data.segId||0;
   /* v22: 엔진 보정 옵션 복원 — 파일에 없으면(구버전 저장본) 기본 전부 ON */
   Object.keys(PSA.OPTIONS).forEach(k=>{ PSA.OPTIONS[k]=data.engineOptions?data.engineOptions[k]!==false:true; });
+  /* v26: R2 보정·결과 관례 옵션 복원 — 저장본에 없으면(v25 이전 파일) 현재 설정 유지(기본 v26). 재현이 필요하면 PSA.applyPreset('v25') */
+  if(data.engineOptionsR2) Object.keys(PSA.OPTIONS_R2).forEach(k=>{ if(data.engineOptionsR2[k]!==undefined) PSA.OPTIONS_R2[k]=data.engineOptionsR2[k]; });
+  if(data.resultOptions) Object.keys(PSA.RESULT).forEach(k=>{ if(data.resultOptions[k]!==undefined) PSA.RESULT[k]=data.resultOptions[k]; });
+  if(data.meta&&typeof data.meta==='object'){ state.meta=Object.assign({},data.meta); if(typeof syncMetaUI==='function')syncMetaUI(); }   /* v26-C4: 없으면 현재 값 유지 */
+  if(typeof syncResultOptUI==='function')syncResultOptUI();
   if(typeof syncEngineOptUI==='function')syncEngineOptUI();
   state.nextId=data.nextId || (state.nodes.length?Math.max(...state.nodes.map(n=>n.id))+10:10);
   state.coordMode=(data.coordMode==='abs')?'abs':'rel';
@@ -4858,21 +5283,21 @@ function updateLabels(){
 
 /* ===================== AUTO-FIX : solution-based model improver ===================== */
 function candInput(nodes,elems,spec){
-  return Object.assign({}, spec, { k_occ:1.15, upAxis:state.upAxis,
-    nodes:nodes.map(n=>({id:n.id,x:n.x,y:n.y,z:n.z,att:(n.att||[]).map(a=>({...a}))})),
+  return Object.assign({}, spec, { k_occ:optNum('#mKocc',1.15), occG:optNum('#mOccG',0.3), upAxis:state.upAxis,   /* v26 */
+    nodes:nodes.map(n=>({id:n.id,x:n.x,y:n.y,z:n.z,att:(n.att||[]).map(a=>({...a})),apName:n.apName})),
     elems:elems.map(e=>({...e, spec:e.spec?{...e.spec}:undefined})) });
 }
 function runCand(c){ try{ return PSA.runAnalysis(candInput(c.nodes,c.elems,c.spec)); }catch(e){ return null; } }
 function cloneModel(){
   return {
-    nodes: state.nodes.map(n => ({ id:n.id, x:n.x, y:n.y, z:n.z, att:(n.att||[]).map(a => ({...a})) })),
+    nodes: state.nodes.map(n => ({ id:n.id, x:n.x, y:n.y, z:n.z, att:(n.att||[]).map(a => ({...a})), apName:n.apName })),   /* v26-I9 */
     elems: state.elems.map(e => ({ ...e, spec: e.spec?{...e.spec}:undefined })),
     spec: currentFormSpec(), nextId: state.nextId, log: [], changes: [], changedNodes: new Set()
   };
 }
 function snapCand(c){   // deep snapshot preserving change records
   return {
-    nodes: c.nodes.map(n => ({ id:n.id, x:n.x, y:n.y, z:n.z, att:(n.att||[]).map(a => ({...a})) })),
+    nodes: c.nodes.map(n => ({ id:n.id, x:n.x, y:n.y, z:n.z, att:(n.att||[]).map(a => ({...a})), apName:n.apName })),   /* v26-I9 */
     elems: c.elems.map(e => ({ ...e, spec: e.spec?{...e.spec}:undefined })),
     spec: {...c.spec}, nextId: c.nextId, log: c.log.slice(), changes: c.changes.slice(),
     changedNodes: [...c.changedNodes]
@@ -4899,9 +5324,11 @@ function fixSpringToConstant(c,r){
   if(n)c.log.push(`스프링 변동 과다(W311): ${n}개 → 콘스턴트 행어로 변경`);
   return n>0;
 }
+/* v26-C3: 경간 내부 생성 절점(_gen, _parent=[from,to,k,nsub])은 가까운 쪽 실제 절점으로 대체 */
+function genToParent(nr){ if(!nr||!nr._gen||!nr._parent) return nr?nr.id:null; const [a,b,k,n]=nr._parent; return (k<=n/2)?a:b; }
 // add lateral+axial snubbers at occasional-failing nodes lacking them (W303)
 function fixSnubbers(c,r){
-  const occ=(r.nodeRes||[]).filter(x=>x.rOcc>1.0).map(x=>x.id);
+  const occ=[...new Set((r.nodeRes||[]).filter(x=>x.rOcc>1.0).map(genToParent))];   /* v26-C3: 생성 절점 → 인접 실제 절점 */
   let n=0; for(const id of occ){ const nd=c.nodes.find(x=>x.id===id); if(!nd)continue; nd.att=nd.att||[];
     const hasLat=nd.att.some(a=>a.kind==='snubber'&&a.dir==='lateral'); const hasAx=nd.att.some(a=>a.kind==='snubber'&&a.dir==='axial');
     if(!hasLat){ nd.att.push({kind:'snubber',form:'single',dir:'lateral'}); n++; c.changes.push({type:'snubber',node:id,dir:'lateral'}); c.changedNodes.add(id); }
@@ -4914,8 +5341,8 @@ function fixSnubbers(c,r){
 }
 // add a spring hanger on the worst unsupported span / sustained-failing node (W301/W310)
 function fixSupports(c,r){
-  const sus=(r.nodeRes||[]).filter(x=>x.rSus>1.0).map(x=>x.id);
-  const targets = sus.length?sus : (r.summary.maxSusR>0.9? [r.nodeRes.slice().sort((a,b)=>b.rSus-a.rSus)[0].id]:[]);
+  const sus=[...new Set((r.nodeRes||[]).filter(x=>x.rSus>1.0).map(genToParent))];   /* v26-C3: 생성 절점 → 인접 실제 절점 */
+  const targets = sus.length?sus : (r.summary.maxSusR>0.9? [genToParent(r.nodeRes.slice().sort((a,b)=>b.rSus-a.rSus)[0])]:[]);
   let n=0;
   for(const id of targets){ const nd=c.nodes.find(x=>x.id===id); if(!nd)continue; nd.att=nd.att||[];
     const hasV=nd.att.some(a=>['rest','rod','vspring_hanger','vspring_support','constant_hanger','constant_support','anchor','nozzle','hx'].includes(a.kind));
@@ -5507,6 +5934,17 @@ function run(){
   else toast(`해석 완료 · 최대 응력비 ${r.summary.maxRatio.toFixed(2)}`,true);
 }
 
+/* v26-C3: 절점 라벨 — 생성 절점(_gen)은 posLabel("N70 +3.0m"), AP 점명 옵션이면 'A17·N180' */
+function nodeLabel(x, r){
+  r=r||state.result; const list=(r&&r.nodeRes)||[];
+  const nr=(x&&typeof x==='object')?x:list.find(q=>q.id===x);
+  const id=nr?nr.id:x; if(id==null) return 'N-';
+  if(nr&&nr._gen) return nr.posLabel||('N'+id);
+  const ro=(r&&r.resultOptions)||PSA.RESULT;
+  const ap=nr?nr.apName:((nodeById(id)||{}).apName);
+  return (ro.apPointNames&&ap)?(ap+'·N'+id):('N'+id);
+}
+function saEqLabel(basis){ return ({basic:'(1A)',liberal:'(1B)',exceed:'(1A)/(1B)*'})[basis]||''; }
 function renderSummary(){
   const r=state.result, s=r&&r.summary, mp=r&&r.mp;
   const pane=$('#rpane'); if(state.tab&&state.tab!=='sum')return;
@@ -5517,12 +5955,19 @@ function renderSummary(){
   const hasErr=r.logs.some(l=>l.lvl==='e');
   const e401=r.logs.some(l=>l.code==='E401');
   const optOn=Object.keys(PSA.OPTIONS).filter(k=>PSA.OPTIONS[k]).length;
+  /* v26-C3: 결과 스냅샷(옵션·식 번호) — 결과 생성 당시 값 사용 */
+  const RO=r.resultOptions||PSA.RESULT, R2O=r.engineOptionsR2||PSA.OPTIONS_R2, EQL=r.eqLabels||PSA.EQ_LABELS;
+  const r2keys=Object.keys(R2O).filter(k=>typeof R2O[k]==='boolean'), r2on=r2keys.filter(k=>R2O[k]).length;
+  const occDirsTxt=(r.occDirs&&r.occDirs.length)?r.occDirs.join('·'):'X';
+  const isAnch=k=>/anchor|nozzle|hx/.test(String(k||''));
+  const Mv=x=>(U.sys==='US'?x/1000/1.355818:x/1000).toFixed(0);
   pane.innerHTML=`
    ${e401?`<div style="margin:10px 12px 0;padding:8px 10px;border:1px solid #ff5a5f;border-left:4px solid #ff5a5f;border-radius:6px;background:#2a1518;color:#ffb3b6;font-size:11px">⚠ <b>재질 온도범위 초과 (E401)</b> — 아래 수치는 상한온도로 클램프된 물성 기준의 <b>참고용</b>입니다.</div>`:''}
    <div class="kpis">
-     <div class="kpi ${rcls(s.maxSusR)}"><div class="k">지속하중 SL/Sh</div><div class="v">${s.maxSusR.toFixed(2)}</div><div class="u">Eq.15 @N${s.worstSusNode!=null?s.worstSusNode:'-'}</div></div>
-     <div class="kpi ${rcls(s.maxExpR)}"><div class="k">열팽창 SE/SA</div><div class="v">${s.maxExpR.toFixed(2)}</div><div class="u">Eq.14 @N${s.worstExpNode!=null?s.worstExpNode:'-'}</div></div>
-     <div class="kpi ${rcls(s.maxOccR)}"><div class="k">일시하중 SOcc/kSh</div><div class="v">${s.maxOccR.toFixed(2)}</div><div class="u">Eq.16 @N${s.worstOccNode!=null?s.worstOccNode:'-'}</div></div>
+     ${(RO.reportHoop&&s.maxHoopR!=null)?`<div class="kpi ${rcls(s.maxHoopR)}"><div class="k">후프 σh/Sh${s.hoopIncluded?'':' <span style="font-size:9px;color:#7c93a8">(참고)</span>'}</div><div class="v">${s.maxHoopR.toFixed(2)}</div><div class="u">P·Do/2t_av−P·y @${nodeLabel(s.worstHoopNode)}</div></div>`:''}
+     <div class="kpi ${rcls(s.maxSusR)}"><div class="k">지속하중 SL/Sh</div><div class="v">${s.maxSusR.toFixed(2)}</div><div class="u">${EQL.SL} @${nodeLabel(s.worstSusNode)}</div></div>
+     <div class="kpi ${rcls(s.maxExpR)}"><div class="k">열팽창 SE/SA <span style="font-size:9px;color:#7c93a8">${saEqLabel(s.saBasis)}</span></div><div class="v">${s.maxExpR.toFixed(2)}</div><div class="u">${EQL.SE} @${nodeLabel(s.worstExpNode)}</div></div>
+     <div class="kpi ${rcls(s.maxOccR)}"><div class="k">일시하중 SOcc/kSh</div><div class="v">${s.maxOccR.toFixed(2)}</div><div class="u">${EQL.SOcc} @${nodeLabel(s.worstOccNode)}</div></div>
      <div class="kpi ${(s.fail||hasErr)?'bad':'ok'}"><div class="k">판정</div><div class="v">${(s.fail||hasErr)?'NG':'OK'}</div><div class="u">${hasErr&&!s.fail?'전제조건 불만족':s.fail+' node 초과'}</div></div>
    </div>
    <div style="padding:0 12px 12px">
@@ -5539,9 +5984,11 @@ function renderSummary(){
        <tr><td style="color:#8a97aa">압력 종응력 PD/4t (${L.str})</td><td colspan="2">${D.str(r.pStress).toFixed(1)}</td></tr>
        <tr><td style="color:#8a97aa">보온재</td><td colspan="2">${r.input.insulName||'-'} · ${(+CV.len.fromSI(r.input.insulT||0,U.sys)).toFixed(1)}${L.len}</td></tr>
        <tr><td style="color:#8a97aa">자중 w (N/m)</td><td colspan="2">${(r.wlin*1000).toFixed(0)}</td></tr>
-       <tr><td style="color:#8a97aa">사이클 계수 f</td><td colspan="2">${r.fcyc.toFixed(2)}</td></tr>
-       <tr><td style="color:#8a97aa">최대 열변위</td><td colspan="2">${D.dsp(s.maxDisp).toFixed(2)} ${L.dsp} @ N${s.maxDispNode}</td></tr>
-       <tr><td style="color:#8a97aa">절점 / element</td><td colspan="2">${s.nNode} / ${s.nElem}</td></tr>
+       <tr><td style="color:#8a97aa">사이클 계수 f</td><td colspan="2">${r.fcyc.toFixed(3)} <span style="font-size:9px;color:#7c93a8">(${R2O.fContinuous?EQL.f+' 연속식':(PSA.OPTIONS.fStepTable?'Table 102.3.2(C) 계단표':'연속식 근사')}, N=${r.input.cyc})</span></td></tr>
+       <tr><td style="color:#8a97aa">S_A 식 / 후프</td><td colspan="2">S_A ${saEqLabel(s.saBasis)} · 후프 ${RO.reportHoop?(s.hoopIncluded?'종합비 포함':'참고'):'미보고'}${(RO.reportHoop&&RO.hoopY!=='table')?' (y='+RO.hoopY+')':''}${(RO.reportHoop&&s.maxHoopR!=null)?` · σh/Sh 최대 <b>${s.maxHoopR.toFixed(3)}</b> @${nodeLabel(s.worstHoopNode)}`:''}</td></tr>
+       <tr><td style="color:#8a97aa">일시하중(지진)</td><td colspan="2">${(r.occG!=null?r.occG:0.3)} g · k=${r.k_occ} · 수평 ${occDirsTxt}${(r.occDirs&&r.occDirs.length>1)?' 각각 해석·절점별 포락':' 단일'}</td></tr>
+       <tr><td style="color:#8a97aa">최대 열변위</td><td colspan="2">${D.dsp(s.maxDisp).toFixed(2)} ${L.dsp} @ ${nodeLabel(s.maxDispNode)}</td></tr>
+       <tr><td style="color:#8a97aa">절점 / element</td><td colspan="2">${s.nNode-(s.nNodeGen||0)} / ${s.nElem}${s.nNodeGen?` <span style="font-size:9px;color:#7c93a8">(+ 경간 내부 평가점 ${s.nNodeGen})</span>`:''}</td></tr>
      </tbody></table>
      ${(r.segments&&r.segments.length>1)?`
      <h4 style="font-size:10px;letter-spacing:.8px;color:#8a97aa;text-transform:uppercase;margin:14px 0 7px">세그먼트별 스펙 · Segment Specs (${r.segments.length}개)</h4>
@@ -5551,22 +5998,24 @@ function renderSummary(){
        <td>${D.len(sg.tm).toFixed(1)}/${D.len(sg.t_avail).toFixed(1)}</td>
        <td style="color:${sg.pass?'#33d399':'#ff5a5f'};font-weight:700">${sg.pass?'OK':'NG'}</td></tr>`).join('')}
      </tbody></table>`:''}
-     <h4 style="font-size:10px;letter-spacing:.8px;color:#8a97aa;text-transform:uppercase;margin:14px 0 7px">지지점 반력 · Support Reactions (operating = 지속+열)</h4>
-     <table class="rtab"><thead><tr><th>Node</th><th>형식</th><th>Fx</th><th>Fy</th><th>Fz</th><th>|F| (${L.frc})</th></tr></thead><tbody>
-     ${r.reactions.map(rx=>`<tr><td class="nid">N${rx.node}</td><td style="font-size:9px;color:#8a97aa">${supNames(rx.kind)}</td>
-       <td>${D.frc(rx.thermal.fx).toFixed(0)}</td><td>${D.frc(rx.thermal.fy).toFixed(0)}</td><td>${D.frc(rx.thermal.fz).toFixed(0)}</td>
-       <td><b style="color:#e7eef7">${D.frc(rx.thermal.mag).toFixed(0)}</b></td></tr>`).join('')}
-     </tbody></table>
+     <h4 style="font-size:10px;letter-spacing:.8px;color:#8a97aa;text-transform:uppercase;margin:14px 0 7px">지지점 반력 · Support Reactions (operating = 지속+열 R)</h4>
+     <div style="overflow:auto"><table class="rtab" style="font-size:10px"><thead><tr><th>Node</th><th>형식</th><th>Fx</th><th>Fy</th><th>Fz</th><th>|F|<br>${L.frc}</th><th title="운전(고온) 반력 |F| = 지속 + Rh, Rh=(Eh/Ec)·R (119.10.1, C=0)">|F|hot<br>Eh/Ec</th><th>Mx</th><th>My</th><th>Mz<br>${U.sys==='US'?'ft·lb':'N·m'}</th></tr></thead><tbody>
+     ${r.reactions.map(rx=>{ const t=rx.thermal, oh=rx.operatingHot||t, an=isAnch(rx.kind);
+       return `<tr><td class="nid">${nodeLabel(rx.node)}</td><td style="font-size:9px;color:#8a97aa">${supNames(rx.kind)}</td>
+       <td>${D.frc(t.fx).toFixed(0)}</td><td>${D.frc(t.fy).toFixed(0)}</td><td>${D.frc(t.fz).toFixed(0)}</td>
+       <td><b style="color:#e7eef7">${D.frc(t.mag).toFixed(0)}</b></td><td style="color:#f5a623">${D.frc(oh.mag).toFixed(0)}</td>
+       <td>${an?Mv(t.mx||0):'–'}</td><td>${an?Mv(t.my||0):'–'}</td><td>${an?Mv(t.mz||0):'–'}</td></tr>`;}).join('')}
+     </tbody></table></div>
      ${r.hangers&&r.hangers.length?`
      <h4 style="font-size:10px;letter-spacing:.8px;color:#8a97aa;text-transform:uppercase;margin:14px 0 7px">행어 설계 · Hanger Sizing & Selection (B31.1)</h4>
      <table class="rtab"><thead><tr><th>Node</th><th>종류</th><th>설계하중</th><th>열이동</th><th>변동</th></tr></thead><tbody>
-     ${r.hangers.map(h=>`<tr><td class="nid">N${h.node}</td><td style="font-size:9px">${supName(h.kind)}${h.form==='double'?'·D':''}</td>
+     ${r.hangers.map(h=>`<tr><td class="nid">${nodeLabel(h.node)}</td><td style="font-size:9px">${supName(h.kind)}${h.form==='double'?'·D':''}</td>
        <td>${(h.load/9.80665).toFixed(0)} kg<br><span style="font-size:9px;color:#8a97aa">${D.frc(h.load).toFixed(0)} ${L.frc}</span></td>
        <td>${D.dsp(h.movement/1000).toFixed(1)} ${L.dsp}</td>
        <td>${h.variation?(h.variation*100).toFixed(0)+'%':'-'}<br><span style="font-size:8.5px;color:${h.variation>0.25?'#f5a623':'#8a97aa'}">${h.rec||''}</span></td></tr>`).join('')}
      </tbody></table>`:''}
-     <div class="mini" style="color:#5d6a7d;margin-top:6px">반력(힘 3성분)은 전역좌표 기준 <b>배관이 지지물에 가하는 힘</b>(수직성분 합 = −총 자중). 스프링/콘스턴트 절점 반력에는 프리로드(설계하중)가 포함됨(v22-FIX-04). 본 도구는 앵커/노즐의 <b>모멘트 반력을 출력하지 않으므로</b> API 610/NEMA SM-23 등 노즐 허용하중(힘+모멘트 세트) 평가는 모멘트를 포함한 상용 해석으로 수행해야 함. 행어 설계하중은 지속하중(자중) 반력 기준 1차 산정. 변동률>25%면 콘스턴트 행어 권장(MSS SP-58/B31.1 관행). 일시하중(지진) 반력은 워드 보고서 §6 참조.</div>
-     <div class="mini" style="color:#5d6a7d;margin-top:4px">엔진 보정(v22): ${optOn}/6 적용 — ${Object.keys(PSA.OPTIONS).map((k,i)=>'D'+({bendFlexibility:1,coldModulusExpansion:2,sifMeanRadius:3,guideAxisFix:4,yTableB31:5,fStepTable:6})[k]+(PSA.OPTIONS[k]?'✓':'✗')).join(' ')}</div>
+     <div class="mini" style="color:#5d6a7d;margin-top:6px">반력은 전역좌표 기준 <b>배관이 지지물에 가하는 힘·모멘트</b>(수직성분 합 = −총 자중). 열 성분은 변위응력범위 반력 R(상온 Ec 기준); <span style="color:#f5a623">|F|hot</span> 은 운전온도 환산 Rh=(Eh/Ec)·R 을 더한 운전(고온) 반력(119.10.1, C=0). 앵커/노즐의 모멘트 반력(Mx,My,Mz, 회전 구속 DOF 솔버 반력)은 노즐 허용하중(API 610/NEMA SM-23) 평가에 사용 — 전 성분·전 케이스는 워드 보고서 §6.6. 스프링/콘스턴트 절점 반력에는 프리로드(설계하중)가 포함됨. 행어 설계하중은 지속하중(자중) 반력 기준 1차 산정(부품중량 미포함). 변동률>25%면 콘스턴트 행어 권장(MSS SP-58/B31.1 121.7). 일시하중(지진) 반력은 보고서 §6.6.2 참조.</div>
+     <div class="mini" style="color:#5d6a7d;margin-top:4px">엔진 보정: D ${optOn}/6 (${Object.keys(PSA.OPTIONS).map((k,i)=>'D'+({bendFlexibility:1,coldModulusExpansion:2,sifMeanRadius:3,guideAxisFix:4,yTableB31:5,fStepTable:6})[k]+((r.engineOptions||PSA.OPTIONS)[k]?'✓':'✗')).join(' ')}) · R2 ${r2on}/${r2keys.length} ${r2on===r2keys.length?'전부 적용':(r2on===0?'전부 해제':'일부')} · S_A ${saEqLabel(s.saBasis)} · 후프 ${RO.reportHoop?(s.hoopIncluded?'포함':'참고'):'미보고'} — 프리셋 <b style="color:#aebdcc">${presetName(r.engineOptions||PSA.OPTIONS,R2O,RO)}</b> · ${r.codeEdition||PSA.CODE_EDITION}</div>
      ${(r.solutions&&r.solutions.length)?`
      <h4 style="font-size:10px;letter-spacing:.8px;color:#ff8b8f;text-transform:uppercase;margin:16px 0 8px">⚠ Fail 원인 및 해결방안 · Cause & Solution</h4>
      ${r.solutions.map(sv=>{
@@ -5594,30 +6043,39 @@ function renderResults(){
   const e401=r.logs.some(l=>l.code==='E401');
   state._resHTML=`
    ${e401?`<div style="margin:10px 12px 0;padding:8px 10px;border:1px solid #ff5a5f;border-left:4px solid #ff5a5f;border-radius:6px;background:#2a1518;color:#ffb3b6;font-size:11px">⚠ <b>재질 온도범위 초과 (E401)</b> — 아래 수치는 상한온도 클램프 물성 기준 <b>참고용</b>입니다.</div>`:''}
-   <table class="rtab"><thead><tr>
-     <th>Node</th><th>SIF i</th><th>SL/Sh</th><th>SE/SA</th><th>SOcc/kSh</th><th>비</th>
+   ${(()=>{ /* v26-C3: 결과 스냅샷 기준 열 구성 */
+     const RO=r.resultOptions||PSA.RESULT, R2O=r.engineOptionsR2||PSA.OPTIONS_R2, EQL=r.eqLabels||PSA.EQ_LABELS;
+     const hoop=!!RO.reportHoop, ap=!!RO.apPointNames&&r.nodeRes.some(x=>x.apName);
+     const occTxt=`${r.occG!=null?r.occG:0.3}g 수평 ${(r.occDirs&&r.occDirs.length)?r.occDirs.join('·'):'X'}${(r.occDirs&&r.occDirs.length>1)?' 각각 해석 후 절점별 포락':' 단일 케이스'}`;
+     const axS=R2O.axialTerm?'|PD/4t+Fa/Ap|':'PD/4t', axE=R2O.axialTerm?'|Fc/Ap| + ':'';
+     return `<table class="rtab"><thead><tr>
+     <th>Node${ap?'<br><span style="font-size:8.5px;color:#7c93a8">AP점명·N</span>':''}</th><th>SIF i</th>${hoop?'<th>σh/Sh</th>':''}<th>SL/Sh</th><th>SE/SA</th><th>SA 식</th><th>SOcc/kSh</th><th>비${(hoop&&RO.includeHoopInMax)?'<br><span style="font-size:8.5px;color:#7c93a8">후프포함</span>':''}</th>
    </tr></thead><tbody>
    ${r.nodeRes.map(nr=>{
      const rc=v=>v>1?'rbad':v>0.8?'rwarn':'rok';
      const c=ramp(nr.ratio),bw=Math.min(nr.ratio,1)*26;
-     return `<tr><td class="nid">N${nr.id}</td><td>${nr.i.toFixed(2)}</td>
+     const gen=!!nr._gen;
+     return `<tr${gen?' style="color:#7c93a8;font-style:italic" title="경간 내부 자동 생성 평가점 (직관 내부, 3D·편집 대상 아님)"':''}><td class="nid"${gen?' style="color:#7c93a8"':''}>${nodeLabel(nr,r)}</td><td>${nr.i.toFixed(2)}</td>
+       ${hoop?`<td class="${rc(nr.rHoop||0)}">${(nr.rHoop||0).toFixed(2)}</td>`:''}
        <td class="${rc(nr.rSus)}">${nr.rSus.toFixed(2)}</td>
-       <td class="${rc(nr.rExp)}">${nr.rExp.toFixed(2)}</td>
+       <td class="${rc(nr.rExp)}">${nr.rExp.toFixed(2)}</td><td style="font-size:9px;color:#8a97aa">${nr.saEq||''}</td>
        <td class="${rc(nr.rOcc)}">${nr.rOcc.toFixed(2)}</td>
        <td><span class="bar" style="width:${bw}px;background:rgb(${c.map(x=>Math.round(x*255)).join(',')})"></span><b style="color:${nr.ratio>1?'#ff5a5f':'#e7eef7'}">${nr.ratio.toFixed(2)}</b></td></tr>`;
    }).join('')}
    </tbody></table>
    <div class="mini" style="padding:10px 12px;color:#5d6a7d;line-height:1.6">
-     <b style="color:#8a97aa">Eq.15</b> SL = PD/4t + 0.75i·MA/Z ≤ Sh <span style="color:#7c93a8">(0.75i ≥ 1.0 적용)</span> ·
-     <b style="color:#8a97aa">Eq.14</b> SE = i·MC/Z ≤ SA ·
-     <b style="color:#8a97aa">Eq.16</b> SOcc = PD/4t+0.75i(MA+MB)/Z ≤ k·Sh <span style="color:#7c93a8">(0.75i ≥ 1.0; 일시하중 = 수평 1방향(전역 X) 정적 등가 0.3g 단일 케이스)</span>
-   </div>
+     <b style="color:#8a97aa">${EQL.SL}</b> SL = ${axS} + 0.75i·MA/Z ≤ Sh <span style="color:#7c93a8">(0.75i ≥ 1.0 적용)</span> ·
+     <b style="color:#8a97aa">${EQL.SE}</b> SE = ${axE}i·MC/Z ≤ SA, SA = ${({basic:'f(1.25Sc+0.25Sh) [102.3.2(b) Eq.(1A), AutoPIPE 기본]',liberal:'f(1.25(Sc+Sh)−SL) [Eq.(1B) liberal = max((1A),(1B))]',exceed:'f(1.25Sc+0.25Sh) Eq.(1A), SE 초과 절점만 Eq.(1B) [AutoPIPE Sustain margin; (1B)* 표시]'})[RO.saBasis]||''}${R2O.saCap20ksi?', smts>480 MPa 재질은 Sc,Sh ≤ 137.9':''} · f ${EQL.f} ·
+     <b style="color:#8a97aa">${EQL.SOcc}</b> SOcc = ${R2O.axialTerm?'|PD/4t+Fa/Ap|+|Fb|/Ap':'PD/4t'}+0.75i(MA+MB)/Z ≤ k·Sh <span style="color:#7c93a8">(0.75i ≥ 1.0; k=${r.k_occ}; 일시하중 = 지진 ${occTxt})</span>
+     ${hoop?`· <b style="color:#8a97aa">Hoop</b> σh = P·Do/(2·t_av) − P·y ≤ Sh·E·W, t_av = tn(1−밀공차)−CA, y=${(RO.hoopY==='table'||RO.hoopY==null)?'Table 104.1.2(A)':RO.hoopY} <span style="color:#7c93a8">(AutoPIPE 'Max P' 관례${RO.includeHoopInMax?', 종합비 포함':', 참고'})</span>`:''}
+     · <span style="color:#7c93a8">${r.codeEdition||PSA.CODE_EDITION}${r.nodeRes.some(x=>x._gen)?' · <i>기울임</i> 행 = 경간 내부 자동 생성 평가점 (E4)':''}</span>
+   </div>`; })()}
    <h4 style="font-size:10px;letter-spacing:.8px;color:#8a97aa;text-transform:uppercase;margin:8px 12px 6px">절점별 힘·모멘트 (operating · global)</h4>
    <div style="overflow:auto"><table class="rtab" style="font-size:10px"><thead><tr>
      <th>Node</th><th>Fx</th><th>Fy</th><th>Fz</th><th>|F|<br>${UL().frc}</th><th>Mx</th><th>My</th><th>Mz</th><th>|M|<br>${U.sys==='US'?'ft·lb':'N·m'}</th>
    </tr></thead><tbody>
    ${r.nodeRes.map(nr=>{ const o=nr.fm.op, F=x=>D.frc(x).toFixed(0), M=x=>(U.sys==='US'?x/1000/1.355818:x/1000).toFixed(0);
-     return `<tr><td class="nid">N${nr.id}</td>
+     return `<tr${nr._gen?' style="color:#7c93a8;font-style:italic"':''}><td class="nid">${nodeLabel(nr,r)}</td>
        <td>${F(o.fx)}</td><td>${F(o.fy)}</td><td>${F(o.fz)}</td><td><b style="color:#39bdf8">${F(nr.fm.Fop)}</b></td>
        <td>${M(o.mx)}</td><td>${M(o.my)}</td><td>${M(o.mz)}</td><td><b style="color:#f5a623">${M(nr.fm.Mop)}</b></td></tr>`;
    }).join('')}
@@ -5647,41 +6105,211 @@ function switchTab(t){
 }
 
 /* ============================ WORD REPORT ============================ */
+/* =====================================================================================
+   makeReport()  — v26 (R2/SA6 리비전, Builder-2 통합판)  ·  드롭인 교체용
+   -------------------------------------------------------------------------------------
+   원본  : R2_report/makeReport_v26.js (SA6) 를 Builder-1 엔진 인터페이스(BUILD_NOTES_v26 §3)에 맞춰 수정.
+   교체 범위 : HTML 의 makeReport 함수 선언부터 다음 최상위 typeName 함수 선언 직전까지.
+   의존 전역 : state, $, toast, renderer, scene, cam, nodeById, supName, supNames, PSA
+   엔진 필드 : r.resultOptions{saBasis,reportHoop,includeHoopInMax,hoopY,apPointNames}, r.engineOptionsR2,
+              r.codeEdition, r.eqLabels{SL,SOcc,SE,SA,f,tm}, r.occG, r.occDirs,
+              nodeRes[].{SA1A,SA1B,saEq,hoop,hoopAllow,rHoop,hoopT,hoopY,ratioL,apName,_gen,posLabel,Na,Nc,Nb},
+              reactions[].{sustained,thermalOnly,thermal,hot,operatingHot}×{fx..mz,mag,mmag}, summary.{maxHoopR,worstHoopNode,maxRatioL,hoopIncluded,nNodeGen}
+   선택 훅   : state.meta {project,line,docNo,rev,client,author,checker,approver,date}
+   ===================================================================================== */
 function makeReport(){
   const r=state.result;
   if(!r){toast('먼저 해석을 실행하세요',false);return;}
-  // capture viewport
-  renderer.render(scene,cam);
-  const img=$('#cv').toDataURL('image/png');
-  const d=new Date().toISOString().slice(0,10);
-  const inp=r.input, mp=r.mp, s=r.summary;
-  /* v22-FIX-01: 오류 로그(lvl==='e') 존재 시 응력비와 무관하게 종합판정 NG + 오류 박스 */
-  const hasErr=r.logs.some(l=>l.lvl==='e');
-  const e401=r.logs.some(l=>l.code==='E401');
-  const verdict=(s.fail||hasErr)?'<span style="color:#c0392b;font-weight:bold">부적합 (NG)</span>':'<span style="color:#1e8449;font-weight:bold">적합 (OK)</span>';
-  const verdictSub=(hasErr&&!s.fail)?'<br><span style="font-size:9pt;color:#c0392b">설계 전제조건 불만족 (E401/E402 등 — 하단 오류 목록 참조)</span>':'';
+  if(!r.summary||!r.mp||!r.nodeRes){toast('해석 결과가 불완전합니다(로그의 오류 확인) — 보고서 생성 불가',false);return;}
+
+  /* ---------- 공통 헬퍼 (NaN/undefined 가드, HTML 이스케이프) ---------- */
+  const num=(x,dp)=>{ if(x==null||!isFinite(+x))return '-'; const t=(+x).toFixed(dp==null?1:dp); return /^-0(\.0*)?$/.test(t)?t.slice(1):t; };   /* '-0.0' 방지 */
+  const esc=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const td=(v,al)=>`<td${al?' align="'+al+'"':''}>${v}</td>`;
+  const tdr=v=>td(v,'right'), tdc=v=>td(v,'center');
+  const okng=b=>b?'<span style="color:#1e8449;font-weight:bold">OK</span>':'<span style="color:#c0392b;font-weight:bold">NG</span>';
+  const blank=w=>`<span style="display:inline-block;min-width:${w||80}px;border-bottom:1px solid #888">&nbsp;</span>`;
+  const onoff=b=>b?'적용':'미적용';
+
+  /* ---------- 입력·옵션·훅 ---------- */
+  const inp=r.input||{}, mp=r.mp, s=r.summary;
+  const OPT=r.engineOptions||(window.PSA&&PSA.OPTIONS)||{};
+  const R2=r.engineOptionsR2||(window.PSA&&PSA.OPTIONS_R2)||{};
+  const RO=r.resultOptions||(window.PSA&&PSA.RESULT)||{saBasis:'liberal',reportHoop:false,includeHoopInMax:false,hoopY:'table',apPointNames:false};
+  const EDITION=r.codeEdition||(window.PSA&&PSA.CODE_EDITION)||'';
+  const EL=r.eqLabels||(window.PSA&&PSA.EQ_LABELS)||{};
+  const EQ={tm:EL.tm||'',sus:EL.SL||'',occ:EL.SOcc||'',exp:EL.SE||'',f:EL.f||'',sa:EL.SA||'Eq.(1A)/(1B)',sa1a:'(1A)',sa1b:'(1B)'};
+  const eqL=k=>EQ[k]?` [${esc(EQ[k])}]`:'';                                 /* 식 번호 미확정 시 공란 */
+  const saBasis=(RO.saBasis==='liberal'||RO.saBasis==='exceed')?RO.saBasis:'basic';
+  const SA_NAME={basic:EQ.sa1a+' 기본식 f(1.25S<sub>c</sub>+0.25S<sub>h</sub>)',liberal:EQ.sa1b+' liberal 식 f[1.25(S<sub>c</sub>+S<sub>h</sub>)−S<sub>L</sub>] (= max('+EQ.sa1a+','+EQ.sa1b+'))',exceed:EQ.sa1a+' 기본식, S<sub>E</sub> 초과 절점만 '+EQ.sa1b+' (AutoPIPE "Sustain margin" 관례)'}[saBasis];
+  const SA_SHORT={basic:EQ.sa1a,liberal:EQ.sa1b,exceed:EQ.sa1a+'/'+EQ.sa1b+'*'}[saBasis];
+  const hoopOn=!!(RO.reportHoop), hoopInc=!!(hoopOn&&RO.includeHoopInMax);
+  const META=Object.assign({project:'',line:'',docNo:'',rev:'0',client:'',author:'',checker:'',approver:'',date:''},state.meta||{});
+  const d=(/^\d{4}-\d{2}-\d{2}$/.test(String(META.date||'')))?META.date:new Date().toISOString().slice(0,10);
+  const upAxis=(inp.upAxis||state.upAxis||'Y');
+  const occG=(r.occG!=null)?r.occG:(s.occG!=null?s.occG:0.3);
+  const occDirs=(r.occDirs&&r.occDirs.length)?r.occDirs:(s.occDirs&&s.occDirs.length?s.occDirs:['X']);
+  const occTxt=`${num(occG,2)} g 수평 ${occDirs.length>1?occDirs.join('·')+' 2축 각각 해석 후 절점별 포락':'단축 '+occDirs[0]+' 단일 케이스'}`;
+  const APP_VER=(function(){const b=document.querySelector('.brand .v');return b?b.textContent.trim():'';})()||'PSA B31.1 v26';
+
+  /* ---------- 뷰포트 캡처 ---------- */
+  let img='';
+  try{ renderer.render(scene,cam); img=$('#cv').toDataURL('image/png'); }catch(e){ img=''; }
+
+  /* ---------- 로그·판정 ---------- */
+  const logs=r.logs||[];
+  const errLogs=logs.filter(l=>l.lvl==='e'), warnLogs=logs.filter(l=>l.lvl==='w');
+  const hasErr=errLogs.length>0;
+  const e401=logs.some(l=>l.code==='E401');
+  /* 세그먼트(스펙) 표 — 엔진 segments 에 후프·mtol·W·y 포함(v26). 후프 미보고 모드면 동일식으로 보고서 내부 계산(참고) */
+  const segs=(r.segments&&r.segments.length)?r.segments:[{matKey:inp.matKey,sizeLabel:inp.sizeLabel,od:(r.sec0||{}).od,t:(r.sec0||{}).t,P:inp.P,Tdesign:inp.Tdesign,CA:inp.CA||0,Sh:mp.Sh,Sc:mp.Sc,tm:r.tm,t_avail:r.t_avail,pass:(r.t_avail>=r.tm),label:inp.sizeLabel,mtol:inp.mtol,W:inp.W,y:mp.y}];
+  const Eff=(inp.Eff!=null)?+inp.Eff:1;
+  const mtol0=(segs[0]&&segs[0].mtol!=null)?+segs[0].mtol:(inp.mtol!=null?+inp.mtol:0.125);
+  const W0=(segs[0]&&segs[0].W!=null)?+segs[0].W:(inp.W!=null?+inp.W:1);
+  const hoopRows=segs.map(sg=>{
+    const mt=(sg.mtol!=null)?+sg.mtol:mtol0, W=(sg.W!=null)?+sg.W:W0, y=(sg.y!=null)?+sg.y:mp.y;
+    if(sg.hoop!=null&&isFinite(sg.hoop)) return Object.assign({},sg,{tc:sg.hoopT,hoop:sg.hoop,allow:sg.hoopAllow,rHoop:sg.rHoop,y:y,mt,W,calc:false});
+    const tc=Math.max((sg.t||0)*(1-mt)-(sg.CA||0),0.5); const hoop=(sg.P*sg.od)/(2*tc)-sg.P*y; const allow=sg.Sh*Eff*W;
+    return Object.assign({},sg,{tc,hoop,allow,rHoop:allow>0?hoop/allow:NaN,y,mt,W,calc:true});});
+  const maxHoopSeg=Math.max.apply(null,hoopRows.map(h=>h.rHoop||0).concat([0]));
+  const maxHoopR=hoopOn&&s.maxHoopR!=null?s.maxHoopR:maxHoopSeg;
+  const hoopNG=maxHoopR>1;
+  const segNG=segs.some(sg=>!sg.pass);
+  const NG=(s.fail>0)||hasErr||segNG;                                     /* s.fail 은 후프 포함 모드면 후프 초과도 집계 */
+  const verdict=NG?'<span style="color:#c0392b;font-weight:bold">부적합 (NG)</span>':'<span style="color:#1e8449;font-weight:bold">적합 (OK)</span>';
+  const verdictSub=(hasErr&&!s.fail)?'<br><span style="font-size:9pt;color:#c0392b">설계 전제조건 불만족 (E401/E402 등 — 오류 목록 참조)</span>':((hoopInc&&hoopNG&&s.maxRatioL<=1&&!hasErr)?'<br><span style="font-size:9pt;color:#c0392b">후프응력 비 &gt; 1.0 (§6.5, 종합비 포함 관례)</span>':'');
   const errBox=hasErr?`
   <div style="border:2px solid #c0392b;background:#fdecea;padding:8px 12px;margin:10px 0">
     <b style="color:#c0392b">⚠ 오류 로그 — 해석 전제조건 불만족 (응력비와 무관하게 종합판정 NG)</b>
-    <ul style="margin:4px 0 0 18px">${r.logs.filter(l=>l.lvl==='e').map(l=>`<li>[${l.code}] ${l.msg}${l.loc?' @'+l.loc:''}</li>`).join('')}</ul>
+    <ul style="margin:4px 0 0 18px">${errLogs.map(l=>`<li>[${esc(l.code)}] ${esc(l.msg)}${l.loc?' @'+esc(l.loc):''}</li>`).join('')}</ul>
   </div>`:'';
-  const e401Banner=e401?`<p style="border:1px solid #c0392b;background:#fdecea;padding:6px 10px;color:#c0392b"><b>⚠ 재질 온도범위 초과 (E401)</b> — 아래 수치는 상한온도로 클램프된 물성 기준의 참고용이다.</p>`:''; /* v22-FIX-03 */
-  const rrow=(nr)=>`<tr>
-     <td>N${nr.id}</td><td align="center">${nr.i.toFixed(2)}</td>
-     <td align="right">${nr.SL.toFixed(1)}</td><td align="right">${nr.Sh.toFixed(0)}</td><td align="center">${nr.rSus.toFixed(2)}</td>
-     <td align="right">${nr.SE.toFixed(1)}</td><td align="right">${nr.SA.toFixed(0)}</td><td align="center">${nr.rExp.toFixed(2)}</td>
-     <td align="right">${nr.SOcc.toFixed(1)}</td><td align="right">${(r.k_occ*nr.Sh).toFixed(0)}</td><td align="center">${nr.rOcc.toFixed(2)}</td>
-     <td align="center" style="font-weight:bold;color:${nr.ratio>1?'#c0392b':'#1e8449'}">${nr.ratio>1?'NG':'OK'}</td></tr>`; /* v22-FIX-18: k·Sh 열 추가 */
-  const parentOf=id=>{const e=state.elems.find(el=>el.to===id);return e?nodeById(e.from):null;};
-  const attText=n=>(n.att&&n.att.length)?n.att.map(a=>supName(a.kind)+(a.form==='double'?'(D)':'')).join(', '):'직관';
-  const nodeGeom=state.nodes.map(n=>{const p=parentOf(n.id);
-    const dx=p?(n.x-p.x):0, dy=p?(n.y-p.y):0, dz=p?(n.z-p.z):0;
-    return `<tr><td>N${n.id}</td><td align="right">${n.x.toFixed(3)}</td><td align="right">${n.y.toFixed(3)}</td><td align="right">${n.z.toFixed(3)}</td>
-      <td align="right">${p?dx.toFixed(3):'-'}</td><td align="right">${p?dy.toFixed(3):'-'}</td><td align="right">${p?dz.toFixed(3):'-'}</td>
-      <td>${attText(n)}</td></tr>`;}).join('');
-  const elemGeom=(r.elems||state.elems).map((e,k)=>`<tr><td>E${k+1}</td><td align="center">N${e.from}</td><td align="center">N${e.to}</td></tr>`).join('');
+  const e401Banner=e401?`<p style="border:1px solid #c0392b;background:#fdecea;padding:6px 10px;color:#c0392b"><b>⚠ 재질 온도범위 초과 (E401)</b> — 아래 수치는 상한온도로 클램프된 물성 기준의 참고용이다.</p>`:'';
 
+  /* ---------- 기하·질량 ---------- */
+  const elemsIn=(r.elems&&r.elems.length)?r.elems:state.elems;
+  const nodesM=state.nodes;                                               /* 사용자 절점 (m 단위) */
+  const nodeMap={}; nodesM.forEach(n=>nodeMap[n.id]=n);
+  const elemLen=e=>{const a=nodeMap[e.from],b=nodeMap[e.to];return(a&&b)?Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z):0;};
+  const Ltot=elemsIn.reduce((a,e)=>a+elemLen(e),0);                       /* m */
+  let Wdist=0, Wconc=0;
+  if(r.model&&r.model.elems&&r.model.nodes){
+    const nm={}; r.model.nodes.forEach(n=>nm[n.id]=n);
+    r.model.elems.forEach(e=>{const a=nm[e.i],b=nm[e.j];if(a&&b)Wdist+=(e.wlin||0)*Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z);});
+    r.model.nodes.forEach(n=>{Wconc+=(n.wpt||0);});
+  } else { Wdist=(r.wlin||0)*Ltot*1000; }
+  const Wtot=Wdist+Wconc, g=9.80665;
+  const parentOf=id=>{const e=elemsIn.find(el=>el.to===id);return e?nodeMap[e.from]:null;};
+  const ATT_LABEL={bend:'엘보/벤드',elbow:'엘보',tee:'티(분기)',reducer:'리듀서',valve:'밸브',flange:'플랜지',mass:'집중질량',force:'외력'};
+  const attName=a=>ATT_LABEL[a.kind]||supName(a.kind);
+  const attDetail=a=>{const p=[];
+    if(a.form==='double')p.push('Double');
+    if(a.kind==='bend'||a.kind==='elbow')p.push(a.R>0?`R=${num(a.R,0)}mm`:(a.bendKind?`${esc(a.bendKind)} radius`:'1.5D'));
+    if(a.kind==='tee')p.push(esc(a.teeType||'welding'));
+    if(a.kind==='valve')p.push(`${esc(a.vtype||'gate')} Cl.${esc(a.vclass||'150')} ${esc(a.vend||'flanged')}${a.mass>0?' '+num(a.mass,0)+'kg':''}`);
+    if(a.kind==='mass'&&a.mass>0)p.push(num(a.mass,0)+'kg');
+    if(a.rate>0)p.push(`k=${num(a.rate,1)}N/mm`);
+    if(a.load>0)p.push(`${(a.kind==='snubber'||a.kind==='damper')?'정격':'하중'}=${num(a.load,0)}N`);
+    if(a.dir)p.push('dir '+esc(a.dir)); if(a.axis)p.push('axis '+esc(a.axis)); if(a.gap>0)p.push(`gap ${num(a.gap,1)}mm`);
+    if(['dx','dy','dz'].some(k=>a[k]))p.push(`D=(${num(a.dx||0,1)},${num(a.dy||0,1)},${num(a.dz||0,1)})mm`);
+    if(['fx','fy','fz'].some(k=>a[k]))p.push(`F=(${num(a.fx||0,0)},${num(a.fy||0,0)},${num(a.fz||0,0)})N`);
+    return p.join(', ');};
+  const attText=n=>(n.att&&n.att.length)?n.att.map(a=>attName(a)+(a.form==='double'?'(D)':'')).join(', '):'직관';
+  const supCount={}; nodesM.forEach(n=>(n.att||[]).forEach(a=>{supCount[a.kind]=(supCount[a.kind]||0)+1;}));
+  const supSummary=Object.keys(supCount).map(k=>`${attName({kind:k})} ${supCount[k]}`).join(' · ')||'-';
+
+  /* ---------- 절점 라벨 (생성 절점 = 경간 내부, AP 점명 병기) ---------- */
+  const resById={}; r.nodeRes.forEach(nr=>resById[nr.id]=nr);
+  const apOf=id=>{const nr=resById[id]; if(nr&&nr.apName)return nr.apName; const n=nodeMap[id]; return n&&n.apName?n.apName:null;};
+  const nl=nr=>{ if(!nr)return 'N-'; if(nr._gen) return esc(nr.posLabel||('N'+nr.id)); const ap=RO.apPointNames?apOf(nr.id):null; return ap?esc(ap)+'·N'+nr.id:'N'+nr.id; };
+  const nlId=id=>{ if(id==null)return 'N-'; const nr=resById[id]; return nr?nl(nr):(RO.apPointNames&&apOf(id)?esc(apOf(id))+'·N'+id:'N'+id); };
+  const nodeKind=nr=>{ if(nr&&nr._gen) return '경간 내부'; const n=nodeMap[nr?nr.id:nr]; return n?attText(n):''; };
+  const genStyle=nr=>nr&&nr._gen?' style="color:#666;font-style:italic"':'';
+  const nGen=s.nNodeGen||r.nodeRes.filter(x=>x._gen).length;
+
+  /* ---------- 응력 파생값 ---------- */
+  const SA1A_ref=r.fcyc*(1.25*Math.min(mp.Sc,(R2.saCap20ksi&&(mp.smts||0)>480)?137.9:1e9)+0.25*Math.min(mp.Sh,(R2.saCap20ksi&&(mp.smts||0)>480)?137.9:1e9));
+  const sa1a=nr=>(nr.SA1A!=null&&isFinite(nr.SA1A))?nr.SA1A:r.fcyc*(1.25*mp.Sc+0.25*nr.Sh);
+  const sa1b=nr=>(nr.SA1B!=null&&isFinite(nr.SA1B))?nr.SA1B:r.fcyc*(1.25*(mp.Sc+nr.Sh)-nr.SL);
+  const nodeRes=r.nodeRes.map(nr=>{const a=sa1a(nr), b=sa1b(nr);return Object.assign({},nr,{SA1A:a,SA1B:b,rExp1A:a>0?nr.SE/a:NaN,rExp1B:b>0?nr.SE/b:NaN,kSh:r.k_occ*nr.Sh,saEq:nr.saEq||(saBasis==='basic'?'(1A)':'(1B)')});});
+  const byDesc=(arr,key)=>arr.slice().sort((x,y)=>(y[key]||0)-(x[key]||0));
+  const top=(key,n)=>byDesc(nodeRes,key).slice(0,n||5);
+  const maxOf=key=>nodeRes.reduce((m,x)=>(isFinite(x[key])&&x[key]>m.v)?{v:x[key],id:x.id}:m,{v:0,id:null});
+  const maxExp1A=maxOf('rExp1A'), maxExp1B=maxOf('rExp1B'), maxHoopN=maxOf('rHoop');
+  const refKey=(saBasis==='basic')?'1B':'1A';                           /* 적용식의 반대쪽을 참고로 병기 */
+  const refMax=(refKey==='1A')?maxExp1A:maxExp1B, refLab=(refKey==='1A')?EQ.sa1a:EQ.sa1b;
+  const wH=(hoopOn&&s.worstHoopNode!=null)?s.worstHoopNode:maxHoopN.id;
+  const capNote=(R2.saCap20ksi&&(mp.smts||0)>480)?` (S<sub>c</sub>,S<sub>h</sub> ≤ 137.9 MPa 상한 — 102.3.2(b) 각주, 최소인장강도 ${num(mp.smts,0)} MPa &gt; 480)`:'';
+
+  /* ---------- 표 생성기 ---------- */
+  const rowStress=nr=>`<tr${genStyle(nr)}>${td(nl(nr))}${td(esc(nodeKind(nr)))}${tdc(num(nr.i,2))}
+     ${tdr(num(nr.SL,1))}${tdr(num(nr.Sh,1))}${tdc(num(nr.rSus,3))}
+     ${tdr(num(nr.SE,1))}${tdr(num(nr.SA1A,1))}${tdc(num(nr.rExp1A,3))}${tdr(num(nr.SA1B,1))}${tdr(num(nr.SA,1)+' '+esc(nr.saEq))}${tdc('<b>'+num(nr.rExp,3)+'</b>')}
+     ${tdr(num(nr.SOcc,1))}${tdr(num(nr.kSh,1))}${tdc(num(nr.rOcc,3))}
+     ${hoopOn?tdr(num(nr.hoop,1))+tdc(num(nr.rHoop,3)):''}
+     ${tdc('<b>'+num(nr.ratio,3)+'</b>')}${tdc(okng(!(nr.ratio>1)))}</tr>`;
+  const hdrStress=`<tr><th rowspan="2">절점</th><th rowspan="2">부속·지지</th><th rowspan="2">i</th><th colspan="3">지속 104.8.1${eqL('sus')}</th><th colspan="6">열팽창 104.8.3${eqL('exp')} · S<sub>A</sub> 102.3.2(b)</th><th colspan="3">일시 104.8.2${eqL('occ')}</th>${hoopOn?'<th colspan="2">후프 (압력)</th>':''}<th rowspan="2">최대비${hoopInc?'<br>(후프 포함)':''}</th><th rowspan="2">판정</th></tr>
+   <tr><th>S<sub>L</sub></th><th>S<sub>h</sub></th><th>비</th><th>S<sub>E</sub></th><th>S<sub>A</sub>${EQ.sa1a}</th><th>비${EQ.sa1a}</th><th>S<sub>A</sub>${EQ.sa1b}</th><th>S<sub>A</sub>(적용)·식</th><th>비(적용)</th><th>S<sub>occ</sub></th><th>k·S<sub>h</sub></th><th>비</th>${hoopOn?'<th>σ<sub>h</sub></th><th>비</th>':''}</tr>`;
+  const nodeGeom=nodesM.map(n=>{const p=parentOf(n.id);
+    return `<tr>${td('N'+n.id)}${RO.apPointNames?td(esc(n.apName||'-')):''}${tdr(num(n.x,3))}${tdr(num(n.y,3))}${tdr(num(n.z,3))}
+      ${tdr(p?num(n.x-p.x,3):'-')}${tdr(p?num(n.y-p.y,3):'-')}${tdr(p?num(n.z-p.z,3):'-')}${td(esc(attText(n)))}</tr>`;}).join('');
+  const elemGeom=elemsIn.map((e,k)=>`<tr>${td('E'+(k+1))}${tdc('N'+e.from)}${tdc('N'+e.to)}${tdr(num(elemLen(e),3))}${tdc(e.segId!=null?e.segId:0)}${td(e.spec?esc((e.spec.sizeLabel||'')+' · '+(e.spec.matKey||'')+' · '+(e.spec.Tdesign!=null?e.spec.Tdesign+'℃':'')+'/'+(e.spec.P!=null?e.spec.P+'MPa':'')+(e.spec.mtol!=null?' · mtol '+num(e.spec.mtol*100,2)+'%':'')+(e.spec.W!=null&&e.spec.W!==1?' · W '+num(e.spec.W,2):'')):'기본 스펙')}</tr>`).join('');
+  const attEcho=nodesM.flatMap(n=>(n.att||[]).map(a=>`<tr>${td('N'+n.id)}${td(esc(attName(a)))}${td(esc(a.kind))}${td(attDetail(a)||'-')}</tr>`)).join('')||`<tr><td colspan="4">부속·지지 없음</td></tr>`;
+  const isAnchorKind=k=>/anchor|nozzle|hx/.test(String(k||''));
+  const z6={fx:0,fy:0,fz:0,mx:0,my:0,mz:0,mag:0,mmag:0};
+  const F6=(v,bold)=>{ v=v||z6; const w=x=>bold?'<b>'+x+'</b>':x; const mag=(v.mag!=null)?v.mag:Math.hypot(v.fx||0,v.fy||0,v.fz||0); const mm=(v.mmag!=null)?v.mmag:Math.hypot(v.mx||0,v.my||0,v.mz||0);
+    return tdr(w(num(v.fx,0)))+tdr(w(num(v.fy,0)))+tdr(w(num(v.fz,0)))+tdr(w(num(mag,0)))+tdr(w(num((v.mx||0)/1000,0)))+tdr(w(num((v.my||0)/1000,0)))+tdr(w(num((v.mz||0)/1000,0)))+tdr(w(num(mm/1000,0))); };
+  const hotFac=(r.reactions||[]).length&&r.reactions[0].hot&&r.reactions[0].hot.factor!=null?r.reactions[0].hot.factor:(mp.E/mp.Ecold);
+  const reactRows=(r.reactions||[]).map(rx=>{
+    const to=rx.thermalOnly||{fx:rx.thermal.fx-rx.sustained.fx,fy:rx.thermal.fy-rx.sustained.fy,fz:rx.thermal.fz-rx.sustained.fz,mx:(rx.thermal.mx||0)-(rx.sustained.mx||0),my:(rx.thermal.my||0)-(rx.sustained.my||0),mz:(rx.thermal.mz||0)-(rx.sustained.mz||0)};
+    const hasHot=!!(rx.operatingHot&&rx.hot);
+    const nrow=hasHot?5:3;
+    return `
+     <tr><td rowspan="${nrow}">${nlId(rx.node)}</td><td rowspan="${nrow}">${esc(supNames(rx.kind))}</td><td>지속 (SUS)</td>${F6(rx.sustained)}</tr>
+     <tr><td>열팽창 범위 R (THR, E<sub>c</sub> 기준)</td>${F6(to)}</tr>
+     <tr><td><b>운전 (OPE = SUS + R)</b></td>${F6(rx.thermal,true)}</tr>
+     ${hasHot?`<tr><td>열팽창 운전 R<sub>h</sub> = (E<sub>h</sub>/E<sub>c</sub>)·R = ${num(rx.hot.factor,3)}·R</td>${F6(rx.hot)}</tr>
+     <tr><td>운전(고온) OPE<sub>h</sub> = SUS + R<sub>h</sub></td>${F6(rx.operatingHot)}</tr>`:''}`;}).join('');
+  const anchorRows=(r.reactions||[]).filter(rx=>isAnchorKind(rx.kind)).map(rx=>`<tr>${td(nlId(rx.node))}${td(esc(supNames(rx.kind)))}${['sustained','thermalOnly','thermal','operatingHot'].map(c=>{const v=rx[c]||z6;return tdr(num((v.mx||0)/1000,0))+tdr(num((v.my||0)/1000,0))+tdr(num((v.mz||0)/1000,0));}).join('')}</tr>`).join('');
+  const occRows=(r.reactionsOcc||[]).map(ro=>`<tr${ro.snubOver?' style="background:#fdecea"':''}>${td(nlId(ro.node))}${td(esc(supNames(ro.kind))+(ro.snub?' <b>*</b>':''))}
+     ${tdr(num(ro.fx,0))}${tdr(num(ro.fy,0))}${tdr(num(ro.fz,0))}${tdr('<b>'+num(ro.mag,0)+'</b>')}${tdr(num((ro.mmag!=null?ro.mmag:Math.hypot(ro.mx||0,ro.my||0,ro.mz||0))/1000,0))}
+     ${tdr((ro.snubs||[]).map(sb=>`${esc(sb.dir)}: ${num(sb.calc,0)}${sb.rated!=null?` / ${num(sb.rated,0)}${sb.over?' <b style="color:#c0392b">초과!</b>':' OK'}`:' / (정격 미입력)'}`).join('<br>')||'-')}</tr>`).join('');
+  const hangerRows=(r.hangers||[]).map(h=>{const dv=(h.rate||0)*(h.movement||0);
+    return `<tr>${td(nlId(h.node))}${td(esc(supName(h.kind)))}${td(h.form==='double'?'Double':'Single')}
+     ${tdr(num(h.load,0))}${tdr(num(h.load/g,0))}${td(h.userLoad?'사용자':'자동')}${tdr(h.rate>0?num(h.rate,1):'정하중(0)')}
+     ${tdr(num(h.movement,1))}${tdr(h.rate>0?num(dv,0):'-')}${tdr(h.rate>0?num((h.variation||0)*100,1)+'%':'-')}${tdc(h.rate>0?okng(!(h.variation>0.25)):'-')}${td(esc(h.rec||''))}</tr>`;}).join('');
+  const dispRows=nodeRes.map(nr=>{const dd=nr.d||{x:0,y:0,z:0};const mag=Math.hypot(dd.x,dd.y,dd.z);
+    return `<tr${genStyle(nr)}>${td(nl(nr))}${tdr(num(dd.x*1000,1))}${tdr(num(dd.y*1000,1))}${tdr(num(dd.z*1000,1))}${tdr('<b>'+num(mag*1000,1)+'</b>')}</tr>`;}).join('');
+  const fmRows=nodeRes.map(nr=>{const o=(nr.fm&&nr.fm.op)||{};const M=x=>num((x||0)/1000,0);return `<tr${genStyle(nr)}>${td(nl(nr))}
+     ${tdr(num(o.fx,0))}${tdr(num(o.fy,0))}${tdr(num(o.fz,0))}${tdr('<b>'+num(nr.fm&&nr.fm.Fop,0)+'</b>')}
+     ${tdr(M(o.mx))}${tdr(M(o.my))}${tdr(M(o.mz))}${tdr('<b>'+M(nr.fm&&nr.fm.Mop)+'</b>')}</tr>`;}).join('');
+  const LV={e:'오류',w:'경고',i:'정보',s:'성공'};
+  const logRows=logs.map(l=>`<tr${l.lvl==='e'?' style="background:#fdecea"':(l.lvl==='w'?' style="background:#fef5e7"':'')}>${td(LV[l.lvl]||esc(l.lvl))}${td(esc(l.code))}${td(esc(l.loc||'-'))}${td(esc(l.msg))}</tr>`).join('')||'<tr><td colspan="4">로그 없음</td></tr>';
+  const D_OPTS=['bendFlexibility|D1 엘보 가요성계수 k=1.65/h (I_eff 등가)','coldModulusExpansion|D2 열팽창 케이스 E_a(상온 탄성계수) 적용','sifMeanRadius|D3 벤드 SIF h 에 평균반경 r2','guideAxisFix|D4 코너 절점 가이드 구속축 자동결정','yTableB31|D5 y 계수 Table 104.1.2(A) 온도의존','fStepTable|D6 f 계수 Table 102.3.2(C) 계단표 (E7 ON 이면 무시)'];
+  const R2_OPTS=['fixedEndLoad|E1 분포하중 고정단 등가(wL²/12) 하중·요소력 회수','hangerPreloadSusOnly|E2 행어 프리로드 지속 케이스 전용(일시 제외)','adaptivePenalty|E3 강체구속 패널티 max(1e12, 1e8·K_dd) + 모멘트 반력 수집','spanSubdivide|E4 경간 내부 자동 분할 (L_max '+num(R2.spanSubdivLmax,0)+' mm)','alphaLowT|E5 α 표 20℃ 항 결손 보정','bendCapFull|E6 D1 반호 길이 cap 0.5L→L','fContinuous|E7 f 연속식 '+(EQ.f||'Eq.(1C)')+' f=6/N^0.2 (0.15≤f≤1)','materials2022|E8 B31.1-2022 App.A/B/C 재질표 (OFF=구표)','saCap20ksi|E9 S_A 산정 시 S_c,S_h ≤ 137.9 MPa (smts>480)','axialTerm|E12 축력항 |P·Do/4tn+F_a/A_p| (SL,SOcc), |F_c/A_p| (SE), i_a=1.0','hotReaction|E13 운전 열반력 R_h=(E_h/E_c)·R 병기(표시)','seismicEnvelope|E14 지진 수평 2축 각각 해석·절점별 포락','zNominal|E16 응력 단면계수 Z·A_p 공칭(비부식) 사용','sifMeanRadiusTee|E17 티/리듀서 SIF h 평균반경','bendRadiusNPS|I5 장반경 R=1.5×NPS(in)×25.4'];
+  const optRows=D_OPTS.map(sp=>{const[k,nm]=sp.split('|');return `<tr>${td(nm)}${tdc(onoff(OPT[k]))}</tr>`;}).join('')
+    +R2_OPTS.map(sp=>{const[k,nm]=sp.split('|');return `<tr>${td(nm)}${tdc(onoff(R2[k]))}</tr>`;}).join('')
+    +`<tr>${td('결과 관례 · S_A 식')}${tdc(esc({basic:'(1A) 기본',liberal:'(1B) liberal',exceed:'(1A), 초과 시 (1B)'}[saBasis]))}</tr>`
+    +`<tr>${td('결과 관례 · 후프응력 보고 / 종합비 포함 / y')}${tdc((hoopOn?'보고':'미보고')+' / '+(hoopInc?'포함':'제외')+' / '+(RO.hoopY==='table'||RO.hoopY==null?'Table 104.1.2(A)':num(RO.hoopY,2)))}</tr>`
+    +`<tr>${td('결과 관례 · AutoPIPE 점명 병기')}${tdc(RO.apPointNames?'병기':'미병기')}</tr>`;
+  const optLine='D '+D_OPTS.map(sp=>{const k=sp.split('|')[0];return (OPT[k]?'○':'×');}).join('')+' · R2 '+R2_OPTS.map(sp=>{const k=sp.split('|')[0];return (R2[k]?'○':'×');}).join('')+' · S_A '+SA_SHORT+(hoopOn?(hoopInc?' · 후프 포함':' · 후프 참고'):'');
+  const spanLog=logs.filter(l=>l.code==='W310'||l.code==='I040');
+  const wS=top('rSus',1)[0]||{}, wE=top('rExp',1)[0]||{}, wO=top('rOcc',1)[0]||{};
+  const matRef=(window.PSA&&((PSA.MATS&&PSA.MATS())||PSA.MATERIALS)||{})[inp.matKey]||null;
+  const matTbl=(Ts,Vs,f)=>(Ts&&Vs)?Ts.map((T,k)=>`<tr>${tdr(T)}${tdr(f(Vs[k],k))}</tr>`).join(''):'';
+  const eps=(window.PSA&&PSA.thermalStrain)?PSA.thermalStrain(inp.matKey,inp.Tdesign,inp.Tamb):NaN;
+  const solRows=(r.solutions||[]).map((sv,i)=>`<table style="margin-bottom:8px"><tr><th colspan="2" style="text-align:left;background:#${sv.sev==='error'?'fdecea':sv.sev==='fail'?'fef5e7':'eaf2f8'}">${i+1}. ${esc(sv.title)}</th></tr>
+    <tr><td width="90"><b>원인</b></td><td>${esc(sv.cause)}</td></tr>
+    <tr><td><b>해결방안<br>(성공조건)</b></td><td>${(sv.fix||[]).map(f=>'· '+esc(f)).join('<br>')}</td></tr>
+    <tr><td><b>목표</b></td><td>${esc(sv.target)}</td></tr></table>`).join('');
+  const fTxt=R2.fContinuous?`${EQ.f||'Eq.(1C)'} 연속식 f = 6/N<sup>0.2</sup> (0.15 ≤ f ≤ 1.0)`:(OPT.fStepTable?'Table 102.3.2(C) 계단표':'연속식(근사, 하한 0.5)');
+  const axS=R2.axialTerm?'|P·D<sub>o</sub>/4t<sub>n</sub> + F<sub>a</sub>/A<sub>p</sub>|':'P·D<sub>o</sub>/4t<sub>n</sub>';
+  const axE=R2.axialTerm?'|i<sub>a</sub>·F<sub>c</sub>/A<sub>p</sub>| + ':'';
+  const axO=R2.axialTerm?'|P·D<sub>o</sub>/4t<sub>n</sub> + F<sub>a</sub>/A<sub>p</sub>| + |F<sub>b</sub>|/A<sub>p</sub>':'P·D<sub>o</sub>/4t<sub>n</sub>';
+
+  /* ---------- 본문 ---------- */
+  const PB='page-break-before:always';
   const html=`<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8">
+  <title>Piping Stress Analysis Report</title>
   <style>
    body{font-family:'Malgun Gothic','Times New Roman',serif;font-size:10.5pt;color:#1a1a1a;line-height:1.45}
    h1{font-size:18pt;border-bottom:3px solid #1d7fb0;padding-bottom:6px;color:#10374a}
@@ -5694,133 +6322,266 @@ function makeReport(){
    .eq{background:#f1f6fa;border:1px solid #c5dae6;padding:8px 12px;font-family:'Cambria Math',serif;font-size:11pt;margin:6px 0}
    .note{font-size:9pt;color:#555}
    .stamp{color:#1e8449;font-weight:bold}
+   .kpi td{text-align:center;font-size:11pt}
+   .small{font-size:8.5pt}
    img{border:1px solid #aaa}
   </style></head><body>
+
+  <!-- ===================== 표지 ===================== -->
   <h1>배관 응력 해석 보고서<br><span style="font-size:11pt;color:#555;font-weight:normal">Piping Stress Analysis Report — ASME B31.1 Power Piping</span></h1>
   <table class="meta">
-   <tr><td><b>프로젝트</b></td><td>PSA Line Stress Check</td><td><b>코드</b></td><td>ASME B31.1 (Power Piping)</td></tr>
-   <tr><td><b>작성일</b></td><td>${d}</td><td><b>종합판정</b></td><td>${verdict}${verdictSub}</td></tr>
-   <tr><td><b>해석 SW</b></td><td>PSA v22 · 3D Beam FEM</td><td><b>최대 응력비</b></td><td>${s.maxRatio.toFixed(3)}</td></tr>
+   <tr><td width="110"><b>프로젝트</b></td><td>${META.project?esc(META.project):blank(220)}</td><td width="110"><b>발주처</b></td><td>${META.client?esc(META.client):blank(160)}</td></tr>
+   <tr><td><b>라인 번호</b></td><td>${META.line?esc(META.line):blank(220)}</td><td><b>문서 번호 / Rev.</b></td><td>${META.docNo?esc(META.docNo):blank(110)} / ${esc(META.rev||'0')}</td></tr>
+   <tr><td><b>적용 코드</b></td><td>${EDITION?esc(EDITION):'ASME B31.1 Power Piping (에디션: '+blank(70)+' — 적용 에디션을 기재할 것)'}</td><td><b>작성일</b></td><td>${d}</td></tr>
+   <tr><td><b>해석 프로그램</b></td><td>${esc(APP_VER)} · 3D Beam FEM (직접강성법)</td><td><b>엔진 옵션</b></td><td class="small">${optLine}</td></tr>
+   <tr><td><b>종합 판정</b></td><td>${verdict}${verdictSub}</td><td><b>최대 응력비</b></td><td><b>${num(s.maxRatio,3)}</b>${hoopInc?' (후프 포함; 종방향만 '+num(s.maxRatioL,3)+')':''} (${s.fail||0} 절점 초과)</td></tr>
   </table>
+  <table>
+   <tr><th width="25%">구분</th><th>작성 (Prepared)</th><th>검토 (Checked)</th><th>승인 (Approved)</th></tr>
+   <tr><td>성명 / 직위</td><td>${META.author?esc(META.author):'&nbsp;'}</td><td>${META.checker?esc(META.checker):'&nbsp;'}</td><td>${META.approver?esc(META.approver):'&nbsp;'}</td></tr>
+   <tr><td>서명 / 일자</td><td style="height:34px">&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+  </table>
+  <h3>개정 이력 · Revision History</h3>
+  <table><tr><th width="10%">Rev.</th><th width="16%">일자</th><th>내용</th><th width="14%">작성</th><th width="14%">검토</th><th width="14%">승인</th></tr>
+   <tr><td>${esc(META.rev||'0')}</td><td>${d}</td><td>${META.rev&&META.rev!=='0'&&META.rev!=='A'?'개정 (해석 프로그램 자동 생성)':'최초 발행 (해석 프로그램 자동 생성)'}</td><td>${esc(META.author||'')}&nbsp;</td><td>${esc(META.checker||'')}&nbsp;</td><td>${esc(META.approver||'')}&nbsp;</td></tr>
+   <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr></table>
   ${errBox}
 
-  <h2>1. 설계 기준 · Design Basis</h2>
+  <!-- ===================== 요약 ===================== -->
+  <h2>요약 · Executive Summary</h2>
+  <table class="kpi"><tr><th>항목</th><th>지속하중<br>S<sub>L</sub>/S<sub>h</sub></th><th>열팽창<br>S<sub>E</sub>/S<sub>A</sub> (적용 ${SA_SHORT})</th><th>열팽창<br>S<sub>E</sub>/S<sub>A</sub>${refLab} (참고)</th><th>일시하중<br>S<sub>occ</sub>/k·S<sub>h</sub></th><th>후프 σ<sub>h</sub>/S<sub>h</sub>EW<br>(${hoopInc?'종합비 포함':'참고'})</th><th>압력설계두께</th></tr>
+   <tr><td><b>최대 비</b></td><td><b>${num(s.maxSusR,3)}</b></td><td><b>${num(s.maxExpR,3)}</b></td><td>${num(refMax.v,3)}</td><td><b>${num(s.maxOccR,3)}</b></td><td>${hoopInc?'<b>'+num(maxHoopR,3)+'</b>':num(maxHoopR,3)}</td><td>${segNG?okng(false):okng(true)}</td></tr>
+   <tr><td>워스트 절점</td><td>${nlId(s.worstSusNode!=null?s.worstSusNode:wS.id)}</td><td>${nlId(s.worstExpNode!=null?s.worstExpNode:wE.id)}</td><td>${nlId(refMax.id)}</td><td>${nlId(s.worstOccNode!=null?s.worstOccNode:wO.id)}</td><td>${wH!=null?nlId(wH):'—'}</td><td>t<sub>m</sub> ${num(r.tm,2)} ≤ ${num(r.t_avail,2)} mm</td></tr>
+  </table>
+  <p>절점 ${nodesM.length}개${nGen?' (+ 경간 내부 평가점 '+nGen+'개 자동 생성, 총 '+(s.nNode||r.nodeRes.length)+'점 평가)':''} · 요소 ${elemsIn.length}개 · 총 연장 ${num(Ltot,1)} m · 앵커 ${s.anchorCount||0}개 · 세그먼트(스펙) ${segs.length}개. 최대 열변위 ${num(s.maxDisp*1000,1)} mm @${nlId(s.maxDispNode)}. 경고 ${warnLogs.length}건 · 오류 ${errLogs.length}건 (부록 C).</p>
+
+  <!-- ===================== 1. 개요 ===================== -->
+  <h2>1. 개요 · Introduction</h2>
+  <p>본 보고서는 ${META.line?esc(META.line)+' 라인':'대상 배관계'}에 대하여 ${EDITION?esc(EDITION):'ASME B31.1 Power Piping'} 의 요구에 따라 압력설계 두께, 지속하중·열팽창·일시하중(지진) 응력, 후프(압력) 응력, 지지점 반력, 행어 선정 및 열변위를 평가한 결과를 기술한다. 해석은 3차원 보(beam) 유한요소 정적해석으로 수행하였으며, 적용 범위·가정·한계는 §5 에 명시한다.</p>
+  <p class="note">본 보고서의 모든 수치는 SI 단위(길이 mm, 좌표 m, 응력 MPa, 힘 N, 모멘트 N·m, 온도 ℃, 압력 MPa(gauge))이다. 보고서에 인쇄되지 않은 중간값은 프로그램 결과 파일(.json)에서 확인할 수 있다.</p>
+
+  <!-- ===================== 2. 적용 코드·기준 ===================== -->
+  <h2>2. 적용 코드 및 평가 기준 · Codes &amp; Criteria</h2>
+  <table><tr><th width="28%">항목</th><th>적용 내용</th></tr>
+   <tr><td>적용 코드</td><td>${EDITION?esc(EDITION)+' — 식 번호는 동 판 Figure 104.8-1 / para 102.3.2 기준. SIF 는 Mandatory Appendix D (2024 판은 ASME B31J 참조).':'ASME B31.1 Power Piping — <b>적용 에디션 미지정</b> (제출 시 적용 에디션 및 Appendix A 원표 대조 필요)'}</td></tr>
+   <tr><td>압력설계 두께</td><td>para 104.1.2(A)${eqL('tm')}: t<sub>m</sub> = P·D<sub>o</sub>/[2(S·E·W + P·y)] + A, y: Table 104.1.2(A), W: 용접강도저감계수(102.4.7, 심리스 1.0), 가용두께 = t<sub>n</sub>×(1−밀공차 ${num(mtol0*100,1)}%)</td></tr>
+   <tr><td>지속하중 응력</td><td>para 104.8.1${eqL('sus')}: S<sub>L</sub> = ${axS} + 0.75i·M<sub>A</sub>/Z ≤ 1.0·S<sub>h</sub> (0.75i ≥ 1.0)</td></tr>
+   <tr><td>일시하중 응력</td><td>para 104.8.2${eqL('occ')}: ${axO} + 0.75i·M<sub>A</sub>/Z + 0.75i·M<sub>B</sub>/Z ≤ k·S<sub>h</sub>, k = ${num(r.k_occ,2)} (${r.k_occ>=1.2?'≤1 h/회·≤80 h/년':'≤8 h/회·≤800 h/년'} 사건 기준)</td></tr>
+   <tr><td>열팽창 응력범위</td><td>para 104.8.3${eqL('exp')}: S<sub>E</sub> = ${axE}i·M<sub>C</sub>/Z ≤ S<sub>A</sub>${R2.axialTerm?' (i<sub>a</sub>=1.0 — 엘보·티의 축방향 SIF 는 B31J 미적용 [확인 필요])':''}</td></tr>
+   <tr><td>허용 응력범위 S<sub>A</sub></td><td>para 102.3.2(b) ${esc(EQ.sa)}: ${EQ.sa1a} S<sub>A</sub> = f(1.25S<sub>c</sub> + 0.25S<sub>h</sub>) &nbsp;/&nbsp; ${EQ.sa1b} S<sub>A</sub> = f[1.25(S<sub>c</sub>+S<sub>h</sub>) − S<sub>L</sub>] (S<sub>h</sub> &gt; S<sub>L</sub> 일 때 여유 가산)${capNote}<br><b>본 해석 적용식: ${SA_NAME}</b> — §6.3 및 부록 A 에 ${EQ.sa1a}·${EQ.sa1b} 기준 비를 병기하여 상용 SW(AutoPIPE 기본 ${EQ.sa1a}) 와 비교 가능하도록 하였다.</td></tr>
+   <tr><td>응력범위 감소계수 f</td><td>${fTxt}: N = ${esc(inp.cyc)} cycles → f = ${num(r.fcyc,3)} (N 은 설계수명 동안의 등가 전범위 사이클 수)</td></tr>
+   <tr><td>응력증대계수 i</td><td>Mandatory Appendix D (엘보·티·리듀서; h 산정 ${OPT.sifMeanRadius?'평균반경 r2=(Do−tn)/2':'외반경'} 기준${R2.sifMeanRadiusTee?', 티/리듀서도 평균반경':''})</td></tr>
+   <tr><td>허용응력 S<sub>c</sub>, S<sub>h</sub>, E, α</td><td>${R2.materials2022?'B31.1-2022 Mandatory Appendix A (S) · Table C-1 (E) · Table B-1 (α) 내장표, 온도 선형보간':'프로그램 내장 대표치 재질표(v25 구표), 온도 선형보간'} (§3.2)${mp.unlisted?' — <b>본 재질은 Appendix A 미등재</b>(W401): 허용응력 출처(B31 Code Case / BPVC II-D) 확인 필요':''}</td></tr>
+   <tr><td>지지 간격</td><td>Table 121.5 권장(suggested) 최대 경간 — 표준중량관·보온·수충전·운전온도 ≤400℃ 기준${inp.Tdesign>400?' (본 모델 설계온도 '+num(inp.Tdesign,0)+'℃ → 참고용, W312)':''}</td></tr>
+   <tr><td>행어 설계</td><td>para 121.7 / MSS SP-58: 베리어블 스프링 하중변동률 ≤ 25%, 초과 시 콘스턴트 행어 (행어 부품중량 미포함, I031)</td></tr>
+   <tr><td>후프(원주) 응력</td><td>σ<sub>h</sub> = P·D<sub>o</sub>/[2·t<sub>av</sub>] − P·y, t<sub>av</sub> = t<sub>n</sub>(1−밀공차) − A ≤ S<sub>h</sub>·E·W — B31.1 명시 응력식이 아닌 상용 SW(AutoPIPE 'Max P') 관례로 ${hoopInc?'<b>종합 최대 응력비에 포함</b>':'<b>참고 판정</b>'}(§6.5). y = ${RO.hoopY==='table'||RO.hoopY==null?'Table 104.1.2(A) 재질·온도 값':num(RO.hoopY,2)+' (AutoPIPE 재현값 [확인 필요])'}</td></tr>
+   <tr><td>좌표계 · 부호규약</td><td>전역 직교좌표 X·Y·Z, <b>연직 상방 = +${upAxis}</b>, 수평 지진축 = ${occDirs.join('·')}. 반력은 <b>배관이 지지물에 가하는 힘·모멘트</b>(수직성분 합 = −총 자중). 변위는 설치상태 → 운전상태 열변위(+ = 축 양방향). 모멘트는 전역축 기준 N·m.</td></tr>
+  </table>
+
+  <!-- ===================== 3. 설계조건 ===================== -->
+  <h2>3. 설계 조건 · Design Conditions</h2>
+  <h3>3.1 설계 데이터</h3>
   <table>
    <tr><th>항목</th><th>값</th><th>항목</th><th>값</th></tr>
-   <tr><td>재질 (ASTM)</td><td>${mp.name}</td><td>규격</td><td>${inp.sizeLabel} (Ø${r.sec0.od.toFixed(1)}×${r.sec0.t.toFixed(2)}mm)</td></tr>
-   <tr><td>설계압력 P</td><td>${inp.P} MPa</td><td>설계온도 (Sh 선정 기준)</td><td>${inp.Tdesign} ℃</td></tr><!-- v22-FIX-13 -->
-   <tr><td>설치온도</td><td>${inp.Tamb} ℃</td><td>부식여유 A</td><td>${inp.CA} mm</td></tr>
-   <tr><td>이음효율 E</td><td>${inp.Eff}</td><td>설계 사이클 N</td><td>${inp.cyc} → f=${r.fcyc.toFixed(2)}</td></tr>
-   <tr><td>허용응력 Sc (cold)</td><td>${mp.Sc.toFixed(1)} MPa</td><td>허용응력 Sh (hot)</td><td>${mp.Sh.toFixed(1)} MPa</td></tr>
-   <tr><td>탄성계수 Ea(상온) / Eh(설계온도)</td><td>${(mp.Ecold/1000).toFixed(0)} / ${(mp.E/1000).toFixed(0)} GPa</td><td>열팽창변형 ε</td><td>${(PSA.thermalStrain(inp.matKey,inp.Tdesign,inp.Tamb)*1000).toFixed(3)} mm/m</td></tr><!-- v22-D2: Ea/Eh 병기 -->
+   <tr><td>재질 (ASTM)</td><td>${esc(mp.name)}</td><td>규격 (기본 스펙)</td><td>${esc(inp.sizeLabel)} (Ø${num(r.sec0&&r.sec0.od,2)} × t<sub>n</sub> ${num(r.sec0&&r.sec0.t,3)} mm${inp.sch&&inp.sch!=='-'?', SCH '+esc(inp.sch):''})</td></tr>
+   <tr><td>설계압력 P</td><td>${num(inp.P,2)} MPa</td><td>설계온도 (S<sub>h</sub> 선정 기준)</td><td>${num(inp.Tdesign,1)} ℃</td></tr>
+   <tr><td>설치(주위)온도 T<sub>amb</sub></td><td>${num(inp.Tamb,1)} ℃</td><td>온도차 ΔT</td><td>${num(inp.Tdesign-inp.Tamb,1)} ℃</td></tr>
+   <tr><td>부식여유 A</td><td>${num(inp.CA,2)} mm</td><td>이음효율 E / 용접계수 W</td><td>${num(Eff,2)} / ${num(W0,2)}</td></tr>
+   <tr><td>밀공차 (mill tolerance)</td><td>${num(mtol0*100,2)} % → 가용두께 t<sub>n</sub>(1−mtol) = ${num(r.t_avail,3)} mm</td><td>유체 비중 SG</td><td>${num(inp.SG,2)}${(+inp.SG)>0?' (운전 시 충수)':' (증기/기체 — 유체중량 0)'}</td></tr>
+   <tr><td>설계 사이클 N</td><td>${esc(inp.cyc)} → f = ${num(r.fcyc,3)}</td><td>일시하중 계수 k / 지진 가속도</td><td>${num(r.k_occ,2)} / ${occTxt}</td></tr>
+   <tr><td>보온재</td><td>${esc(inp.insulName||'-')} t = ${num(inp.insulT,0)} mm, ρ = ${num(inp.insulRho,0)} kg/m³</td><td>밀도 ρ (강)</td><td>${num(mp.rho,0)} kg/m³</td></tr>
+   <tr><td>허용응력 S<sub>c</sub> (T<sub>amb</sub>)</td><td>${num(mp.Sc,1)} MPa</td><td>허용응력 S<sub>h</sub> (T<sub>design</sub>)</td><td>${num(mp.Sh,1)} MPa</td></tr>
+   <tr><td>탄성계수 E<sub>a</sub>(상온) / E<sub>h</sub>(설계온도)</td><td>${num(mp.Ecold/1000,1)} / ${num(mp.E/1000,1)} GPa</td><td>열팽창변형 ε (T<sub>amb</sub>→T<sub>design</sub>)</td><td>${num(eps*1000,3)} mm/m</td></tr>
+   <tr><td>압력설계계수 y</td><td>${num(mp.y,2)}${OPT.yTableB31?' (Table 104.1.2(A) 온도의존)':''}</td><td>최소인장강도 (S<sub>A</sub> 상한 판정)</td><td>${mp.smts?num(mp.smts,0)+' MPa'+((R2.saCap20ksi&&mp.smts>480)?' → S_A 산정 S_c,S_h ≤ 137.9 MPa':''):'-'}</td></tr>
   </table>
-  ${(inp.matKey==='A335-P91'||inp.matKey==='A335-P92')?'<p class="note">※ P91/P92 저온역 허용응력(20℃=137 MPa)은 대표치로 실제 Appendix A 값 대비 보수측(과소)일 수 있음 — 적용 코드 에디션 원표 확인 권장 (v22-M1).</p>':''}
-  <p class="note">단면 특성: A=${r.secC.A.toFixed(0)} mm², I=${(r.secC.I/1e4).toFixed(0)} cm⁴, Z=${(r.secC.Z/1000).toFixed(1)} cm³ (부식 후 두께 기준). 자중 w=${(r.wlin*1000).toFixed(0)} N/m (강관+유체 SG ${inp.SG}+보온 ${inp.insulName} t${inp.insulT.toFixed(0)}mm). 본 보고서 수치는 SI 단위(mm·MPa·℃·N) 기준이다.</p>
-
-  <h2>2. 모델 형상 · Geometry (Global Coordinate System)</h2>
-  <div align="center"><img src="${img}" width="620"/></div>
-  <p class="note" align="center">3D 배관 모델 — 색상은 코드 응력비(Stress Ratio) 컨투어. 좌표계: X·Y·Z (연직 상방축은 모델 설정 기준).</p>
-  <h3>2.1 절점 좌표 (절대 / 상대Δ, 단위 m)</h3>
-  <table><tr><th>절점</th><th>X</th><th>Y</th><th>Z</th><th>ΔX</th><th>ΔY</th><th>ΔZ</th><th>부속·지지</th></tr>${nodeGeom}</table>
-  <h3>2.2 요소 연결 (Connectivity)</h3>
-  <table><tr><th>요소</th><th>From</th><th>To</th></tr>${elemGeom}</table>
-
-  <h2>3. 압력 설계 두께 검토 · Pressure Design (para 104.1.2)</h2>
-  <div class="eq">t<sub>m</sub> = P·D<sub>o</sub> / [2(S·E + P·y)] + A
-   = ${inp.P}×${r.sec0.od} / [2(${mp.Sh.toFixed(0)}×${inp.Eff} + ${inp.P}×${mp.y})] + ${inp.CA}
-   = <b>${r.tm.toFixed(2)} mm</b></div>
-  <p>가용 두께 = t<sub>n</sub>×0.875 = ${r.sec0.t}×0.875 = <b>${r.t_avail.toFixed(2)} mm</b> ${r.t_avail>=r.tm?'<span class="stamp">≥ t_m → 만족</span>':'<span style="color:#c0392b;font-weight:bold">&lt; t_m → 미달</span>'} (12.5% 압연공차)</p>
-  <p class="note">y: Table 104.1.2(A) 압력설계 계수 (본 재질 ${mp.name}: y=${(+mp.y).toFixed(2)}${(PSA.OPTIONS&&PSA.OPTIONS.yTableB31)?' — 온도의존값(v22-D5) 적용':''}). 종방향 압력응력 PD/4t = ${r.pStress.toFixed(1)} MPa.</p><!-- v22-FIX-14 -->
-  ${(r.segments&&r.segments.length>1)?`
-  <h3>3.1 세그먼트별 압력설계 두께 검토 (v22-FIX-05)</h3>
-  <table><tr><th>#</th><th>규격·재질</th><th>P (MPa)</th><th>T (℃)</th><th>t_m (mm)</th><th>가용 (mm)</th><th>판정</th></tr>
-   ${r.segments.map((sg,i)=>`<tr><td>${i+1}</td><td>${sg.sizeLabel||''} · ${sg.matKey}</td><td align="right">${sg.P}</td><td align="right">${sg.Tdesign}</td>
-     <td align="right">${sg.tm.toFixed(2)}</td><td align="right">${sg.t_avail.toFixed(2)}</td>
-     <td align="center" style="font-weight:bold;color:${sg.pass?'#1e8449':'#c0392b'}">${sg.pass?'OK':'NG'}</td></tr>`).join('')}
-  </table>
-  <p class="note">상단 계산식은 폼 기본(대표) 스펙 기준이며, 판정은 세그먼트별 표를 따른다.</p>`:''}
-
-  <h2>4. 응력 해석 방법 · Method</h2>
-  <p>3차원 보(beam) 유한요소(직접강성법, 절점당 6 자유도)로 배관계를 모델링하였다. 자중(강관+유체+보온)은 절점 등가하중으로, 열팽창은 등가 절점하중 EAε로 부과하여 K·u=F 를 해석하고 부재단 모멘트를 산출하였다. 각 절점에서 합성모멘트 M=√(M<sub>x</sub>²+M<sub>y</sub>²+M<sub>z</sub>²)에 응력증대계수 i(Appendix D)를 적용하였다.
-  ${(PSA.OPTIONS&&PSA.OPTIONS.bendFlexibility)
-    ?'엘보/벤드는 직관 보요소로 모델링하되, B31.1 Appendix D 가요성계수 k=1.65/h 를 인접 요소의 굽힘 유연도 등가(I_eff)로 반영하였다(v22-D1). 호형상 오프셋·내압 강성화는 미반영인 근사이다.'
-    :'엘보/벤드는 직관 보요소로 모델링하고 응력증대계수(SIF)만 적용하였으며, B31.1 Appendix D의 가요성계수(flexibility factor k)는 미적용이다. 이에 따라 계 강성이 실제보다 크게 평가되어 열팽창 응력·앵커 반력은 대체로 보수적(과대) 측으로 산정된다.'}</p><!-- v22-FIX-15 -->
-  <p class="note">v22 엔진 보정 적용 상태: ${['bendFlexibility|D1 엘보 유연계수','coldModulusExpansion|D2 열팽창 Ea','sifMeanRadius|D3 SIF 평균반경','guideAxisFix|D4 가이드 구속축','yTableB31|D5 y 온도의존','fStepTable|D6 f 계단표'].map(sp=>{const[k,nm]=sp.split('|');return nm+' '+((PSA.OPTIONS&&PSA.OPTIONS[k])?'적용':'미적용');}).join(' · ')}.</p>
-
-  <h2>5. 코드 적합성 평가 · Code Compliance</h2>
-  <h3>5.1 적용 수식</h3>
-  <div class="eq"><b>지속하중 (Eq.15):</b> S<sub>L</sub> = PD<sub>o</sub>/4t<sub>n</sub> + 0.75 i·M<sub>A</sub>/Z ≤ S<sub>h</sub> &nbsp;<span style="font-size:9pt">(단, 0.75i는 1.0 미만이 되지 않도록 함 — para 104.8)</span></div><!-- v22-FIX-09/U3 -->
-  <div class="eq"><b>열팽창 변위범위 (Eq.14):</b> S<sub>E</sub> = i·M<sub>C</sub>/Z ≤ S<sub>A</sub>,&nbsp; S<sub>A</sub> = f(1.25S<sub>c</sub> + 0.25S<sub>h</sub>) &nbsp;[liberal: f(1.25(S<sub>c</sub>+S<sub>h</sub>)−S<sub>L</sub>)]</div>
-  <div class="eq"><b>일시하중 (Eq.16):</b> PD<sub>o</sub>/4t<sub>n</sub> + 0.75i·M<sub>A</sub>/Z + 0.75i·M<sub>B</sub>/Z ≤ k·S<sub>h</sub> &nbsp;(k=${r.k_occ}; 0.75i ≥ 1.0; 일시하중 = 수평 1방향(전역 X) 정적 등가 0.3g 단일 케이스)</div><!-- v22-FIX-07/09 -->
-  <p class="note">S<sub>A</sub>(기본) = ${(r.fcyc*(1.25*mp.Sc+0.25*mp.Sh)).toFixed(1)} MPa (f=${r.fcyc.toFixed(2)}; 절점표의 S<sub>A</sub>는 S<sub>L</sub> 여유를 가산한 liberal 식 f(1.25(S<sub>c</sub>+S<sub>h</sub>)−S<sub>L</sub>) 적용값으로 이 값 이상임), k·S<sub>h</sub> = ${(r.k_occ*mp.Sh).toFixed(1)} MPa.</p><!-- v22-FIX-08 -->
-  <p class="note">지진하중은 수평 단축(X) 정적 등가법(0.3g)으로 평가한 간이 결과이며, 직교 수평·수직 성분 조합 및 응답스펙트럼 해석은 포함하지 않는다. 배관 주행방향에 따라 비보수적일 수 있어 내진 상세평가 시 별도 해석이 필요하다.</p><!-- v22-FIX-07 -->
-
-  <h3>5.2 절점별 응력 검토 결과 (단위 MPa)</h3>
+  ${(!R2.materials2022&&(inp.matKey==='A335-P91'||inp.matKey==='A335-P92'))?'<p class="note">※ 구 재질표(v25) 사용 중: P91/P92 저온역 허용응력(20℃=137 MPa)은 대표치로 Appendix A 값 대비 보수측(과소)일 수 있음 — E8 옵션(2022 재질표) 적용 권장.</p>':''}
+  ${mp.unlisted?'<p class="note">※ '+esc(inp.matKey)+' 는 B31.1-2022 Mandatory Appendix A 에 등재되지 않은 재질 — 프로그램 내장값(v25 표)은 참고치이며 허용응력 출처(Code Case / BPVC II-D) 확인 필요 (W401).</p>':''}
   ${e401Banner}
-  <table><tr><th rowspan="2">절점</th><th rowspan="2">i</th><th colspan="3">지속 Eq.15</th><th colspan="3">팽창 Eq.14</th><th colspan="3">일시 Eq.16</th><th rowspan="2">판정</th></tr>
-   <tr><th>S<sub>L</sub></th><th>S<sub>h</sub></th><th>비</th><th>S<sub>E</sub></th><th>S<sub>A</sub></th><th>비</th><th>S<sub>occ</sub></th><th>k·S<sub>h</sub></th><th>비</th></tr><!-- v22-FIX-18 -->
-   ${r.nodeRes.map(rrow).join('')}
+  <h3>3.2 재질 물성 출처</h3>
+  <p class="note">허용응력 S·탄성계수 E·평균 열팽창계수 α 는 프로그램 내장 재질표(${R2.materials2022?'ASME B31.1-2022 Mandatory Appendix A / Table C-1 / Table B-1':'v25 구표(대표치)'}, 온도 선형보간)를 사용하였다. 제출용 보고서에서는 적용 에디션의 원표와 아래 값을 대조·확인하여야 한다. (y: Table 104.1.2(A), 재질 분류 ${esc(matRef&&matRef.cls||'-')})</p>
+  ${matRef?`<table><tr><td style="vertical-align:top;border:none;width:33%"><table><tr><th>T (℃)</th><th>S (MPa)</th></tr>${matTbl(matRef.T,matRef.S,v=>num(v,1))}</table></td>
+   <td style="vertical-align:top;border:none;width:33%"><table><tr><th>T (℃)</th><th>E (GPa)</th></tr>${matTbl(matRef.TE||matRef.T,matRef.E,v=>num(v/1000,0))}</table></td>
+   <td style="vertical-align:top;border:none"><table><tr><th>T (℃)</th><th>α 평균 (×10⁻⁶/℃)</th></tr>${matTbl(matRef.Ta||matRef.T,matRef.a,(v,k)=>(k===0&&!(v>0))?'(20℃ 항 보정'+(R2.alphaLowT?' 적용':' 미적용')+')':num(v*1e6,2))}</table></td></tr></table>`:''}
+  <h3>3.3 단면 특성</h3>
+  <p class="note">공칭(t<sub>n</sub>) 기준: A = ${num(r.sec0&&r.sec0.A,0)} mm², I = ${num(r.sec0&&r.sec0.I/1e4,0)} cm⁴, Z = ${num(r.sec0&&r.sec0.Z/1000,1)} cm³ · 부식 후(t<sub>n</sub>−A) 기준: A = ${num(r.secC&&r.secC.A,0)} mm², I = ${num(r.secC&&r.secC.I/1e4,0)} cm⁴, Z = ${num(r.secC&&r.secC.Z/1000,1)} cm³. <b>응력 계산 단면: ${R2.zNominal?'공칭(E16 옵션)':'부식 후'}</b>. 단위 자중 w = ${num((r.wlin||0)*1000,0)} N/m (강관 + 유체 SG ${num(inp.SG,2)} + 보온).</p>
+  ${segs.length>1?`<h3>3.4 세그먼트별 스펙</h3><table><tr><th>#</th><th>규격·재질</th><th>P (MPa)</th><th>T (℃)</th><th>S<sub>c</sub> / S<sub>h</sub> (MPa)</th><th>A (mm)</th><th>밀공차</th><th>W</th></tr>
+   ${segs.map((sg,i)=>`<tr>${td(i+1)}${td(esc(sg.label||sg.sizeLabel))}${tdr(num(sg.P,2))}${tdr(num(sg.Tdesign,1))}${tdr(num(sg.Sc,1)+' / '+num(sg.Sh,1))}${tdr(num(sg.CA,2))}${tdr(num((sg.mtol!=null?sg.mtol:mtol0)*100,2)+'%')}${tdr(num(sg.W!=null?sg.W:W0,2))}</tr>`).join('')}</table>`:''}
+
+  <!-- ===================== 4. 모델링 ===================== -->
+  <h2 style="${PB}">4. 모델링 · Modeling (Geometry, Supports, Loads)</h2>
+  <h3>4.1 형상</h3>
+  ${img?`<div align="center"><img src="${img}" width="620"/></div><p class="note" align="center">그림 4-1  3D 배관 모델 (색상: 코드 응력비 컨투어). 전역좌표 X·Y·Z, 연직 상방 +${upAxis}.</p>`:'<p class="note">[3D 뷰 캡처 불가 — 모델 그림은 별도 첨부]</p>'}
+  <p>절점 ${nodesM.length}개 · 요소 ${elemsIn.length}개 · 총 연장 ${num(Ltot,2)} m · 부속/지지: ${supSummary}.${R2.spanSubdivide?' 직관 요소는 경간 내부 응력 평가를 위해 L<sub>max</sub> = '+num(R2.spanSubdivLmax,0)+' mm 이하로 자동 분할하였다(생성 평가점 '+nGen+'개, 부록 A 에 "경간 내부" 로 표기).':''} 절점 좌표·요소 연결·부속 상세는 부록 D 에 수록한다.</p>
+  <h3>4.2 지지 조건</h3>
+  <table><tr><th>지지 형식</th><th>모델링</th><th>작용 케이스</th></tr>
+   <tr><td>앵커 / 노즐 / HX 노즐</td><td>6 자유도 강체 구속 (부가하중·앵커 무브먼트 입력 시 반영) — 힘·모멘트 6성분 반력 출력</td><td>전 케이스</td></tr>
+   <tr><td>리지드(rest) / 로드 / 스트러트</td><td>연직(또는 지정 축) 1 방향 양방향 강체 구속 (마찰·리프트오프 미고려)</td><td>전 케이스</td></tr>
+   <tr><td>가이드 / 라인스톱</td><td>배관축 직교 횡방향 / 배관축 방향 강체 구속 (가이드 갭 입력 시 반복해석)</td><td>전 케이스</td></tr>
+   <tr><td>베리어블 스프링</td><td>연직 스프링(k) + 설계하중 프리로드</td><td>${R2.hangerPreloadSusOnly?'전 케이스 (프리로드: 지속·운전; 일시 증분 케이스 제외)':'전 케이스 (프리로드: 지속·일시)'}</td></tr>
+   <tr><td>콘스턴트 행어</td><td>연직 정하중(k=0) 프리로드</td><td>${R2.hangerPreloadSusOnly?'전 케이스 (프리로드: 지속·운전; 일시 증분 케이스 제외)':'전 케이스 (프리로드: 지속·일시)'}</td></tr>
+   <tr><td>스너버 / 댐퍼</td><td>지정 방향 강체 구속 — 열이동 비구속</td><td>일시하중(OCC) 케이스만</td></tr>
+  </table>
+  <h3>4.3 하중 정의 및 조합</h3>
+  <table><tr><th width="12%">케이스</th><th>구성 하중</th><th width="22%">평가 기준</th><th width="18%">비고</th></tr>
+   <tr><td><b>SUS</b></td><td>자중 W (분포 ${num(Wdist/1000,2)} kN + 집중 ${num(Wconc/1000,2)} kN = ${num(Wtot/1000,2)} kN ≈ ${num(Wtot/g,0)} kg; 유체 SG ${num(inp.SG,2)}·보온 포함${R2.fixedEndLoad?', 고정단 등가 절점하중(wL/2, wL²/12)':''}) + 설계압력 P = ${num(inp.P,2)} MPa (종방향 P·D<sub>o</sub>/4t<sub>n</sub> = ${num(r.pStress,2)} MPa)</td><td>para 104.8.1, S<sub>L</sub> ≤ S<sub>h</sub></td><td>1차(지속) 응력</td></tr>
+   <tr><td><b>THR</b></td><td>열팽창 ΔT = ${num(inp.Tdesign,1)} − ${num(inp.Tamb,1)} = ${num(inp.Tdesign-inp.Tamb,1)} ℃ (ε = ${num(eps*1000,3)} mm/m), 강성 ${OPT.coldModulusExpansion?'E<sub>a</sub>(상온)':'E<sub>h</sub>(설계온도)'} 기준${nodesM.some(n=>(n.att||[]).some(a=>['dx','dy','dz'].some(k=>a[k])))?', 앵커 무브먼트 포함':''}</td><td>para 104.8.3, S<sub>E</sub> ≤ S<sub>A</sub></td><td>변위응력범위(설치→운전)</td></tr>
+   <tr><td><b>OCC</b></td><td>SUS + 지진 정적 등가 <b>${occTxt}</b> (스너버 작용${R2.hangerPreloadSusOnly?', 행어 프리로드는 증분 케이스 제외':''})</td><td>para 104.8.2, S<sub>occ</sub> ≤ k·S<sub>h</sub></td><td>k = ${num(r.k_occ,2)}</td></tr>
+   <tr><td><b>OPE</b></td><td>SUS + THR (운전 상태)${R2.hotReaction?'; 운전 열반력은 R<sub>h</sub> = (E<sub>h</sub>/E<sub>c</sub>)·R = '+num(hotFac,3)+'·R 병기 (119.10.1, C=0)':''}</td><td>—</td><td>반력·변위·행어 보고용</td></tr>
+   <tr><td><b>HOOP</b></td><td>설계압력 P (원주방향) σ<sub>h</sub> = P·D<sub>o</sub>/2t<sub>av</sub> − P·y</td><td>${hoopInc?'종합비 포함':'참고'}: σ<sub>h</sub> ≤ S<sub>h</sub>·E·W</td><td>B31.1 명시식 아님 (AutoPIPE 관례)</td></tr>
+  </table>
+  <p class="note">지진하중 ${num(occG,2)} g 는 수평 ${occDirs.length>1?'2축 각각의 정적 등가 해석을 절점별 포락한 값':'단축 정적 등가 단일 케이스'}이다. 수직 지진, 수평성분 SRSS 조합, 응답스펙트럼/시간이력 해석, 풍하중·수격·안전밸브 반동력은 포함되지 않으므로, 해당 하중이 설계조건에 있는 경우 별도 해석이 필요하다.</p>
+
+  <!-- ===================== 5. 해석 방법·가정 ===================== -->
+  <h2>5. 해석 방법 · 가정 · 한계 · Method, Assumptions &amp; Limitations</h2>
+  <p>3차원 보(beam) 유한요소(직접강성법, 절점당 6 자유도, 전단변형 미고려)로 배관계를 모델링하였다. 자중(강관+유체+보온+집중질량)은 ${R2.fixedEndLoad?'고정단 등가 절점하중(힘 wL/2, 모멘트 wL²/12)으로 재하하고 요소력 회수 시 f = k·u − f<sub>eq</sub> 로 경간 내부 모멘트를 복원':'절점 등가하중'}하였으며, 열팽창은 등가 절점하중 E·A·ε 로 부과하여 K·u = F 를 해석하고 요소단 힘·모멘트를 산출하였다. 각 절점에서 합성모멘트 M = √(M<sub>x</sub>²+M<sub>y</sub>²+M<sub>z</sub>²) (절점에 연결된 요소단 중 최대) 에 응력증대계수 i 를 적용하였으며, 분기점에서는 요소별 자체 단면·스펙으로 평가한다.
+  ${OPT.bendFlexibility
+    ?'엘보/벤드는 직관 보요소로 모델링하되, Appendix D 가요성계수 k = 1.65/h 를 인접 요소의 굽힘 유연도 등가(I<sub>eff</sub>)로 반영하였다'+(R2.bendCapFull?' (반호 길이 cap = 요소 길이)':'')+'. 호(arc) 형상 오프셋·내압 강성화·플랜지 효과는 미반영인 근사이다.'
+    :'엘보/벤드는 직관 보요소로 모델링하고 응력증대계수(SIF)만 적용하였으며, Appendix D 가요성계수 k 는 미적용이다. 이에 따라 계 강성이 실제보다 크게 평가되어 열팽창 응력·앵커 반력은 대체로 보수적(과대) 측으로 산정된다.'}</p>
+  <table><tr><th width="28%">가정 / 한계</th><th>내용</th></tr>
+   <tr><td>해석 종류</td><td>선형 정적 해석. 동적 해석(고유진동수·응답스펙트럼·시간이력) 미수행 — 1차 고유진동수가 필요한 경우 별도 산출</td></tr>
+   <tr><td>압력 효과</td><td>종방향 압력응력 P·D<sub>o</sub>/4t<sub>n</sub>${R2.axialTerm?' 과 요소 축력 F/A<sub>p</sub>':''} 고려. 압력에 의한 신장(Bourdon/압력 thrust) 및 벤드 압력 강성화 미고려</td></tr>
+   <tr><td>지지 비선형</td><td>마찰, 리프트오프(단방향 지지), 스프링 상·하한 스토퍼 미고려 (가이드 갭은 반복해석으로 고려). 강체 구속은 패널티법${R2.adaptivePenalty?' (DOF 별 max(1e12, 1e8·K<sub>dd</sub>))':' (고정 패널티)'}</td></tr>
+   <tr><td>콜드 스프링</td><td>미고려 (cold spring 0%)</td></tr>
+   <tr><td>열팽창 응력범위</td><td>설치(T<sub>amb</sub>) ↔ 운전(T<sub>design</sub>) 단일 온도범위. 복수 운전 모드·정지 모드 간 범위, 앵커 차등변위 범위는 입력 시에만 반영</td></tr>
+   <tr><td>일시하중</td><td>${occTxt} — 수직 성분·SRSS 조합 미고려</td></tr>
+   <tr><td>반력</td><td>솔버 반력 힘·모멘트 6 성분 출력(§6.6). 운전 열반력은 범위 R(E<sub>c</sub>) 과 R<sub>h</sub>=(E<sub>h</sub>/E<sub>c</sub>)·R 병기</td></tr>
+   <tr><td>경간 내부 평가</td><td>${R2.spanSubdivide?'직관 요소 자동 분할(L<sub>max</sub> '+num(R2.spanSubdivLmax,0)+' mm)로 경간 중앙 응력을 평가 — 생성 평가점은 지지·부속이 없는 직관 내부 점':'절점(요소 단부)에서만 응력 평가 — 경간 중앙 모멘트는 미평가(비보수 가능)'}</td></tr>
+   <tr><td>단면 · 두께</td><td>응력 계산은 ${R2.zNominal?'공칭':'부식 후(t<sub>n</sub>−A)'} 단면계수, 압력항은 공칭 t<sub>n</sub>, 압력설계 가용두께는 t<sub>n</sub>(1−밀공차 ${num(mtol0*100,1)}%), 후프 t<sub>av</sub> = t<sub>n</sub>(1−밀공차) − A</td></tr>
+   <tr><td>재질 데이터</td><td>${R2.materials2022?'B31.1-2022 App.A/B/C 내장표':'프로그램 내장 대표치(구표)'} (§3.2) — 적용 에디션 원표 대조 필요</td></tr>
+   <tr><td>엔진 옵션</td><td class="small">${optLine} (부록 E)</td></tr>
   </table>
 
-  <h2>6. 지지점 반력 · Support Reactions (anchor/nozzle/rest/guide 등)</h2><!-- v22-FIX-12 -->
-  <table><tr><th>절점</th><th>형식</th><th>케이스</th><th>Fx (N)</th><th>Fy (N)</th><th>Fz (N)</th><th>|F| (N)</th></tr>
-   ${r.reactions.map(rx=>{const to=rx.thermalOnly||{fx:rx.thermal.fx-rx.sustained.fx,fy:rx.thermal.fy-rx.sustained.fy,fz:rx.thermal.fz-rx.sustained.fz,mag:0};return `
-     <tr><td rowspan="3">N${rx.node}</td><td rowspan="3">${supNames(rx.kind)}</td><td>지속</td><td align="right">${rx.sustained.fx.toFixed(0)}</td><td align="right">${rx.sustained.fy.toFixed(0)}</td><td align="right">${rx.sustained.fz.toFixed(0)}</td><td align="right">${rx.sustained.mag.toFixed(0)}</td></tr>
-     <tr><td>열팽창(단독)</td><td align="right">${to.fx.toFixed(0)}</td><td align="right">${to.fy.toFixed(0)}</td><td align="right">${to.fz.toFixed(0)}</td><td align="right">${(to.mag||Math.hypot(to.fx,to.fy,to.fz)).toFixed(0)}</td></tr>
-     <tr><td><b>운전(지속+열)</b></td><td align="right"><b>${rx.thermal.fx.toFixed(0)}</b></td><td align="right"><b>${rx.thermal.fy.toFixed(0)}</b></td><td align="right"><b>${rx.thermal.fz.toFixed(0)}</b></td><td align="right"><b>${rx.thermal.mag.toFixed(0)}</b></td></tr>`;}).join('')}
-  </table><!-- v22-FIX-02/U1: 지속/열팽창(단독)/운전 3행 -->
-  <p class="note">부호는 전역좌표 기준 <b>배관이 지지물에 가하는 힘</b>(수직성분 합 = −총 자중). 스프링/콘스턴트 절점의 지속·운전 반력에는 프리로드(설계하중)가 포함된다(v22-FIX-04). 본 도구는 앵커/노즐의 <b>모멘트 반력을 출력하지 않으므로</b>, API 610 / NEMA SM-23 등 노즐 허용하중(힘+모멘트 세트) 평가는 모멘트를 포함한 상용 해석으로 수행하여야 한다.</p><!-- v22-FIX-11 -->
+  <!-- ===================== 6. 결과 ===================== -->
+  <h2 style="${PB}">6. 해석 결과 · Results</h2>
+  <h3>6.1 압력설계 두께 검토 (para 104.1.2${eqL('tm')})</h3>
+  <div class="eq">t<sub>m</sub> = P·D<sub>o</sub> / [2(S·E·W + P·y)] + A
+   = ${num(inp.P,2)}×${num(r.sec0&&r.sec0.od,2)} / [2(${num(mp.Sh,1)}×${num(Eff,2)}×${num(W0,2)} + ${num(inp.P,2)}×${num(mp.y,2)})] + ${num(inp.CA,2)}
+   = <b>${num(r.tm,2)} mm</b></div>
+  <p>가용 두께 = t<sub>n</sub>×(1−${num(mtol0,3)}) = ${num(r.sec0&&r.sec0.t,3)}×${num(1-mtol0,3)} = <b>${num(r.t_avail,2)} mm</b> ${r.t_avail>=r.tm?'<span class="stamp">≥ t_m → 만족</span>':'<span style="color:#c0392b;font-weight:bold">&lt; t_m → 미달</span>'} (밀공차 ${num(mtol0*100,1)}%)</p>
+  <p class="note">y: Table 104.1.2(A) 압력설계 계수 (본 재질 ${esc(mp.name)}: y=${num(mp.y,2)}${OPT.yTableB31?' — 온도의존값 적용':''}). 종방향 압력응력 P·D<sub>o</sub>/4t<sub>n</sub> = ${num(r.pStress,2)} MPa.</p>
+  ${segs.length>1?`
+  <table><tr><th>#</th><th>규격·재질</th><th>P (MPa)</th><th>T (℃)</th><th>t<sub>m</sub> (mm)</th><th>가용 (mm)</th><th>판정</th></tr>
+   ${segs.map((sg,i)=>`<tr>${td(i+1)}${td(esc((sg.sizeLabel||'')+' · '+sg.matKey))}${tdr(num(sg.P,2))}${tdr(num(sg.Tdesign,1))}${tdr(num(sg.tm,2))}${tdr(num(sg.t_avail,2))}${tdc(okng(sg.pass))}</tr>`).join('')}
+  </table><p class="note">상단 계산식은 기본(대표) 스펙 기준이며, 판정은 세그먼트별 표를 따른다.</p>`:''}
+
+  <h3>6.2 지속하중 응력 (para 104.8.1${eqL('sus')})</h3>
+  <div class="eq">S<sub>L</sub> = ${axS} + 0.75i·M<sub>A</sub>/Z ≤ S<sub>h</sub> = ${num(mp.Sh,1)} MPa &nbsp;<span style="font-size:9pt">(0.75i ≥ 1.0 — para 104.8.1)</span></div>
+  <table><tr><th>절점</th><th>부속·지지</th><th>i</th><th>M<sub>A</sub> (N·m)</th>${R2.axialTerm?'<th>F<sub>a</sub> (N)</th>':''}<th>S<sub>L</sub> (MPa)</th><th>S<sub>h</sub> (MPa)</th><th>비</th><th>판정</th></tr>
+   ${top('rSus',5).map(nr=>`<tr${genStyle(nr)}>${td(nl(nr))}${td(esc(nodeKind(nr)))}${tdc(num(nr.i,2))}${tdr(num(nr.Ma/1000,0))}${R2.axialTerm?tdr(num(nr.Na,0)):''}${tdr(num(nr.SL,1))}${tdr(num(nr.Sh,1))}${tdc('<b>'+num(nr.rSus,3)+'</b>')}${tdc(okng(!(nr.rSus>1)))}</tr>`).join('')}
+  </table>
+  <p>최대 지속응력비 <b>${num(s.maxSusR,3)}</b> @${nlId(s.worstSusNode!=null?s.worstSusNode:wS.id)} (상위 5 평가점, 전체는 부록 A). ${s.maxSusR>1?'<span style="color:#c0392b">허용치 초과 절점 존재.</span>':'모든 절점이 S<sub>h</sub> 이내.'}</p>
+
+  <h3>6.3 열팽창 응력범위 (para 104.8.3${eqL('exp')})</h3>
+  <div class="eq">S<sub>E</sub> = ${axE}i·M<sub>C</sub>/Z ≤ S<sub>A</sub>; &nbsp; ${EQ.sa1a}: S<sub>A</sub> = f(1.25S<sub>c</sub>+0.25S<sub>h</sub>) = ${num(r.fcyc,3)}×(1.25×${num(Math.min(mp.Sc,(R2.saCap20ksi&&(mp.smts||0)>480)?137.9:mp.Sc),1)}+0.25×${num(Math.min(mp.Sh,(R2.saCap20ksi&&(mp.smts||0)>480)?137.9:mp.Sh),1)}) = <b>${num(SA1A_ref,1)} MPa</b>; &nbsp; ${EQ.sa1b}: S<sub>A</sub> = f[1.25(S<sub>c</sub>+S<sub>h</sub>)−S<sub>L</sub>] (절점별)</div>
+  <p><b>적용식: ${SA_NAME}</b> — ${saBasis==='basic'?'S<sub>L</sub> 여유를 가산하지 않은 기본식으로 판정하였다(AutoPIPE/CAESAR 기본). '+EQ.sa1b+' 기준 비를 참고로 병기한다.':(saBasis==='liberal'?'절점표의 S<sub>A</sub>(적용) 은 S<sub>L</sub> 여유를 가산한 liberal 값으로 '+EQ.sa1a+' 값 이상이다. 상용 SW 기본 설정('+EQ.sa1a+')과 비교할 수 있도록 '+EQ.sa1a+' 기준 비를 병기한다.':'기본식 '+EQ.sa1a+' 로 판정하되 S<sub>E</sub> 가 '+EQ.sa1a+' 를 초과하는 절점만 '+EQ.sa1b+' 로 재판정하였다(식 열에 "(1B)*" 표기).')}${capNote}</p>
+  <table><tr><th>절점</th><th>부속·지지</th><th>i</th><th>M<sub>C</sub> (N·m)</th>${R2.axialTerm?'<th>F<sub>c</sub> (N)</th>':''}<th>S<sub>E</sub> (MPa)</th><th>S<sub>A</sub>${EQ.sa1a}</th><th>비${EQ.sa1a}</th><th>S<sub>A</sub>${EQ.sa1b}</th><th>비${EQ.sa1b}</th><th>S<sub>A</sub>(적용)·식</th><th>비(적용)</th><th>판정</th></tr>
+   ${top('rExp',5).map(nr=>`<tr${genStyle(nr)}>${td(nl(nr))}${td(esc(nodeKind(nr)))}${tdc(num(nr.i,2))}${tdr(num(nr.Mc/1000,0))}${R2.axialTerm?tdr(num(nr.Nc,0)):''}${tdr(num(nr.SE,1))}${tdr(num(nr.SA1A,1))}${tdc(num(nr.rExp1A,3))}${tdr(num(nr.SA1B,1))}${tdc(num(nr.rExp1B,3))}${tdr(num(nr.SA,1)+' '+esc(nr.saEq))}${tdc('<b>'+num(nr.rExp,3)+'</b>')}${tdc(okng(!(nr.rExp>1)))}</tr>`).join('')}
+  </table>
+  <p>최대 열팽창 응력비(적용식 ${SA_SHORT}) <b>${num(s.maxExpR,3)}</b> @${nlId(s.worstExpNode!=null?s.worstExpNode:wE.id)}; ${EQ.sa1a} 기준 최대 ${num(maxExp1A.v,3)} @${nlId(maxExp1A.id)}, ${EQ.sa1b} 기준 최대 ${num(maxExp1B.v,3)} @${nlId(maxExp1B.id)}${(maxExp1A.v>1&&!(s.maxExpR>1))?' <span style="color:#c0392b">(기본식 기준으로는 초과 — 발주처 기준 확인 필요)</span>':''}.</p>
+
+  <h3>6.4 일시하중 응력 (para 104.8.2${eqL('occ')})</h3>
+  <div class="eq">S<sub>occ</sub> = ${axO} + 0.75i·M<sub>A</sub>/Z + 0.75i·M<sub>B</sub>/Z ≤ k·S<sub>h</sub> = ${num(r.k_occ,2)}×${num(mp.Sh,1)} = ${num(r.k_occ*mp.Sh,1)} MPa &nbsp;(0.75i ≥ 1.0; M<sub>B</sub>: 지진 ${occTxt})</div>
+  <table><tr><th>절점</th><th>부속·지지</th><th>i</th><th>M<sub>B</sub> (N·m)</th>${R2.axialTerm?'<th>F<sub>b</sub> (N)</th>':''}<th>S<sub>occ</sub> (MPa)</th><th>k·S<sub>h</sub> (MPa)</th><th>비</th><th>판정</th></tr>
+   ${top('rOcc',5).map(nr=>`<tr${genStyle(nr)}>${td(nl(nr))}${td(esc(nodeKind(nr)))}${tdc(num(nr.i,2))}${tdr(num(nr.Mb/1000,0))}${R2.axialTerm?tdr(num(nr.Nb,0)):''}${tdr(num(nr.SOcc,1))}${tdr(num(nr.kSh,1))}${tdc('<b>'+num(nr.rOcc,3)+'</b>')}${tdc(okng(!(nr.rOcc>1)))}</tr>`).join('')}
+  </table>
+  <p>최대 일시하중 응력비 <b>${num(s.maxOccR,3)}</b> @${nlId(s.worstOccNode!=null?s.worstOccNode:wO.id)}.</p>
+  <p class="note">지진하중은 ${occTxt} 정적 등가법으로 평가한 간이 결과이며, 수직 성분·SRSS 조합 및 응답스펙트럼 해석은 포함하지 않는다. 내진 상세평가 시 별도 해석이 필요하다.</p>
+
+  <h3>6.5 후프(원주) 응력 — ${hoopInc?'종합 최대 응력비에 포함 (AutoPIPE 관례)':'참고 (AutoPIPE 관례)'}</h3>
+  <div class="eq">σ<sub>h</sub> = P·D<sub>o</sub> / (2·t<sub>av</sub>) − P·y, &nbsp; t<sub>av</sub> = t<sub>n</sub>(1−밀공차) − A &nbsp; ≤ S<sub>h</sub>·E·W</div>
+  <table><tr><th>#</th><th>규격·재질</th><th>P (MPa)</th><th>D<sub>o</sub> (mm)</th><th>t<sub>av</sub> (mm)</th><th>y</th><th>σ<sub>h</sub> (MPa)</th><th>S<sub>h</sub>·E·W (MPa)</th><th>비</th><th>판정</th></tr>
+   ${hoopRows.map((h,i)=>`<tr>${td(i+1)}${td(esc((h.sizeLabel||'')+' · '+(h.matKey||'')))}${tdr(num(h.P,2))}${tdr(num(h.od,2))}${tdr(num(h.tc,3))}${tdc(num(h.y,2))}${tdr('<b>'+num(h.hoop,2)+'</b>')}${tdr(num(h.allow,1))}${tdc('<b>'+num(h.rHoop,3)+'</b>')}${tdc(okng(!(h.rHoop>1)))}</tr>`).join('')}
+  </table>
+  <p>절점별 최대 후프 응력비 <b>${num(maxHoopR,3)}</b>${wH!=null?' @'+nlId(wH):''}${hoopOn?'':' (결과 관례 옵션에서 후프 미보고 — 보고서 내부 계산값)'}.</p>
+  <p class="note">후프응력은 ${hoopRows.some(h=>h.calc)?'보고서 작성 시 압력·치수로부터 계산한 값(엔진 미보고 모드)':'엔진 출력값(절점별 세그먼트 스펙 기준)'}이다. B31.1 의 압력 건전성 판정은 §6.1 의 t<sub>m</sub> 식이며, 본 표는 상용 SW 가 종합 최대 응력비에 후프를 포함해 보고하는 관례(AutoPIPE 'Max P' 콤보: 밀공차·부식 차감 두께, −P·y 항)와 ${hoopInc?'동일하게 종합 판정에 포함한 것':'비교·참고용'}이다. 비 &gt; 1.0 인 경우 §6.1 과 함께 설계 재검토 대상으로 본다.</p>
+
+  <h3 style="${PB}">6.6 지지점 반력 · Support Reactions (힘 N, 모멘트 N·m)</h3>
+  <table><tr><th>절점</th><th>형식</th><th>케이스</th><th>F<sub>x</sub></th><th>F<sub>y</sub></th><th>F<sub>z</sub></th><th>|F|</th><th>M<sub>x</sub></th><th>M<sub>y</sub></th><th>M<sub>z</sub></th><th>|M|</th></tr>${reactRows||'<tr><td colspan="11">반력 지지 없음</td></tr>'}</table>
+  <p class="note">부호는 전역좌표 기준 <b>배관이 지지물에 가하는 힘·모멘트</b>(연직 ${upAxis} 성분 합 = −총 자중 ≈ −${num(Wtot,0)} N). 스프링/콘스턴트 절점의 지속·운전 반력에는 프리로드(설계하중)가 포함된다. 열팽창 범위 R 은 상온 탄성계수 E<sub>c</sub> 기준 변위응력범위 반력이고, R<sub>h</sub> = (E<sub>h</sub>/E<sub>c</sub>)·R 은 운전온도 탄성계수로 환산한 운전 열반력(119.10.1, 콜드스프링 C=0)이다. 모멘트는 회전 구속 DOF(앵커·노즐)에서만 발생하며 그 외 지지는 0 이다.</p>
+  ${anchorRows?`<h3>6.6.1 앵커 / 노즐 모멘트 반력 요약 (N·m)</h3>
+  <table><tr><th rowspan="2">절점</th><th rowspan="2">형식</th><th colspan="3">지속 SUS</th><th colspan="3">열팽창 범위 R</th><th colspan="3">운전 OPE</th><th colspan="3">운전(고온) OPE<sub>h</sub></th></tr>
+   <tr><th>M<sub>x</sub></th><th>M<sub>y</sub></th><th>M<sub>z</sub></th><th>M<sub>x</sub></th><th>M<sub>y</sub></th><th>M<sub>z</sub></th><th>M<sub>x</sub></th><th>M<sub>y</sub></th><th>M<sub>z</sub></th><th>M<sub>x</sub></th><th>M<sub>y</sub></th><th>M<sub>z</sub></th></tr>${anchorRows}</table>
+  <p class="note">솔버 회전 DOF 반력(배관 → 지지물). 노즐 허용하중(API 610 / NEMA SM-23 / 제작사 허용치) 평가 시 §6.6 의 힘과 본 표의 모멘트를 함께 사용한다.</p>`:'<p class="note">앵커/노즐 지지가 없어 모멘트 반력 요약을 생략한다.</p>'}
   ${(r.reactionsOcc&&r.reactionsOcc.length)?`
-  <h3>6.1 일시하중(지진 0.3g 정적 등가) 지지 반력 — 스너버 포함 (v22-FIX-17)</h3>
-  <table><tr><th>절점</th><th>형식</th><th>Fx (N)</th><th>Fy (N)</th><th>Fz (N)</th><th>|F| (N)</th><th>스너버 계산 / 정격 (N)</th></tr><!-- v24-F4 -->
-   ${r.reactionsOcc.map(ro=>`<tr${ro.snubOver?' style="background:#fdecea"':''}><td>N${ro.node}</td><td>${supNames(ro.kind)}${ro.snub?' <b>*</b>':''}</td>
-     <td align="right">${ro.fx.toFixed(0)}</td><td align="right">${ro.fy.toFixed(0)}</td><td align="right">${ro.fz.toFixed(0)}</td><td align="right"><b>${ro.mag.toFixed(0)}</b></td>
-     <td align="right">${(ro.snubs||[]).map(sb=>`${sb.dir}: ${sb.calc.toFixed(0)}${sb.rated!=null?` / ${sb.rated.toFixed(0)}${sb.over?' <b style="color:#c0392b">초과!</b>':' OK'}`:' / (정격 미입력)'}`).join('<br>')||'-'}</td></tr>`).join('')}
+  <h3>6.6.2 일시하중(지진 ${num(occG,2)} g 정적 등가${occDirs.length>1?', 2축 포락':''}) 지지 반력 — 스너버 포함</h3>
+  <table><tr><th>절점</th><th>형식</th><th>F<sub>x</sub> (N)</th><th>F<sub>y</sub> (N)</th><th>F<sub>z</sub> (N)</th><th>|F| (N)</th><th>|M| (N·m)</th><th>스너버 계산 / 정격 (N)</th></tr>${occRows}</table>
+  <p class="note"><b>*</b> 스너버/댐퍼 포함 절점 — 스너버 정격하중 선정은 본 표의 일시하중 반력을 근거로 하되, 정적 등가법의 한계(§5)를 고려하여 여유를 둘 것. 계산 &gt; 정격이면 W331 경고와 함께 행이 강조된다. ${occDirs.length>1?'성분은 축별 해석의 절점별 최대 포락값(부호 없는 보수값)이다. ':''}동일 절점·동일 방향에 다른 강체지지가 있으면 성분은 합산 전달력(보수측)이다.</p>`:''}
+
+  ${(r.hangers&&r.hangers.length)?`<h3>6.7 행어 설계 및 선정 · Hanger Design</h3>
+  <table><tr><th>절점</th><th>종류</th><th>형식</th><th>설계(운전)하중 (N)</th><th>(kg)</th><th>하중 출처</th><th>스프링율 (N/mm)</th><th>열이동 (mm)</th><th>하중변동량 (N)</th><th>변동률</th><th>≤25%</th><th>선정 의견</th></tr>${hangerRows}</table>
+  <p class="note">설계하중은 지속하중(자중) 반력 기준 1차 산정값(사용자 지정 시 지정값)으로 행어 부품(클램프·로드) 중량은 미포함(I031). 하중변동률 = 스프링율 × 열이동 / 설계하중 (MSS SP-58 variability; B31.1 para 121.7) 으로 25% 초과 시 콘스턴트 행어를 적용한다. 냉간(설치) 하중 ≈ 설계하중 ± 하중변동량. 행어는 운전·냉간 양 상태에서 충분한 이동 여유(travel)를 확보하고 콜드 셋(cold set)을 반영하여 설치한다.</p>`:''}
+
+  <h3>6.8 열변위 · Thermal Displacements (설치 → 운전)</h3>
+  <table><tr><th>절점</th><th>부속·지지</th><th>d<sub>x</sub> (mm)</th><th>d<sub>y</sub> (mm)</th><th>d<sub>z</sub> (mm)</th><th>|d| (mm)</th></tr>
+   ${byDesc(nodeRes.map(nr=>{const dd=nr.d||{x:0,y:0,z:0};return Object.assign({},nr,{dmag:Math.hypot(dd.x,dd.y,dd.z)});}),'dmag').slice(0,8).map(nr=>`<tr${genStyle(nr)}>${td(nl(nr))}${td(esc(nodeKind(nr)))}${tdr(num(nr.d.x*1000,1))}${tdr(num(nr.d.y*1000,1))}${tdr(num(nr.d.z*1000,1))}${tdr('<b>'+num(nr.dmag*1000,1)+'</b>')}</tr>`).join('')}
   </table>
-  <p class="note"><b>*</b> 스너버/댐퍼 포함 절점 — 스너버 정격하중 선정은 본 표의 일시하중 반력을 근거로 하되, 단축 정적 등가(0.3g)의 한계(§5.1 주석)를 고려하여 여유를 둘 것. 계산 &gt; 정격이면 W331 경고와 함께 행이 강조된다(v24-F4).</p>`:''}
+  <p>최대 열변위 <b>${num(s.maxDisp*1000,1)} mm</b> @${nlId(s.maxDispNode)} (상위 8 평가점, 전체는 부록 A-2). 변위는 행어 travel·가이드 갭·인접 기기 간섭 검토에 사용한다.</p>
 
-  ${r.hangers&&r.hangers.length?`<h2>7. 행어 설계 및 선정 · Hanger Sizing & Selection</h2>
-  <table><tr><th>절점</th><th>종류</th><th>형식</th><th>설계하중(kg)</th><th>스프링율(N/mm)</th><th>열이동(mm)</th><th>하중변동</th><th>선정의견</th></tr>
-   ${r.hangers.map(h=>`<tr><td>N${h.node}</td><td>${supName(h.kind)}</td><td>${h.form==='double'?'Double':'Single'}</td>
-     <td align="right">${(h.load/9.80665).toFixed(0)}</td><td align="right">${h.rate>0?h.rate.toFixed(0):'정하중(0)'}</td>
-     <td align="right">${h.movement.toFixed(1)}</td><td align="right">${h.variation?(h.variation*100).toFixed(0)+'%':'-'}</td><td>${h.rec||''}</td></tr>`).join('')}
+  <h3>6.9 지지 간격 검토 (Table 121.5)</h3>
+  <table><tr><th>항목</th><th>적용 기준</th><th>결과</th></tr>
+   <tr><td>지지 간격 (Span)</td><td>B31.1 Table 121.5 권장 최대 경간 (표준중량관·보온·수충전${inp.Tdesign>400?'; 설계온도 >400℃ → 참고용(W312)':''})</td><td>${logs.find(l=>l.code==='W310')?'<b style="color:#c0392b">초과 — 중간지지 추가 권장</b>':(logs.find(l=>l.code==='I040')?'만족':'해당 로그 없음')}${spanLog.length?'<br><span class="note">'+spanLog.map(l=>esc(l.msg)+(l.loc?' @'+esc(l.loc):'')).join('<br>')+'</span>':''}</td></tr>
+   <tr><td>지지물 형식</td><td>열이동 유무에 따라 리지드/베리어블/콘스턴트 선정</td><td>${(r.hangers&&r.hangers.length)?'§6.7 선정 의견 참조':'행어 없음'}</td></tr>
+   <tr><td>일시하중 구속</td><td>지진·수격 등은 스너버/댐퍼로 구속(열이동 비구속)</td><td>${(r.reactionsOcc&&r.reactionsOcc.length)?'§6.6.2 참조':'—'}</td></tr>
+   <tr><td>노즐 하중</td><td>연결 기기 허용하중 이내</td><td>§6.6 반력·모멘트와 기기 허용치 비교 검토 필요</td></tr>
   </table>
-  <p class="note">행어 설계하중은 지속하중(자중) 반력 기준 1차 산정값. 베리어블 스프링은 스프링율 기반(하중변동=스프링율×열이동/설계하중), 콘스턴트는 정하중으로 모델링. <b>설계·설치 기준</b>: 베리어블 스프링 하중변동은 통상 25% 이하로 제한하며(MSS SP-58 / B31.1 관행), 초과 시 콘스턴트(정하중) 행어를 적용한다. 행어는 운전·냉간 양 상태에서 충분한 이동여유(travel)를 확보하고, 콜드 셋(cold set)을 반영하여 설치한다.</p>`:''}
 
-  <h2>${r.hangers&&r.hangers.length?'8':'7'}. 지지 설계기준 · Support Design Criteria (B31.1)</h2>
-  <p>ASME B31.1 Para. 121 지지 설계 요건에 따른 검토 항목:</p>
-  <table><tr><th>항목</th><th>적용기준</th><th>결과</th></tr>
-   <tr><td>지지 간격 (Span)</td><td>B31.1 Table 121.5 권장 최대 경간</td><td>${(r.logs.find(l=>l.code==='W310')?'<b>초과 — 중간지지 추가 권장</b>':(r.logs.find(l=>l.code==='I040')?'만족':'해당 없음'))}</td></tr>
-   <tr><td>지지물 형식</td><td>열이동 유무에 따라 리지드/베리어블/콘스턴트 선정</td><td>자동 선정의견 제시(상기 표)</td></tr>
-   <tr><td>일시하중 구속</td><td>지진·수격 등은 스너버/댐퍼로 구속(열이동 구속 없이)</td><td>스너버는 일시하중 케이스에서만 작용</td></tr>
-   <tr><td>노즐 하중</td><td>연결기기 허용하중 이내</td><td>반력표(6절) 비교 검토 필요</td></tr>
+  <!-- ===================== 7. 판정 ===================== -->
+  <h2 style="${PB}">7. 판정 · Acceptance</h2>
+  <table><tr><th>판정 항목</th><th>기준 (NG 조건)</th><th>결과</th><th>판정</th></tr>
+   <tr><td>압력설계 두께</td><td>어느 세그먼트든 t<sub>n</sub>(1−밀공차) &lt; t<sub>m</sub> (E402)</td><td>t<sub>m</sub> ${num(r.tm,2)} / 가용 ${num(r.t_avail,2)} mm${segs.length>1?' (세그먼트별 §6.1)':''}</td><td align="center">${okng(!segNG)}</td></tr>
+   <tr><td>재질 온도범위</td><td>설계온도 &gt; 재질 허용응력표 상한 (E401)</td><td>${num(inp.Tdesign,1)} ℃ / 상한 ${num(mp.Tmax,0)} ℃</td><td align="center">${okng(!e401)}</td></tr>
+   <tr><td>지속하중${eqL('sus')}</td><td>S<sub>L</sub>/S<sub>h</sub> &gt; 1.0 인 평가점 존재</td><td>최대 ${num(s.maxSusR,3)} @${nlId(s.worstSusNode!=null?s.worstSusNode:wS.id)}</td><td align="center">${okng(!(s.maxSusR>1))}</td></tr>
+   <tr><td>열팽창${eqL('exp')} (적용식 ${SA_SHORT})</td><td>S<sub>E</sub>/S<sub>A</sub> &gt; 1.0 인 평가점 존재</td><td>최대 ${num(s.maxExpR,3)} @${nlId(s.worstExpNode!=null?s.worstExpNode:wE.id)} (${EQ.sa1a} 기준 ${num(maxExp1A.v,3)} / ${EQ.sa1b} 기준 ${num(maxExp1B.v,3)})</td><td align="center">${okng(!(s.maxExpR>1))}</td></tr>
+   <tr><td>일시하중${eqL('occ')}</td><td>S<sub>occ</sub>/k·S<sub>h</sub> &gt; 1.0 인 평가점 존재</td><td>최대 ${num(s.maxOccR,3)} @${nlId(s.worstOccNode!=null?s.worstOccNode:wO.id)}</td><td align="center">${okng(!(s.maxOccR>1))}</td></tr>
+   <tr><td>후프응력 (${hoopInc?'종합비 포함':'참고'})</td><td>σ<sub>h</sub>/S<sub>h</sub>EW &gt; 1.0${hoopInc?'':' (참고 — 종합판정 미반영)'}</td><td>최대 ${num(maxHoopR,3)}${wH!=null?' @'+nlId(wH):''}</td><td align="center">${hoopInc?okng(!hoopNG):(hoopNG?'<span style="color:#c0392b">참고 NG</span>':'참고 OK')}</td></tr>
+   <tr><td>해석 전제조건</td><td>오류 로그(E-코드) 존재</td><td>오류 ${errLogs.length}건 · 경고 ${warnLogs.length}건</td><td align="center">${okng(!hasErr)}</td></tr>
+   <tr><th colspan="3">종합 판정 (위 항목 중 하나라도 NG 이면 부적합${hoopInc?'; 후프 포함':'; 후프는 참고'})</th><th style="text-align:center">${verdict}</th></tr>
   </table>
-  <p class="note">지지물은 운전 중 배관 자중·유체·보온재 하중과 열팽창에 의한 이동을 함께 고려하여 설계하며, 지지 간격은 처짐과 고유진동수를 고려한 표 121.5 권장값 이내로 배치한다. 본 결과의 경간·행어 산정은 1차 간이 검토값으로, 최종 설계는 상용 해석 및 기술사 검토가 필요하다.</p>
+  ${warnLogs.length?`<p class="note">경고(W-코드)는 종합판정에 반영되지 않으나 설계 완성도 항목이므로 부록 C 의 경고 ${warnLogs.length}건을 검토·조치하여야 한다: ${warnLogs.map(l=>esc(l.code)+(l.loc?'@'+esc(l.loc):'')).join(', ')}.</p>`:''}
 
-  <h2>${r.hangers&&r.hangers.length?'9':'8'}. 절점별 힘·모멘트 · Nodal Forces &amp; Moments (operating, global)</h2>
-  <table><tr><th>절점</th><th>Fx(N)</th><th>Fy(N)</th><th>Fz(N)</th><th>|F|(N)</th><th>Mx(N·m)</th><th>My(N·m)</th><th>Mz(N·m)</th><th>|M|(N·m)</th></tr>
-   ${r.nodeRes.map(nr=>{const o=nr.fm.op;const M=x=>(x/1000).toFixed(0);return `<tr><td>N${nr.id}</td>
-     <td align="right">${o.fx.toFixed(0)}</td><td align="right">${o.fy.toFixed(0)}</td><td align="right">${o.fz.toFixed(0)}</td><td align="right"><b>${nr.fm.Fop.toFixed(0)}</b></td>
-     <td align="right">${M(o.mx)}</td><td align="right">${M(o.my)}</td><td align="right">${M(o.mz)}</td><td align="right"><b>${M(nr.fm.Mop)}</b></td></tr>`;}).join('')}
-  </table>
-  <p class="note">operating = 지속(자중)+열팽창 전역좌표 합성. 모멘트 단위 N·m.</p>
+  <!-- ===================== 8. 결론 ===================== -->
+  <h2>8. 결론 및 권고 · Conclusion &amp; Recommendations</h2>
+  <p>본 배관계통은 ${EDITION?esc(EDITION):'ASME B31.1'} 기준 압력설계·지속·열팽창·일시하중${hoopInc?'·후프':''} 응력 검토 결과 최대 응력비 <b>${num(s.maxRatio,3)}</b>${hoopInc?' (종방향 '+num(s.maxRatioL,3)+', 후프 '+num(maxHoopR,3)+')':''} 으로 ${verdict} 으로 평가되었다. 최대 열변위는 ${nlId(s.maxDispNode)} 에서 ${num(s.maxDisp*1000,1)} mm 이다. ${NG?((hasErr&&!s.fail)?'응력비는 허용치 이내이나 설계 전제조건 오류(상단 오류 목록: E401/E402 등)로 인해 부적합이며, 원인 해소 후 재해석이 필요하다.':((hoopInc&&hoopNG&&s.maxRatioL<=1&&!hasErr)?'B31.1 종방향 응력비는 허용치 이내이나 후프응력이 S<sub>h</sub>·E·W 를 초과하므로 두께·압력 조건의 재검토가 필요하다.':'아래 Fail 원인·해결방안에 따라 지지/루프 보강 또는 노즐 위치 재검토 후 재해석이 필요하다.')):'추가 보강 없이 코드 요구를 만족한다.'}</p>
+  ${solRows?`<h3>8.1 Fail 원인 및 해결방안</h3><p>코드 요구를 만족하지 못한 항목에 대해 발생 원인과 적합(OK) 상태를 만들기 위한 해결방안(성공조건)을 제시한다.</p>${solRows}<p class="note">해결방안은 일반적 엔지니어링 지침이다. 적용 후 반드시 재해석하여 모든 평가점 응력비 ≤ 1.0 (적합)을 확인해야 한다.</p>`:''}
+  <h3>${solRows?'8.2':'8.1'} 권고 사항</h3>
+  <ul>
+   <li>적용 에디션(${EDITION?esc(EDITION):'미지정'})의 Appendix A 허용응력 원표와 §3.2 내장값을 대조할 것${mp.unlisted?' (본 재질은 Appendix A 미등재 — 출처 확인 필수)':''}.</li>
+   <li>열팽창 허용응력범위는 ${SA_SHORT} 식을 적용하였으므로 발주처/상용 SW 기준과 다를 경우 §6.3·부록 A 의 ${EQ.sa1a}/${EQ.sa1b} 병기 비로 확인할 것.</li>
+   <li>지진 설계조건(가속도·방향·조합·스펙트럼)이 ${occTxt} 정적 등가와 다르면 별도 내진 해석을 수행할 것.${warnLogs.some(l=>l.code==='W310')?'</li><li>Table 121.5 권장 경간 초과 구간(W310)에 중간 지지를 추가할 것.':''}${warnLogs.some(l=>l.code==='W311')?'</li><li>하중변동 25% 초과 베리어블 스프링(W311)은 콘스턴트 행어로 변경할 것.':''}${warnLogs.some(l=>l.code==='W304')?'</li><li>후프응력 초과(W304) 세그먼트의 두께·밀공차·부식여유를 재검토할 것.':''}</li>
+   <li>노즐·앵커 하중은 §6.6 의 힘·모멘트 6 성분을 기기 제작사 허용치와 비교하고, 필요 시 상용 해석(CAESAR II / AutoPIPE 등)으로 교차 확인할 것.</li>
+  </ul>
+  <p class="note">※ 본 보고서는 보(beam) 이상화 기반 정적 해석 결과이며, 실제 설계 승인에는 검증된 상용 해석 및 기술사 검토가 요구된다.</p>
 
-  ${(r.solutions&&r.solutions.length)?`<h2>${r.hangers&&r.hangers.length?'10':'9'}. Fail 원인 및 해결방안 · Cause &amp; Solution</h2>
-  <p>코드 요구를 만족하지 못한 항목에 대해 발생 원인과 적합(OK) 상태를 만들기 위한 해결방안(성공조건)을 제시한다.</p>
-  ${r.solutions.map((sv,i)=>`<table style="margin-bottom:8px"><tr><th colspan="2" style="text-align:left;background:#${sv.sev==='error'?'fdecea':sv.sev==='fail'?'fef5e7':'eaf2f8'}">${i+1}. ${sv.title}</th></tr>
-    <tr><td width="90"><b>원인</b></td><td>${sv.cause}</td></tr>
-    <tr><td><b>해결방안<br>(성공조건)</b></td><td>${sv.fix.map(f=>'· '+f).join('<br>')}</td></tr>
-    <tr><td><b>목표</b></td><td>${sv.target}</td></tr></table>`).join('')}
-  <p class="note">해결방안은 일반적 엔지니어링 지침이다. 적용 후 반드시 재해석하여 모든 절점 응력비 ≤ 1.0 (적합)을 확인해야 한다.</p>`:''}
+  <!-- ===================== 부록 ===================== -->
+  <h2 style="${PB}">부록 A. 평가점별 응력 검토 전체표 (단위 MPa)</h2>
+  ${e401Banner}
+  <table>${hdrStress}${nodeRes.map(rowStress).join('')}</table>
+  <p class="note">S<sub>A</sub>${EQ.sa1a} = f(1.25S<sub>c</sub>+0.25S<sub>h</sub>), S<sub>A</sub>${EQ.sa1b} = f[1.25(S<sub>c</sub>+S<sub>h</sub>)−S<sub>L</sub>] (평가점별 세그먼트 재질 기준${capNote?'; 20 ksi 상한 적용':''}), S<sub>A</sub>(적용) = 엔진 적용값(식 열 표기${saBasis==='exceed'?'; "(1B)*" = 초과 절점 재판정':''}). 판정은 적용값 기준. M<sub>A</sub>/M<sub>C</sub>/M<sub>B</sub> 는 평가점 연결 요소단 중 최대 합성모멘트.${nGen?' <i>기울임</i> 행 = 경간 내부 자동 생성 평가점(직관 내부, 지지·부속 없음; 표기 "N(시작절점) +거리").':''}${hoopOn?' 후프 σ<sub>h</sub> 는 세그먼트 스펙 기준(§6.5).':''}</p>
+  <h3>A-2. 평가점별 열변위 전체표 (mm, 설치 → 운전)</h3>
+  <table><tr><th>절점</th><th>d<sub>x</sub></th><th>d<sub>y</sub></th><th>d<sub>z</sub></th><th>|d|</th></tr>${dispRows}</table>
 
-  <h2>${(r.solutions&&r.solutions.length)?(r.hangers&&r.hangers.length?'11':'10'):(r.hangers&&r.hangers.length?'10':'9')}. 결론 · Conclusion</h2>
-  <p>본 배관계통은 ASME B31.1 기준 지속·열팽창·일시하중 응력 검토 결과 최대 응력비 <b>${s.maxRatio.toFixed(3)}</b> 으로 ${verdict} 으로 평가되었다. 최대 열변위는 N${s.maxDispNode} 에서 ${(s.maxDisp*1000).toFixed(1)} mm 이다. ${(s.fail||hasErr)?(hasErr&&!s.fail?'응력비는 허용치 이내이나 설계 전제조건 오류(상단 오류 목록: E401/E402 등)로 인해 부적합이며, 원인 해소 후 재해석이 필요하다.':'상기 Fail 원인·해결방안에 따라 지지/루프 보강 또는 노즐 위치 재검토 후 재해석이 필요하다.'):'추가 보강 없이 코드 요구를 만족한다.'}</p><!-- v22-FIX-01 -->
-  <p class="note">※ 본 보고서는 보(beam) 이상화 기반 1차 평가 결과이며, 실제 설계 승인에는 검증된 상용 해석(CAESAR II / AutoPIPE 등) 및 기술사 검토가 요구된다.</p>
+  <h2 style="${PB}">부록 B. 평가점별 힘·모멘트 (운전 OPE = SUS + THR, 전역좌표)</h2>
+  <table><tr><th>절점</th><th>F<sub>x</sub> (N)</th><th>F<sub>y</sub> (N)</th><th>F<sub>z</sub> (N)</th><th>|F| (N)</th><th>M<sub>x</sub> (N·m)</th><th>M<sub>y</sub> (N·m)</th><th>M<sub>z</sub> (N·m)</th><th>|M| (N·m)</th></tr>${fmRows}</table>
+  <p class="note">평가점에 연결된 요소단 중 합성모멘트가 최대인 요소단의 힘·모멘트(요소가 절점에 작용하는 값). 지지점 반력과 부호가 반대이다.</p>
+
+  <h2 style="${PB}">부록 C. 해석 로그 (오류 ${errLogs.length} · 경고 ${warnLogs.length} · 전체 ${logs.length}건)</h2>
+  <table><tr><th width="8%">구분</th><th width="8%">코드</th><th width="10%">위치</th><th>내용</th></tr>${logRows}</table>
+
+  <h2 style="${PB}">부록 D. 입력 에코 (Input Echo)</h2>
+  <h3>D-1. 절점 좌표 (절대 / 상대Δ, 단위 m) 및 부속·지지</h3>
+  <table><tr><th>절점</th>${RO.apPointNames?'<th>AutoPIPE 점명</th>':''}<th>X</th><th>Y</th><th>Z</th><th>ΔX</th><th>ΔY</th><th>ΔZ</th><th>부속·지지</th></tr>${nodeGeom}</table>
+  <h3>D-2. 요소 연결 (Connectivity)</h3>
+  <table><tr><th>요소</th><th>From</th><th>To</th><th>길이 (m)</th><th>세그먼트</th><th>스펙</th></tr>${elemGeom}</table>
+  <h3>D-3. 부속·지지 상세</h3>
+  <table><tr><th>절점</th><th>종류</th><th>kind</th><th>파라미터</th></tr>${attEcho}</table>
+
+  <h2>부록 E. 해석 프로그램 · 엔진 옵션 · 결과 관례</h2>
+  <table><tr><th>옵션</th><th>상태</th></tr>${optRows}<tr><td>프로그램 버전</td><td align="center">${esc(APP_VER)}</td></tr><tr><td>적용 코드 (프로그램 설정)</td><td align="center">${esc(EDITION||'-')}</td></tr><tr><td>결과 생성일</td><td align="center">${d}</td></tr></table>
   </body></html>`;
 
-  const blob=new Blob(['\ufeff',html],{type:'application/msword'});
+  const blob=new Blob(['﻿',html],{type:'application/msword'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`B31.1_StressReport_${d}.doc`;a.click();
+  const a=document.createElement('a');a.href=url;a.download=`B31.1_StressReport_${META.line?String(META.line).replace(/[^\w\-]+/g,'_')+'_':''}${d}.doc`;a.click();
   URL.revokeObjectURL(url);
   toast('워드 보고서 생성 완료',true);
 }
@@ -5977,7 +6738,28 @@ function syncEngineOptUI(){
   $$('#engOptList input[data-opt]').forEach(cb=>{ cb.checked=!!PSA.OPTIONS[cb.dataset.opt]; });
   const allOff=Object.keys(PSA.OPTIONS).every(k=>!PSA.OPTIONS[k]);
   const v21=$('#optV21Compat'); if(v21)v21.checked=allOff;
+  /* v26-C1: R2 그룹 · 결과 관례 · 프리셋 표시 동기화 */
+  $$('#r2OptList input[data-r2]').forEach(cb=>{ cb.checked=!!PSA.OPTIONS_R2[cb.dataset.r2]; });
+  const lm=$('#r2SpanLmax'); if(lm) lm.value=PSA.OPTIONS_R2.spanSubdivLmax;
+  const cnt=$('#r2OptCnt'); if(cnt){ const ks=Object.keys(PSA.OPTIONS_R2).filter(k=>typeof PSA.OPTIONS_R2[k]==='boolean'); cnt.textContent=ks.filter(k=>PSA.OPTIONS_R2[k]).length+'/'+ks.length+' 적용'; }
+  const R=PSA.RESULT; $$('input[name="roSa"]').forEach(rb=>{ rb.checked=(rb.value===R.saBasis); });
+  if($('#roHoop'))$('#roHoop').checked=!!R.reportHoop;
+  if($('#roHoopMax'))$('#roHoopMax').checked=!!R.includeHoopInMax;
+  if($('#roHoopY'))$('#roHoopY').value=(R.hoopY==='table'||R.hoopY==null)?'table':String(R.hoopY);
+  if($('#roApName'))$('#roApName').checked=!!R.apPointNames;
+  const pn=$('#presetNow'); if(pn) pn.textContent='— 현재: '+presetName();
 }
+/* v26-C1: 현재 옵션 조합이 어느 프리셋과 일치하는지 */
+function presetName(eng,r2,res){
+  eng=eng||PSA.OPTIONS; r2=r2||PSA.OPTIONS_R2; res=res||PSA.RESULT;
+  const eq=(a,b)=>Object.keys(b).every(k=>a[k]===b[k]);
+  for(const nm of ['v26','autopipe','v25']){ const p=PSA.PRESETS[nm]; if(eq(eng,p.eng)&&eq(r2,p.r2)&&eq(res,p.res)) return {v26:'v26 기본',autopipe:'AutoPIPE 기준',v25:'v25 호환'}[nm]; }
+  return '사용자 설정';
+}
+window.syncResultOptUI=syncEngineOptUI;   /* v26-C1: Builder-1 로드 훅(applyLoadedModel) 호환 */
+/* v26-C4: 보고서 표지 정보 UI ↔ state.meta */
+function syncMetaUI(){ const m=state.meta||{}; $$('input[data-meta]').forEach(el=>{ el.value=(m[el.dataset.meta]!=null?m[el.dataset.meta]:''); }); }
+function readMetaUI(){ state.meta=state.meta||{}; $$('input[data-meta]').forEach(el=>{ state.meta[el.dataset.meta]=el.value.trim(); }); if(typeof autosaveSession==='function')autosaveSession(); }
 function engineOptChanged(msg){
   /* 옵션 변경 = 결과 무효화(재해석 필요). 형상은 유지. */
   if(state.result){ state.result=null; switchTab('sum'); $('#logCnt').textContent=0;
@@ -6103,6 +6885,23 @@ function bind(){
     Object.keys(PSA.OPTIONS).forEach(k=>PSA.OPTIONS[k]=!compat);
     engineOptChanged(compat?'v21 호환 모드 — 보정 전부 해제 (재해석 필요)':'v22 보정 전부 적용 (재해석 필요)');
   });
+  /* v26-C1: R2 보정·결과 관례·프리셋 핸들러 */
+  $$('#r2OptList input[data-r2]').forEach(cb=>cb.addEventListener('change',()=>{ PSA.OPTIONS_R2[cb.dataset.r2]=cb.checked; engineOptChanged(); }));
+  { const lm=$('#r2SpanLmax'); if(lm) lm.addEventListener('change',()=>{ const v=parseFloat(lm.value); if(isFinite(v)&&v>=100){ PSA.OPTIONS_R2.spanSubdivLmax=v; engineOptChanged('E4 분할 Lmax = '+v+' mm (재해석 필요)'); } else { toast('Lmax 는 100 mm 이상의 수치여야 합니다',false); syncEngineOptUI(); } }); }
+  $$('input[name="roSa"]').forEach(rb=>rb.addEventListener('change',()=>{ if(rb.checked){ PSA.RESULT.saBasis=rb.value; engineOptChanged('S_A 식 변경 → '+({basic:'(1A) 기본',liberal:'(1B) liberal',exceed:'(1A), 초과 시 (1B)'})[rb.value]+' — [해석 실행]으로 재해석하세요'); } }));
+  if($('#roHoop'))$('#roHoop').addEventListener('change',e=>{ PSA.RESULT.reportHoop=e.target.checked; engineOptChanged(); });
+  if($('#roHoopMax'))$('#roHoopMax').addEventListener('change',e=>{ PSA.RESULT.includeHoopInMax=e.target.checked; engineOptChanged(); });
+  if($('#roHoopY'))$('#roHoopY').addEventListener('change',e=>{ PSA.RESULT.hoopY=(e.target.value==='table')?'table':parseFloat(e.target.value); engineOptChanged(); });
+  if($('#roApName'))$('#roApName').addEventListener('change',e=>{ PSA.RESULT.apPointNames=e.target.checked;
+    if(state.result){ if(state.result.resultOptions) state.result.resultOptions.apPointNames=e.target.checked; renderSummary(); renderResults(); if(state.tab==='res')switchTab('res'); }
+    syncEngineOptUI(); if(typeof autosaveSession==='function')autosaveSession(); toast('AutoPIPE 점명 병기 '+(e.target.checked?'ON':'OFF')+' (표기만 변경, 재해석 불필요)',true); });
+  { const MSG={v26:'프리셋 「v26 기본」 — R2 보정 전부 적용 · S_A (1A) · 후프 포함 (재해석 필요)',
+                autopipe:'프리셋 「AutoPIPE 기준」 — (1A) S_A · 후프 포함 · y=0.4 · 점명 병기 (재해석 필요)',
+                v25:'프리셋 「v25 호환」 — R2 보정 해제 · liberal (1B) · 후프 미보고 · 구 재질표 (v25 결과 재현, 재해석 필요)'};
+    [['btnPresetV26','v26'],['btnPresetAP','autopipe'],['btnPresetV25','v25']].forEach(([id,p])=>{ const b=$('#'+id); if(b) b.onclick=()=>{ PSA.applyPreset(p); engineOptChanged(MSG[p]); }; }); }
+  /* v26-C4: 보고서 정보 */
+  $$('input[data-meta]').forEach(el=>el.addEventListener('input',readMetaUI));
+  syncMetaUI();
   syncEngineOptUI();
   $('#btnRun').onclick=run;
   $('#btnReport').onclick=makeReport;
