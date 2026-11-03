@@ -432,7 +432,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
       <button type="button" class="eye" id="lgEye" title="비밀번호 표시">표시</button>
     </div>
     <div class="row">
-      <label><input type="checkbox" id="lgKeep"> 로그인 상태 유지</label>
+      <span>매번 로그인 필요 (자동 로그인 없음)</span>
       <span>로컬 전용 · 서버 전송 없음</span>
     </div>
     <div class="err" id="lgErr">아이디 또는 비밀번호가 올바르지 않습니다.</div>
@@ -7038,7 +7038,7 @@ window.addEventListener('DOMContentLoaded',()=>{ bind(); initThree();
   }
   const makeHash=(id,pw)=>sha256(String(id).trim().toLowerCase()+':'+String(pw)+':'+SALT);
   const gate=document.getElementById('loginGate'), form=document.getElementById('loginForm'),
-        inId=document.getElementById('lgId'), inPw=document.getElementById('lgPw'), keep=document.getElementById('lgKeep'),
+        inId=document.getElementById('lgId'), inPw=document.getElementById('lgPw'),
         err=document.getElementById('lgErr'), go=document.getElementById('lgGo');
   const KEY='psa_auth_v1';
   const others=()=>Array.from(document.body.children).filter(el=>el!==gate&&el.id!=='loginGateCss');
@@ -7065,7 +7065,7 @@ window.addEventListener('DOMContentLoaded',()=>{ bind(); initThree();
     setTimeout(()=>{ go.disabled=false; const h=makeHash(id,pw); const acc=ACCOUNTS.find(a=>a.id===id&&a.hash===h);
       if(!acc){ fail(); return; }
       err.classList.remove('on'); const tok=JSON.stringify({id:acc.id,h:acc.hash});
-      try{ sessionStorage.setItem(KEY,tok); if(keep.checked) localStorage.setItem(KEY,tok); }catch(x){}
+      /* v26.1-L2: 토큰 저장 안 함 — 열 때마다 로그인 */
       unlock(acc); inPw.value='';
     },120);
   });
@@ -7074,7 +7074,8 @@ window.addEventListener('DOMContentLoaded',()=>{ bind(); initThree();
   [inId,inPw].forEach(el=>el.addEventListener('input',()=>err.classList.remove('on')));
   window.PSA_AUTH={ makeHash, accounts:ACCOUNTS,
     logout(){ try{ sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); }catch(e){} gate.style.display=''; inId.value=''; inPw.value=''; err.classList.remove('on'); lock(); } };
-  if(!tryAuto()) lock();
+  try{ sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); }catch(e){}   /* v26.1-L2: 이전 버전이 남긴 자동로그인 토큰 제거 */
+  lock();
 })();
 </script>
 </body>
