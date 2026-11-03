@@ -418,7 +418,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
   <form class="card" id="loginForm" autocomplete="off">
     <div class="logo">
       <div class="mark">PSA</div>
-      <div><h1>B31.1 Piping Stress Analyzer</h1><p>ASME B31.1 Power Piping · v26</p></div>
+      <div><h1>B31.1 Piping Stress Analyzer</h1><p>ASME B31.1 Power Piping · v26.1</p></div>
     </div>
     <label for="lgId">아이디</label>
     <div class="fld">
@@ -442,7 +442,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 </div>
 <div class="top">
   <div class="brand">
-    <b>PSA</b><span class="v" title="v26 — R2 재검증 통합: 엔진 보정 R2 그룹(E1~E17/I5)·S_A (1A)/(1B) 선택·후프응력 보고·지진 2축 포락·반력 6성분·B31.1-2022 재질표·NTL 임포트 보정·보고서 리비전 (v25: F8~F13)">B31.1 · v26</span><!-- v26-C1 -->
+    <b>PSA</b><span class="v" title="v26.1 — v26 + AutoPIPE 25 실측 비교(SA7) 반영: AP-01 NTL 부식여유 내보내기/임포트, AP-02 절점 보고값 카테고리별 최대, AP-03 AutoPIPE 다방향 SRSS 응력식 옵션(AutoPIPE 기준 프리셋), AP-04 스프링율 120 N/mm 가정 표기 · v26: 엔진 보정 R2 그룹(E1~E17/I5)·S_A (1A)/(1B) 선택·후프응력 보고·지진 2축 포락·반력 6성분·B31.1-2022 재질표·NTL 임포트 보정·보고서 리비전 (v25: F8~F13)">B31.1 · v26.1</span><!-- v26-C1 / v26.1 -->
     <span class="sub">Power Piping Stress Analyzer</span>
   </div>
   <div class="spacer"></div>
@@ -570,13 +570,13 @@ input[readonly]{opacity:.6;cursor:not-allowed}
             <div style="font-size:10px;letter-spacing:.6px;color:#8a97aa;text-transform:uppercase;margin-bottom:5px">프리셋 · Preset <span id="presetNow" style="color:#9fdcff;text-transform:none;letter-spacing:0"></span></div>
             <div style="display:flex;gap:5px">
               <button type="button" id="btnPresetV26" style="flex:1;padding:6px 4px;border:1px solid #33d399;border-radius:6px;background:#0f2a22;color:#9fe8c8;font-size:10.5px;cursor:pointer" title="R2 보정 전부 적용 · S_A (1A) 기본식 · 후프 보고·종합비 포함 · y 표값 · AP 점명 병기">v26 기본</button>
-              <button type="button" id="btnPresetAP" style="flex:1;padding:6px 4px;border:1px solid #39bdf8;border-radius:6px;background:#0f2230;color:#9fdcff;font-size:10.5px;cursor:pointer" title="v26 기본 + 후프 y=0.4 (AutoPIPE TEST2 재현값 [확인 필요]) — AutoPIPE 비교용">AutoPIPE 기준</button>
+              <button type="button" id="btnPresetAP" style="flex:1;padding:6px 4px;border:1px solid #39bdf8;border-radius:6px;background:#0f2230;color:#9fdcff;font-size:10.5px;cursor:pointer" title="v26 기본 + 후프 y=0.4 (AutoPIPE TEST2 재현값 [확인 필요]) + AP3 AutoPIPE 다방향 SRSS 응력식(벤드 ii/io 분리, full i) — AutoPIPE 비교용 (v26.1)">AutoPIPE 기준</button>
               <button type="button" id="btnPresetV25" style="flex:1;padding:6px 4px;border:1px solid #24333f;border-radius:6px;background:#121a24;color:#aebdcc;font-size:10.5px;cursor:pointer" title="R2 보정 전부 해제 · liberal (1B) · 후프 미보고 · 구 재질표 · f 계단표 — v25 결과 비트 동일 재현(회귀 확인용)">v25 호환</button>
             </div>
           </div>
           <!-- v26-C1: R2 보정 그룹 -->
           <details id="r2OptWrap" style="margin-top:9px;border-top:1px solid #24333f;padding-top:8px">
-            <summary style="cursor:pointer;font-size:10px;letter-spacing:.6px;color:#8a97aa;text-transform:uppercase">R2 보정 (v26 · E1~E17/I5) <span id="r2OptCnt" style="color:#9fe8c8"></span></summary>
+            <summary style="cursor:pointer;font-size:10px;letter-spacing:.6px;color:#8a97aa;text-transform:uppercase">R2 보정 (v26 · E1~E17/I5 · v26.1 AP2/AP3) <span id="r2OptCnt" style="color:#9fe8c8"></span></summary>
             <div id="r2OptList" style="display:grid;gap:5px;font-size:11px;color:var(--ink);margin-top:6px">
             <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="자중 분포하중을 고정단 등가 절점하중(힘 wL/2 + 모멘트 wL²/12)으로 재하하고 요소력 회수 시 f = k·u − f_eq — 경간 내부 모멘트 정확화(손계산 HC-1 일치)"><input type="checkbox" data-r2="fixedEndLoad" checked> E1 · 분포하중 고정단 등가 (wL²/12)</label>
             <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="스프링/콘스턴트 설계하중(프리로드)은 지속(자중)·운전 케이스에만 적용, 일시(지진 증분) 케이스에서 제외"><input type="checkbox" data-r2="hangerPreloadSusOnly" checked> E2 · 행어 프리로드 지속 케이스 전용</label>
@@ -593,6 +593,8 @@ input[readonly]{opacity:.6;cursor:not-allowed}
             <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="기본 OFF = 부식 후 단면(보수). ON 이면 공칭 두께 단면계수"><input type="checkbox" data-r2="zNominal" checked> E16 · 응력 단면계수 Z·Ap 공칭(비부식)</label>
             <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="티/리듀서 h 산정에 평균반경 (Do−tn)/2 (D3 와 동일 취지)"><input type="checkbox" data-r2="sifMeanRadiusTee" checked> E17 · 티/리듀서 SIF h 평균반경</label>
             <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="DN250 → 381 mm (v25: 1.5×Do = 409.6). NTL 임포트/내보내기 벤드 반경 일치"><input type="checkbox" data-r2="bendRadiusNPS" checked> I5 · 장반경 R = 1.5×NPS(in)×25.4</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="v26.1 AP-02: 절점 보고값(SL/SE/SOcc/후프)을 연결 요소 중 카테고리별 최대로 (OFF = 종합비 최대 요소 1개의 값, v25 동작 — 라인스톱·앵커 인접에서 SE 최대 6.3 % 과소보고)"><input type="checkbox" data-r2="nodeCategoryMax" checked> AP2 · 절점 보고값 = 카테고리별 연결요소 최대</label>
+            <label style="display:flex;gap:7px;align-items:center;cursor:pointer" title="v26.1 AP-03: AutoPIPE 25 / B31.1-2020+ Fig.104.8-1 다방향식 S=√{[ax+√((iiMi)²+(ioMo)²)/Z]²+(itMt/Z)²} — 요소단 모멘트를 면내/면외/비틀림으로 분해, 엘보 ii=0.9/h^(2/3)·io=0.75/h^(2/3)·it=1, 지속·일시에 full i(0.75i 미적용, AutoPIPE 관측 [확인 필요]), 티 ii=io=App.D i 근사. 기본 OFF(현행 합성모멘트식 = 보수측), 「AutoPIPE 기준」 프리셋에서 ON"><input type="checkbox" data-r2="apStressForm"> AP3 · AutoPIPE 다방향 SRSS 응력식 (벤드 ii/io 분리)</label>
               <label style="display:flex;gap:7px;align-items:center" title="E4 경간 내부 분할 최대 길이 (mm, ≥100)"><span style="width:14px"></span>E4 분할 Lmax <input id="r2SpanLmax" value="1000" style="width:58px;font-size:11px"> mm</label>
             </div>
           </details>
@@ -1024,11 +1026,16 @@ const ENGINE_OPTIONS = {
      seismicEnvelope       E14 수평 2축(VUP 제외) 각각 해석 후 절점별 포락
      zNominal              E16 응력 단면계수 Z·Ap 공칭(기본 OFF=부식단면, 보수)
      sifMeanRadiusTee      E17 티/리듀서 SIF h 에 평균반경 (Do−tn)/2
-     bendRadiusNPS         I5  장반경 R = 1.5×NPS(in)×25.4 (DN250 → 381 mm)                               */
+     bendRadiusNPS         I5  장반경 R = 1.5×NPS(in)×25.4 (DN250 → 381 mm)
+   v26.1 (SA7 AutoPIPE 실측 비교 반영, R2_apcompare/fix_spec.json):
+     nodeCategoryMax       AP-02 절점 보고값 = 연결 요소 중 카테고리별(SL/SE/SOcc/후프) 최대 (OFF = 종합 ratio 최대 요소 1개, v25 동작)
+     apStressForm          AP-03 AutoPIPE 25 / B31.1-2020+ Fig.104.8-1 다방향 SRSS 식 (벤드 ii/io 분리, 지속·일시 full i, 요소단 Mi/Mo/Mt)
+                                 — 기본 OFF, 'autopipe' 프리셋에서만 ON. Python: node_category_max / ap_stress_form                 */
 const ENGINE_OPTIONS_R2 = {
   fixedEndLoad:true, hangerPreloadSusOnly:true, adaptivePenalty:true, spanSubdivide:true, spanSubdivLmax:1000,
   alphaLowT:true, bendCapFull:true, fContinuous:true, materials2022:true, saCap20ksi:true, axialTerm:true,
-  hotReaction:true, seismicEnvelope:true, zNominal:false, sifMeanRadiusTee:true, bendRadiusNPS:true
+  hotReaction:true, seismicEnvelope:true, zNominal:false, sifMeanRadiusTee:true, bendRadiusNPS:true,
+  nodeCategoryMax:true, apStressForm:false   /* v26.1-AP02 / v26.1-AP03 */
 };
 /* v26-E10/E15 결과 관례 옵션(PSA.RESULT): 엔진 수치(SL/SE/SOcc)는 불변, 허용치·보고 항목만 제어
    saBasis 'basic'=(1A) f(1.25Sc+0.25Sh) [AutoPIPE/CAESAR 기본] | 'liberal'=max((1A),(1B)) (v25 동작) | 'exceed'=(1A), SE 초과 절점만 (1B)
@@ -1037,13 +1044,13 @@ const ENGINE_OPTIONS_R2 = {
 const RESULT_OPTIONS = { saBasis:'basic', reportHoop:true, includeHoopInMax:true, hoopY:'table', apPointNames:true };
 const PSA_PRESETS = {
   v26:      { eng:{bendFlexibility:true,coldModulusExpansion:true,sifMeanRadius:true,guideAxisFix:true,fStepTable:true,yTableB31:true},
-              r2:{fixedEndLoad:true,hangerPreloadSusOnly:true,adaptivePenalty:true,spanSubdivide:true,spanSubdivLmax:1000,alphaLowT:true,bendCapFull:true,fContinuous:true,materials2022:true,saCap20ksi:true,axialTerm:true,hotReaction:true,seismicEnvelope:true,zNominal:false,sifMeanRadiusTee:true,bendRadiusNPS:true},
+              r2:{fixedEndLoad:true,hangerPreloadSusOnly:true,adaptivePenalty:true,spanSubdivide:true,spanSubdivLmax:1000,alphaLowT:true,bendCapFull:true,fContinuous:true,materials2022:true,saCap20ksi:true,axialTerm:true,hotReaction:true,seismicEnvelope:true,zNominal:false,sifMeanRadiusTee:true,bendRadiusNPS:true,nodeCategoryMax:true,apStressForm:false},   /* v26.1 */
               res:{saBasis:'basic',reportHoop:true,includeHoopInMax:true,hoopY:'table',apPointNames:true} },
   autopipe: { eng:{bendFlexibility:true,coldModulusExpansion:true,sifMeanRadius:true,guideAxisFix:true,fStepTable:true,yTableB31:true},
-              r2:{fixedEndLoad:true,hangerPreloadSusOnly:true,adaptivePenalty:true,spanSubdivide:true,spanSubdivLmax:1000,alphaLowT:true,bendCapFull:true,fContinuous:true,materials2022:true,saCap20ksi:true,axialTerm:true,hotReaction:true,seismicEnvelope:true,zNominal:false,sifMeanRadiusTee:true,bendRadiusNPS:true},
+              r2:{fixedEndLoad:true,hangerPreloadSusOnly:true,adaptivePenalty:true,spanSubdivide:true,spanSubdivLmax:1000,alphaLowT:true,bendCapFull:true,fContinuous:true,materials2022:true,saCap20ksi:true,axialTerm:true,hotReaction:true,seismicEnvelope:true,zNominal:false,sifMeanRadiusTee:true,bendRadiusNPS:true,nodeCategoryMax:true,apStressForm:true},   /* v26.1-AP03: AutoPIPE 기준 프리셋만 ON */
               res:{saBasis:'basic',reportHoop:true,includeHoopInMax:true,hoopY:0.4,apPointNames:true} },
   v25:      { eng:{bendFlexibility:true,coldModulusExpansion:true,sifMeanRadius:true,guideAxisFix:true,fStepTable:true,yTableB31:true},
-              r2:{fixedEndLoad:false,hangerPreloadSusOnly:false,adaptivePenalty:false,spanSubdivide:false,spanSubdivLmax:1000,alphaLowT:false,bendCapFull:false,fContinuous:false,materials2022:false,saCap20ksi:false,axialTerm:false,hotReaction:false,seismicEnvelope:false,zNominal:false,sifMeanRadiusTee:false,bendRadiusNPS:false},
+              r2:{fixedEndLoad:false,hangerPreloadSusOnly:false,adaptivePenalty:false,spanSubdivide:false,spanSubdivLmax:1000,alphaLowT:false,bendCapFull:false,fContinuous:false,materials2022:false,saCap20ksi:false,axialTerm:false,hotReaction:false,seismicEnvelope:false,zNominal:false,sifMeanRadiusTee:false,bendRadiusNPS:false,nodeCategoryMax:false,apStressForm:false},   /* v26.1: v25 비트 동일 유지 */
               res:{saBasis:'liberal',reportHoop:false,includeHoopInMax:false,hoopY:'table',apPointNames:false} }
 };
 function applyPreset(name){   /* v26-E0: 'v26' | 'autopipe' | 'v25' — 객체는 제자리 갱신(참조 유지). 호출 후 재해석 필요 */
@@ -1306,6 +1313,13 @@ function sifBend(od, t, R){           // R = bend radius mm (centerline)
   const h = Tn*R/(r2*r2);             // flexibility characteristic
   const i = 0.9/Math.pow(h,2/3);
   return Math.max(i,1.0);
+}
+/* v26.1-AP03: 엘보 면내/면외 SIF (App.D / B31J: ii=0.9/h^(2/3), io=0.75/h^(2/3), 하한 1.0; it=1.0) — r2 규칙은 sifBend 와 동일.
+   [engine_v26.py sif_bend_io] */
+function sifBendIO(od,t,R){
+  const r2=ENGINE_OPTIONS.sifMeanRadius?(od-t)/2:(od)/2;
+  const h=t*R/(r2*r2);
+  return {ii:Math.max(0.9/Math.pow(h,2/3),1.0), io:Math.max(0.75/Math.pow(h,2/3),1.0), h};
 }
 
 /* v22-D5 (옵션 yTableB31): Table 104.1.2(A) 압력설계 계수 y — 온도·재질 의존.
@@ -1748,6 +1762,23 @@ function solveOccasional(model, g_horiz, dirIdx){
 
 /* resultant moment at a node from a force set {Mt,My,Mz} (intensified-ready) */
 function resMoment(f){ return Math.sqrt(f.My*f.My + f.Mz*f.Mz + f.Mt*f.Mt); }
+/* v26.1-AP03: 요소단 모멘트 성분(N·mm) — Mi 면내(벤드면 법선 nb 방향 성분), Mo 면외, Mt 비틀림(절대값).
+   직관(nb null): Mi=|My|, Mo=|Mz| (ii=io 이면 분해 방식과 무관). tri = elemTriad (행 vx,vy,vz). [engine_v26.py end_components] */
+function endComponents(f,tri,nb){
+  const My=f.My, Mz=f.Mz, Mt=Math.abs(f.Mt);
+  if(nb){ const dy=tri[1][0]*nb[0]+tri[1][1]*nb[1]+tri[1][2]*nb[2], dz=tri[2][0]*nb[0]+tri[2][1]*nb[1]+tri[2][2]*nb[2];
+    const Mi=Math.abs(My*dy+Mz*dz); const Mo=Math.sqrt(Math.max(My*My+Mz*Mz-Mi*Mi,0));
+    return {Mi,Mo,Mt}; }
+  return {Mi:Math.abs(My),Mo:Math.abs(Mz),Mt};
+}
+/* v26.1-AP03: AutoPIPE 25 (B31.1-2024/B31J) 출력 역산 식 (R2_apcompare formula_check: 잔차 ≤0.03/0.11/0.10 MPa):
+   S = √{ [ ax + √((ii·Mi)²+(io·Mo)²)/Z ]² + (it·Mt/Z)² },  ax = 축력항(절대값). [engine_v26.py ap_form_stress] */
+function apFormStress(ax,Mi,Mo,Mt,ii,io,it,Z){
+  const a=ii*Mi, b=io*Mo;
+  const Sb=Math.sqrt(a*a+b*b)/Z, St=it*Mt/Z;
+  const s=ax+Sb;
+  return Math.sqrt(s*s+St*St);
+}
 
 /* ===========================================================================
    FULL ANALYSIS PIPELINE
@@ -1883,6 +1914,7 @@ function runAnalysis(input){
   const HLAT = VUP===0?1:0;                     // a horizontal axis for seismic
   let anchorCount=0; const nodeSIF={}; const supports=[];
   nodes.forEach(n=>nodeSIF[n.id]=1.0);
+  const nodeSIF2={}; nodes.forEach(n=>nodeSIF2[n.id]={ii:1.0,io:1.0,it:1.0});   /* v26.1-AP03: 면내/면외/비틀림 SIF */
   // controlling spec at a node = an adjacent element's computed spec (fallback default)
   const nodeSpec=nid=>{ const es=adj[nid]; return (es&&es.length&&es[0].cs)?es[0].cs:D0; };
   const Dnom = input.nominalDN || (od/1.0);    // default nominal (fallback)
@@ -1890,9 +1922,9 @@ function runAnalysis(input){
     const cs=nodeSpec(n.id); const eod=cs.od, etn=cs.tn, eDnom=cs.Dnom;
     for(const a of (n.att||[])){
       const kind=a.kind, form=a.form||'single', mult=(form==='double'?2:1);
-      if(kind==='bend'||kind==='elbow'){ const R=a.R>0?a.R:(a.bendKind?bendRadius(a.bendKind,eDnom):1.5*eDnom); a._R=R; nodeSIF[n.id]=Math.max(nodeSIF[n.id],sifBend(eod,etn,R)); }
-      else if(kind==='tee'){ const it=sifTee(eod,etn,a.teeType||'welding',a.branchAngle,a.branchT); a._sif=it; nodeSIF[n.id]=Math.max(nodeSIF[n.id],it); }
-      else if(kind==='reducer'){ const it=sifReducer(eod,etn,a.dnLarge,a.dnSmall); a._sif=it; nodeSIF[n.id]=Math.max(nodeSIF[n.id],it);
+      if(kind==='bend'||kind==='elbow'){ const R=a.R>0?a.R:(a.bendKind?bendRadius(a.bendKind,eDnom):1.5*eDnom); a._R=R; nodeSIF[n.id]=Math.max(nodeSIF[n.id],sifBend(eod,etn,R)); const bio=sifBendIO(eod,etn,R), s2=nodeSIF2[n.id]; s2.ii=Math.max(s2.ii,bio.ii); s2.io=Math.max(s2.io,bio.io); }   /* v26.1-AP03 */
+      else if(kind==='tee'){ const it=sifTee(eod,etn,a.teeType||'welding',a.branchAngle,a.branchT); a._sif=it; nodeSIF[n.id]=Math.max(nodeSIF[n.id],it); const s2=nodeSIF2[n.id]; s2.ii=Math.max(s2.ii,it); s2.io=Math.max(s2.io,it); }   /* v26.1-AP03: 티 ii=io=App.D i 근사 (B31J 티 미구현 [확인 필요], AP-05) */
+      else if(kind==='reducer'){ const it=sifReducer(eod,etn,a.dnLarge,a.dnSmall); a._sif=it; nodeSIF[n.id]=Math.max(nodeSIF[n.id],it); { const s2=nodeSIF2[n.id]; s2.ii=Math.max(s2.ii,it); s2.io=Math.max(s2.io,it); }   /* v26.1-AP03 */
         log('i','I022',`이경피팅 ${a.dnLarge||'?'}→${a.dnSmall||'?'} SIF ${it.toFixed(2)} 적용`,'N'+n.id); }
       else if(kind==='valve'){ const m=(a.mass>0?a.mass:valveWeight(a.vtype||'gate',a.vclass||'150',a.vend||'flanged',eDnom)); a._w=m; n.wpt=(n.wpt||0)+m*g; log('i','I020',`밸브 ${(VALVE_TYPE[a.vtype]||VALVE_TYPE.gate).name} Class${a.vclass||'150'} 자중 ${m.toFixed(0)}kg 적용`,'N'+n.id); }
       else if(kind==='flange'){ const m=(a.mass>0?a.mass:0.18*valveWeight('gate',a.vclass||'150','flanged',eDnom)); n.wpt=(n.wpt||0)+m*g; }
@@ -2072,6 +2104,9 @@ function runAnalysis(input){
     }catch(e){ for(const s of sizing){ s.load=(s.userLoad!=null?s.userLoad:0); s.autoLoad=0; } }
     log('i','I031','행어 설계하중은 배관 자중반력만 포함 — 행어 부품(클램프·로드) 중량(B31.1 121.7.3(a)) 미포함. 콘스턴트 편차 ≤6 %(121.7.4(a)), 스프링 MSS SP-58(121.6).');   /* v26-E19 */
   }
+  /* v26.1-AP04: 스프링율 미입력 → 120 N/mm 가정 사용 안내 (SA7: AutoPIPE 행어설계 39~46 N/mm 대비 3배 → 열이동·Mc −3 % 체계차) [py: I032] */
+  { const asm=[]; for(const s of supports){ if(s.type==='spring'&&s.userRate==null&&!asm.includes(s.node)) asm.push(s.node); }
+    if(asm.length) log('i','I032',`베리어블 스프링 스프링율 미입력 — 120 N/mm 가정 적용 (${asm.length}개소: ${asm.map(x=>'N'+x).join(', ')}). 카탈로그 선정값(AutoPIPE 행어설계값 등)을 입력하면 열이동·하중변동률이 달라집니다.`); }
 
   // ---- build final restraints ----
   const restraints=[];
@@ -2105,18 +2140,32 @@ function runAnalysis(input){
   // --- per-node moment aggregation (use max adjacent element end at the node)
   const Z = secC.Z;
   const pStress = input.P*sched.od/(4*t_nom);   // P·Do/4tn  (longitudinal pressure)
+  /* v26.1-AP03 (apStressForm): 요소단 국부 모멘트를 면내 Mi / 면외 Mo / 비틀림 Mt 로 분해해 보존(합성모멘트 경로는 그대로).
+     벤드 절점: 벤드면 법선 n = (a1×a2)/|a1×a2| (인접 2요소 축; 요소 2개가 아니거나 공선이면 null → 직관 분해). [engine_v26.py bend_n / elem_tri] */
+  const apOn=!!ENGINE_OPTIONS_R2.apStressForm;
+  const bendN={};
+  const elemById={}; for(const e of elems) elemById[e.id]=e;
+  const elemTri=e=>{ const a=nodeById[e.i], b=nodeById[e.j]; return elemTriad([a.x,a.y,a.z],[b.x,b.y,b.z]); };
+  if(apOn){ for(const n of nodes){
+      if(!(n.att||[]).some(a=>a.kind==='bend'||a.kind==='elbow')) continue;
+      const es=adj[n.id]||[];
+      if(es.length!==2){ bendN[n.id]=null; continue; }
+      const cr=vcross(elemAxis(es[0]),elemAxis(es[1])); const l=Math.sqrt(cr[0]*cr[0]+cr[1]*cr[1]+cr[2]*cr[2]);
+      bendN[n.id]=(l>1e-9)?[cr[0]/l,cr[1]/l,cr[2]/l]:null; } }
   const collect=(forceSet)=>{
-    const byNode={}, byElem={}, byElemN={};
+    const byNode={}, byElem={}, byElemN={}, byElemC={};
     for(const ef of forceSet.elemForces){
+      const tri=apOn?elemTri(elemById[ef.eid]):null;   /* v26.1-AP03 */
       for(const [nid,fend,sg] of [[ef.ni,ef.i,-1],[ef.nj,ef.j,1]]){
         const M=resMoment(fend), N=sg*fend.N;   /* v26-E12: 요소단 축력(인장 +) — i단은 f[0] 부호 반전 */
         if(!byNode[nid]) byNode[nid]={M, N, raw:fend};
         else { if(M>byNode[nid].M){ byNode[nid].M=M; byNode[nid].raw=fend; } byNode[nid].N=maxAbs(byNode[nid].N,N); }   /* 절점 대표 N = 부호 유지 최대|N| (M 동률 시 결정적) */
         byElem[nid+'_'+ef.eid]=M;   // this element's own end-moment at this node
         byElemN[nid+'_'+ef.eid]=N;
+        if(apOn) byElemC[nid+'_'+ef.eid]=endComponents(fend,tri,bendN[nid]||null);   /* v26.1-AP03: {Mi,Mo,Mt} */
       }
     }
-    byNode._elem=byElem; byNode._elemN=byElemN;
+    byNode._elem=byElem; byNode._elemN=byElemN; byNode._elemC=byElemC;
     return byNode;
   };
   const Msus=collect(sus), Mthr=collect(thr), Mocc=collect(occ);
@@ -2141,22 +2190,31 @@ function runAnalysis(input){
   let maxSusR=0,maxExpR=0,maxOccR=0, fail=0, maxHoopR=0, worstHoopNode=null;   /* v26-E15: hoop */
   let worstSusNode=null,worstExpNode=null,worstOccNode=null;   /* v22-FIX-19 */
   const axOn=!!ENGINE_OPTIONS_R2.axialTerm, capOn=!!ENGINE_OPTIONS_R2.saCap20ksi, saMode=RESULT_OPTIONS.saBasis||'basic';
+  const catMax=!!ENGINE_OPTIONS_R2.nodeCategoryMax;   /* v26.1-AP02 */
   for(const n of nodes){
     const i = nodeSIF[n.id];
     const f075i=Math.max(0.75*i,1.0);
+    const s2=nodeSIF2[n.id];   /* v26.1-AP03 */
     const nodeMaxMa=(Msus[n.id]?.M)||0, nodeMaxMc=(Mthr[n.id]?.M)||0, nodeMaxMb=(Mocc[n.id]?.M)||0;
     const nodeMaxNa=(Msus[n.id]?.N)||0, nodeMaxNc=(Mthr[n.id]?.N)||0, nodeMaxNb=(Mocc[n.id]?.N)||0;   /* v26-E12 */
     // evaluate EACH adjacent element with ITS OWN end-moment and ITS OWN section (consistent at branch joints)
     const es=adj[n.id]&&adj[n.id].length?adj[n.id]:null;
     let best=null;
-    const evalOne=(c,Ma,Mc,Mb,Na,Nc,Nb)=>{
+    const evalOne=(c,Ma,Mc,Mb,Na,Nc,Nb,CM)=>{   /* v26.1-AP03: CM = [{Mi,Mo,Mt} sus, thr, occ] | null */
       const Z=c.Z, Ap=c.Ap, pS=c.pStress, Sh=c.mp.Sh, Sc=c.mp.Sc, fc=c.fcyc;
       /* v26-E12 (axialTerm): B31.1-2020+ Eq.(15)/(16)/(17) 축력항 — SL·SOcc 에 |P·Do/4tn + Fa/Ap|, SE 에 |ia·Fc/Ap| (ia=1.0, 엘보 B31J 미구현 [확인 필요]).
          일시 축력은 부호 없는 포락값이라 |Fa+P항| + |Fb|/Ap 보수 조합. OFF 시 v25 식과 동일. */
       let axS, axE, axO;
       if(axOn){ axS=Math.abs(pS+Na/Ap); axE=Math.abs(Nc/Ap); axO=Math.abs(pS+Na/Ap)+Math.abs(Nb)/Ap; }
       else { axS=pS; axE=0; axO=pS; }
-      const SL=axS+f075i*Ma/Z, SE=axE+i*Mc/Z, SOcc=axO+f075i*Ma/Z+f075i*Mb/Z;
+      let SL,SE,SOcc;
+      if(apOn&&CM){
+        /* v26.1-AP03 (apStressForm): AutoPIPE 25 / B31.1-2020+ Fig.104.8-1 다방향식 — 지속·일시에 full ii/io (0.75i 미적용, AutoPIPE 관측 [확인 필요]),
+           SOcc 는 (Mi,Mo,Mt) 를 지속+일시 성분별 절대합. [engine_v26.py eval_one ap_on] */
+        SL=apFormStress(axS,CM[0].Mi,CM[0].Mo,CM[0].Mt,s2.ii,s2.io,s2.it,Z);
+        SE=apFormStress(axE,CM[1].Mi,CM[1].Mo,CM[1].Mt,s2.ii,s2.io,s2.it,Z);
+        SOcc=apFormStress(axO,CM[0].Mi+CM[2].Mi,CM[0].Mo+CM[2].Mo,CM[0].Mt+CM[2].Mt,s2.ii,s2.io,s2.it,Z);
+      } else { SL=axS+f075i*Ma/Z; SE=axE+i*Mc/Z; SOcc=axO+f075i*Ma/Z+f075i*Mb/Z; }
       /* v26-E9 (saCap20ksi): 102.3.2(b) 각주 — smts>480 MPa 재질은 SA 계산 시 Sc,Sh ≤ 137.9 MPa (SL/Sh 판정의 Sh 는 상한 미적용) */
       let ScA=Sc, ShA=Sh;
       if(capOn&&(c.mp.smts||0)>480){ ScA=Math.min(Sc,SA_CAP); ShA=Math.min(Sh,SA_CAP); }
@@ -2169,8 +2227,17 @@ function runAnalysis(input){
       const rSus=SL/Sh, rExp=SE/SA, rOcc=SOcc/(k_occ*Sh);
       const ratioL=Math.max(rSus,rExp,rOcc);
       const ratio=(RESULT_OPTIONS.includeHoopInMax&&hp)?Math.max(ratioL,rHoop):ratioL;
-      if(!best||ratio>best.ratio) best={SL,SE,SOcc,Sh,SA,SA1A,SA1B,saEq,rSus,rExp,rOcc,ratio,ratioL,
-                                       hoop:hp?hp.s:null,hoopAllow:hp?hp.allow:null,rHoop,hoopT:hp?hp.t:null,hoopY:hp?hp.y:null,axS,axE,axO};
+      const cand={SL,SE,SOcc,Sh,SA,SA1A,SA1B,saEq,rSus,rExp,rOcc,ratio,ratioL,
+                  hoop:hp?hp.s:null,hoopAllow:hp?hp.allow:null,rHoop,hoopT:hp?hp.t:null,hoopY:hp?hp.y:null,axS,axE,axO};
+      if(!catMax){ if(!best||ratio>best.ratio) best=cand; return; }
+      /* v26.1-AP02 (nodeCategoryMax): 카테고리별(지속/열팽창/일시/후프) 연결요소 최대를 누적 — 비(ratio) 기준 선택.
+         SA(1B) 는 SE 최대 요소의 (Sc,Sh,f) 와 누적 SL 로 루프 후 재계산(보수측·보고 일관). [engine_v26.py eval_one cat_max] */
+      if(!best){ best=cand; best._ScA=ScA; best._ShA=ShA; best._fc=fc; best._hp=!!hp; return; }
+      if(rSus>best.rSus){ best.SL=SL; best.Sh=Sh; best.rSus=rSus; best.axS=axS; }
+      if(rExp>best.rExp){ best.SE=SE; best.SA=SA; best.SA1A=SA1A; best.SA1B=SA1B; best.saEq=saEq; best.rExp=rExp; best.axE=axE; best._ScA=ScA; best._ShA=ShA; best._fc=fc; }
+      if(rOcc>best.rOcc){ best.SOcc=SOcc; best.rOcc=rOcc; best.axO=axO; }
+      if(rHoop>best.rHoop){ best.hoop=cand.hoop; best.hoopAllow=cand.hoopAllow; best.rHoop=rHoop; best.hoopT=cand.hoopT; best.hoopY=cand.hoopY; }
+      if(hp) best._hp=true;
     };
     if(es){ for(const e of es){ const c=e.cs||D0;
       const Ma=(Msus._elem[n.id+'_'+e.id]!=null)?Msus._elem[n.id+'_'+e.id]:nodeMaxMa;
@@ -2179,8 +2246,20 @@ function runAnalysis(input){
       const Na=(Msus._elemN[n.id+'_'+e.id]!=null)?Msus._elemN[n.id+'_'+e.id]:nodeMaxNa;
       const Nc=(Mthr._elemN[n.id+'_'+e.id]!=null)?Mthr._elemN[n.id+'_'+e.id]:nodeMaxNc;
       const Nb=(Mocc._elemN[n.id+'_'+e.id]!=null)?Mocc._elemN[n.id+'_'+e.id]:nodeMaxNb;
-      evalOne(c,Ma,Mc,Mb,Na,Nc,Nb); } }
+      let CM=null;
+      if(apOn){ const ca=Msus._elemC[n.id+'_'+e.id], cc=Mthr._elemC[n.id+'_'+e.id], cb=Mocc._elemC[n.id+'_'+e.id];   /* v26.1-AP03 */
+        CM=(ca&&cc&&cb)?[ca,cc,cb]:null; }
+      evalOne(c,Ma,Mc,Mb,Na,Nc,Nb,CM); } }
     else evalOne(D0,nodeMaxMa,nodeMaxMc,nodeMaxMb,nodeMaxNa,nodeMaxNc,nodeMaxNb);
+    if(catMax){   /* v26.1-AP02: SA(1B)·rExp·ratio 를 누적값으로 재계산 (단일요소 절점은 비트 동일) [py: if cat_max] */
+      const b=best;
+      b.SA1B=b._fc*(1.25*(b._ScA+b._ShA)-b.SL);
+      b.SA=(saMode==='liberal')?Math.max(b.SA1A,b.SA1B):(saMode==='exceed'&&b.SE>b.SA1A)?b.SA1B:b.SA1A;
+      b.saEq=(b.SA===b.SA1A)?'(1A)':(saMode==='exceed'?'(1B)*':'(1B)');
+      b.rExp=b.SE/b.SA;
+      b.ratioL=Math.max(b.rSus,b.rExp,b.rOcc);
+      b.ratio=(RESULT_OPTIONS.includeHoopInMax&&b._hp)?Math.max(b.ratioL,b.rHoop):b.ratioL;
+    }
     const {SL,SE,SOcc,Sh,SA,SA1A,SA1B,saEq,rSus,rExp,rOcc,ratio,ratioL,hoop,hoopAllow,rHoop,hoopT,hoopY}=best;
     const Ma=nodeMaxMa,Mc=nodeMaxMc,Mb=nodeMaxMb;
     if(rSus>maxSusR){maxSusR=rSus;worstSusNode=n.id;}          /* v22-FIX-19: 워스트 절점 추적 */
@@ -2266,7 +2345,7 @@ function runAnalysis(input){
     } else { rec = move<3 ? '열변위 작음 → 리지드/로드 검토 가능' : '콘스턴트 적합 (일정 지지력)'; }
     return { node:s.node, kind:s.kind, form:s.form, load, rate:(s.type==='spring'?s.rate:0),
              autoLoad:(s.autoLoad||0), userLoad:(s.userLoad!=null), userRate:(s.userRate!=null),
-             movement:move, variation, rec };
+             movement:move, variation, rec, rateAssumed:(s.type==='spring'&&s.userRate==null) };   /* v26.1-AP04 */
   });
   hangers.forEach(h=>{ if(h.variation>0.25) log('w','W311',`베리어블 스프링 하중변동 ${(h.variation*100).toFixed(0)}% > 25% — 콘스턴트 행어 권장`,'N'+h.node); });
 
@@ -2358,6 +2437,7 @@ function runAnalysis(input){
     ok: !logs.some(l=>l.lvl==='e'),
     logs, mp, sec0, secC, tm, t_avail, pStress, fcyc, k_occ, wlin, solutions, segments,
     nodes:input.nodes, elems:elemsIn, model, nodeRes, reactions, reactionsOcc, hangers, nodeFM,
+    nodeSIF2, bendNormals:bendN,                           /* v26.1-AP03: 면내/면외/비틀림 SIF, 벤드면 법선 */
     engineOptions:Object.assign({},ENGINE_OPTIONS),        /* v22: 결과에 사용 옵션 스냅샷 */
     engineOptionsR2:Object.assign({},ENGINE_OPTIONS_R2),   /* v26: R2 보정 옵션 스냅샷 */
     resultOptions:Object.assign({},RESULT_OPTIONS),        /* v26: 결과 관례 옵션 스냅샷 */
@@ -2379,6 +2459,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
                SUPPORT_SPAN, allowableSpan,
                OPTIONS:ENGINE_OPTIONS, yCoeff, fCyclic,     /* v22: 엔진 보정 옵션 + D5/D6 함수 노출 */
                OPTIONS_R2:ENGINE_OPTIONS_R2, RESULT:RESULT_OPTIONS, PRESETS:PSA_PRESETS, applyPreset,   /* v26 */
+               apFormStress, sifBendIO, endComponents,   /* v26.1-AP03 */
                CODE_EDITION, EQ_LABELS, MATERIALS_V25, MATERIALS_2022, MATS, DN2NPS, SA_CAP, sifReducer, /* v26 */
                sectionProps, matProps, runAnalysis, sifBend, sifTee, thermalStrain };
 
@@ -2813,7 +2894,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
       /* PIPE 정체성 — 고정컬럼 + 5연속행 (미해독 수치는 실물 값 복제) */
       const dn=sp.nominalDN||Math.round(sp.od||0);
       const schS=(sp.sch==='SUSR')?'SUSR':'S'+String(sp.sch&&sp.sch!=='-'?sp.sch:'STD').replace(/\s/g,'');   /* v25-F9: 사용자 두께는 SUSR 표기(실두께는 *** 주석 권위) */
-      c([[0,'PIPE'],[5,('DN'+dn+'_'+pipeNo).slice(0,13)],[19,'N'],R(dn,3,28),[31,schS.slice(0,8)],R(0,3,48),R(((sp.mtol!=null&&sp.mtol>=0)?sp.mtol:0.125)*(sp.t||0),4,58),[79,'N']]);   /* v26-I6: 밀공차 mm = mtol×tn */
+      c([[0,'PIPE'],[5,('DN'+dn+'_'+pipeNo).slice(0,13)],[19,'N'],R(dn,3,28),[31,schS.slice(0,8)],R(+(sp.CA||0),3,48),R(((sp.mtol!=null&&sp.mtol>=0)?sp.mtol:0.125)*(sp.t||0),4,58),[79,'N']]);   /* v26-I6: 밀공차 mm = mtol×tn */ /* v26.1-AP01: 부식여유 mm col 44-48 (세그먼트 spec.CA) */
       c([[0,CONT],[5,'B311-TOOL EXPORT']]);
       const rmat=({'A335-P91':'A335-P91-T1','A335-P92':'A335-P92','A335-P11':'A335-P11','A106-B':'A106-B','A53-B':'A53-B','A312-TP316':'A312-TP316'})[sp.matKey]||sp.matKey||'A106-B';
       const rho=(PSA&&PSA.MATERIALS&&PSA.MATERIALS[sp.matKey])?PSA.MATERIALS[sp.matKey].rho:7850;
@@ -3761,6 +3842,8 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           curSpec._dn = Math.round(num(l.slice(20, 29), 0)) || null;
           var ms2 = /S(\S+)/.exec(l.slice(29, 40)); if (ms2) curSpec._sch = ms2[1];
           curSpec._mtolMM = num(l.slice(49, 60), null);   /* v26-I6: 밀공차 mm (col53-58, 실물 2.6800) */
+          { var caMM = num(l.slice(40, 49), null);   /* v26.1-AP01: 부식여유 mm (col 44-48) → spec.CA (TOOLEXT SPEC CA 가 뒤따르면 그 값이 우선) */
+            if (caMM != null && caMM > 0) { curSpec.CA = caMM; warnings.push('[PIPE] 부식여유 ' + caMM + ' mm (PIPE 카드) → CA 적용.'); } }
         } else if (kw === 'OPER') {
           var tv = num(l.slice(15, 29), null), pv2 = num(l.slice(29, 45), null);
           if (curSpec) { var ehN = num(l.slice(64, 75), null); curSpec._ntlEh = (ehN != null ? ehN * 1e6 : null); curSpec._ntlEx = num(l.slice(49, 59), null); }   /* v26-I8: Eh(×1e6 MPa), 열팽창 mm/m */
@@ -6009,7 +6092,7 @@ function renderSummary(){
      ${r.hangers&&r.hangers.length?`
      <h4 style="font-size:10px;letter-spacing:.8px;color:#8a97aa;text-transform:uppercase;margin:14px 0 7px">행어 설계 · Hanger Sizing & Selection (B31.1)</h4>
      <table class="rtab"><thead><tr><th>Node</th><th>종류</th><th>설계하중</th><th>열이동</th><th>변동</th></tr></thead><tbody>
-     ${r.hangers.map(h=>`<tr><td class="nid">${nodeLabel(h.node)}</td><td style="font-size:9px">${supName(h.kind)}${h.form==='double'?'·D':''}</td>
+     ${r.hangers.map(h=>`<tr><td class="nid">${nodeLabel(h.node)}</td><td style="font-size:9px">${supName(h.kind)}${h.form==='double'?'·D':''}${h.rateAssumed?'<br><span style="color:#f5a623" title="스프링율 미입력 — 120 N/mm 가정 (I032)">k=120 N/mm 가정</span>':(h.rate>0?'<br><span style="color:#8a97aa">k='+h.rate+' N/mm</span>':'')}</td>
        <td>${(h.load/9.80665).toFixed(0)} kg<br><span style="font-size:9px;color:#8a97aa">${D.frc(h.load).toFixed(0)} ${L.frc}</span></td>
        <td>${D.dsp(h.movement/1000).toFixed(1)} ${L.dsp}</td>
        <td>${h.variation?(h.variation*100).toFixed(0)+'%':'-'}<br><span style="font-size:8.5px;color:${h.variation>0.25?'#f5a623':'#8a97aa'}">${h.rec||''}</span></td></tr>`).join('')}
@@ -6066,7 +6149,7 @@ function renderResults(){
    <div class="mini" style="padding:10px 12px;color:#5d6a7d;line-height:1.6">
      <b style="color:#8a97aa">${EQL.SL}</b> SL = ${axS} + 0.75i·MA/Z ≤ Sh <span style="color:#7c93a8">(0.75i ≥ 1.0 적용)</span> ·
      <b style="color:#8a97aa">${EQL.SE}</b> SE = ${axE}i·MC/Z ≤ SA, SA = ${({basic:'f(1.25Sc+0.25Sh) [102.3.2(b) Eq.(1A), AutoPIPE 기본]',liberal:'f(1.25(Sc+Sh)−SL) [Eq.(1B) liberal = max((1A),(1B))]',exceed:'f(1.25Sc+0.25Sh) Eq.(1A), SE 초과 절점만 Eq.(1B) [AutoPIPE Sustain margin; (1B)* 표시]'})[RO.saBasis]||''}${R2O.saCap20ksi?', smts>480 MPa 재질은 Sc,Sh ≤ 137.9':''} · f ${EQL.f} ·
-     <b style="color:#8a97aa">${EQL.SOcc}</b> SOcc = ${R2O.axialTerm?'|PD/4t+Fa/Ap|+|Fb|/Ap':'PD/4t'}+0.75i(MA+MB)/Z ≤ k·Sh <span style="color:#7c93a8">(0.75i ≥ 1.0; k=${r.k_occ}; 일시하중 = 지진 ${occTxt})</span>
+     <b style="color:#8a97aa">${EQL.SOcc}</b> SOcc = ${R2O.axialTerm?'|PD/4t+Fa/Ap|+|Fb|/Ap':'PD/4t'}+0.75i(MA+MB)/Z ≤ k·Sh <span style="color:#7c93a8">(0.75i ≥ 1.0; k=${r.k_occ}; 일시하중 = 지진 ${occTxt})</span>${R2O.apStressForm?' · <b style="color:#8a97aa">AP3</b> 적용: S = √{[ax+√((iiMi)²+(ioMo)²)/Z]²+(itMt/Z)²} (AutoPIPE/B31.1-2020+ 다방향식, 벤드 ii/io 분리, full i)':''}
      ${hoop?`· <b style="color:#8a97aa">Hoop</b> σh = P·Do/(2·t_av) − P·y ≤ Sh·E·W, t_av = tn(1−밀공차)−CA, y=${(RO.hoopY==='table'||RO.hoopY==null)?'Table 104.1.2(A)':RO.hoopY} <span style="color:#7c93a8">(AutoPIPE 'Max P' 관례${RO.includeHoopInMax?', 종합비 포함':', 참고'})</span>`:''}
      · <span style="color:#7c93a8">${r.codeEdition||PSA.CODE_EDITION}${r.nodeRes.some(x=>x._gen)?' · <i>기울임</i> 행 = 경간 내부 자동 생성 평가점 (E4)':''}</span>
    </div>`; })()}
@@ -6150,7 +6233,7 @@ function makeReport(){
   const occG=(r.occG!=null)?r.occG:(s.occG!=null?s.occG:0.3);
   const occDirs=(r.occDirs&&r.occDirs.length)?r.occDirs:(s.occDirs&&s.occDirs.length?s.occDirs:['X']);
   const occTxt=`${num(occG,2)} g 수평 ${occDirs.length>1?occDirs.join('·')+' 2축 각각 해석 후 절점별 포락':'단축 '+occDirs[0]+' 단일 케이스'}`;
-  const APP_VER=(function(){const b=document.querySelector('.brand .v');return b?b.textContent.trim():'';})()||'PSA B31.1 v26';
+  const APP_VER=(function(){const b=document.querySelector('.brand .v');return b?b.textContent.trim():'';})()||'PSA B31.1 v26.1';   /* v26.1 */
 
   /* ---------- 뷰포트 캡처 ---------- */
   let img='';
@@ -6275,7 +6358,7 @@ function makeReport(){
      ${tdr((ro.snubs||[]).map(sb=>`${esc(sb.dir)}: ${num(sb.calc,0)}${sb.rated!=null?` / ${num(sb.rated,0)}${sb.over?' <b style="color:#c0392b">초과!</b>':' OK'}`:' / (정격 미입력)'}`).join('<br>')||'-')}</tr>`).join('');
   const hangerRows=(r.hangers||[]).map(h=>{const dv=(h.rate||0)*(h.movement||0);
     return `<tr>${td(nlId(h.node))}${td(esc(supName(h.kind)))}${td(h.form==='double'?'Double':'Single')}
-     ${tdr(num(h.load,0))}${tdr(num(h.load/g,0))}${td(h.userLoad?'사용자':'자동')}${tdr(h.rate>0?num(h.rate,1):'정하중(0)')}
+     ${tdr(num(h.load,0))}${tdr(num(h.load/g,0))}${td(h.userLoad?'사용자':'자동')}${tdr(h.rate>0?num(h.rate,1)+(h.rateAssumed?' (가정)':''):'정하중(0)')}
      ${tdr(num(h.movement,1))}${tdr(h.rate>0?num(dv,0):'-')}${tdr(h.rate>0?num((h.variation||0)*100,1)+'%':'-')}${tdc(h.rate>0?okng(!(h.variation>0.25)):'-')}${td(esc(h.rec||''))}</tr>`;}).join('');
   const dispRows=nodeRes.map(nr=>{const dd=nr.d||{x:0,y:0,z:0};const mag=Math.hypot(dd.x,dd.y,dd.z);
     return `<tr${genStyle(nr)}>${td(nl(nr))}${tdr(num(dd.x*1000,1))}${tdr(num(dd.y*1000,1))}${tdr(num(dd.z*1000,1))}${tdr('<b>'+num(mag*1000,1)+'</b>')}</tr>`;}).join('');
@@ -6285,7 +6368,7 @@ function makeReport(){
   const LV={e:'오류',w:'경고',i:'정보',s:'성공'};
   const logRows=logs.map(l=>`<tr${l.lvl==='e'?' style="background:#fdecea"':(l.lvl==='w'?' style="background:#fef5e7"':'')}>${td(LV[l.lvl]||esc(l.lvl))}${td(esc(l.code))}${td(esc(l.loc||'-'))}${td(esc(l.msg))}</tr>`).join('')||'<tr><td colspan="4">로그 없음</td></tr>';
   const D_OPTS=['bendFlexibility|D1 엘보 가요성계수 k=1.65/h (I_eff 등가)','coldModulusExpansion|D2 열팽창 케이스 E_a(상온 탄성계수) 적용','sifMeanRadius|D3 벤드 SIF h 에 평균반경 r2','guideAxisFix|D4 코너 절점 가이드 구속축 자동결정','yTableB31|D5 y 계수 Table 104.1.2(A) 온도의존','fStepTable|D6 f 계수 Table 102.3.2(C) 계단표 (E7 ON 이면 무시)'];
-  const R2_OPTS=['fixedEndLoad|E1 분포하중 고정단 등가(wL²/12) 하중·요소력 회수','hangerPreloadSusOnly|E2 행어 프리로드 지속 케이스 전용(일시 제외)','adaptivePenalty|E3 강체구속 패널티 max(1e12, 1e8·K_dd) + 모멘트 반력 수집','spanSubdivide|E4 경간 내부 자동 분할 (L_max '+num(R2.spanSubdivLmax,0)+' mm)','alphaLowT|E5 α 표 20℃ 항 결손 보정','bendCapFull|E6 D1 반호 길이 cap 0.5L→L','fContinuous|E7 f 연속식 '+(EQ.f||'Eq.(1C)')+' f=6/N^0.2 (0.15≤f≤1)','materials2022|E8 B31.1-2022 App.A/B/C 재질표 (OFF=구표)','saCap20ksi|E9 S_A 산정 시 S_c,S_h ≤ 137.9 MPa (smts>480)','axialTerm|E12 축력항 |P·Do/4tn+F_a/A_p| (SL,SOcc), |F_c/A_p| (SE), i_a=1.0','hotReaction|E13 운전 열반력 R_h=(E_h/E_c)·R 병기(표시)','seismicEnvelope|E14 지진 수평 2축 각각 해석·절점별 포락','zNominal|E16 응력 단면계수 Z·A_p 공칭(비부식) 사용','sifMeanRadiusTee|E17 티/리듀서 SIF h 평균반경','bendRadiusNPS|I5 장반경 R=1.5×NPS(in)×25.4'];
+  const R2_OPTS=['fixedEndLoad|E1 분포하중 고정단 등가(wL²/12) 하중·요소력 회수','hangerPreloadSusOnly|E2 행어 프리로드 지속 케이스 전용(일시 제외)','adaptivePenalty|E3 강체구속 패널티 max(1e12, 1e8·K_dd) + 모멘트 반력 수집','spanSubdivide|E4 경간 내부 자동 분할 (L_max '+num(R2.spanSubdivLmax,0)+' mm)','alphaLowT|E5 α 표 20℃ 항 결손 보정','bendCapFull|E6 D1 반호 길이 cap 0.5L→L','fContinuous|E7 f 연속식 '+(EQ.f||'Eq.(1C)')+' f=6/N^0.2 (0.15≤f≤1)','materials2022|E8 B31.1-2022 App.A/B/C 재질표 (OFF=구표)','saCap20ksi|E9 S_A 산정 시 S_c,S_h ≤ 137.9 MPa (smts>480)','axialTerm|E12 축력항 |P·Do/4tn+F_a/A_p| (SL,SOcc), |F_c/A_p| (SE), i_a=1.0','hotReaction|E13 운전 열반력 R_h=(E_h/E_c)·R 병기(표시)','seismicEnvelope|E14 지진 수평 2축 각각 해석·절점별 포락','zNominal|E16 응력 단면계수 Z·A_p 공칭(비부식) 사용','sifMeanRadiusTee|E17 티/리듀서 SIF h 평균반경','bendRadiusNPS|I5 장반경 R=1.5×NPS(in)×25.4','nodeCategoryMax|AP2 절점 보고값 = 연결요소 카테고리별(SL/SE/SOcc/후프) 최대 (v26.1)','apStressForm|AP3 AutoPIPE 25 / B31.1-2020+ 다방향 SRSS 응력식 — 벤드 i_i/i_o 분리, 지속·일시 full i, 요소단 M_i/M_o/M_t (v26.1, AutoPIPE 기준 프리셋)'];
   const optRows=D_OPTS.map(sp=>{const[k,nm]=sp.split('|');return `<tr>${td(nm)}${tdc(onoff(OPT[k]))}</tr>`;}).join('')
     +R2_OPTS.map(sp=>{const[k,nm]=sp.split('|');return `<tr>${td(nm)}${tdc(onoff(R2[k]))}</tr>`;}).join('')
     +`<tr>${td('결과 관례 · S_A 식')}${tdc(esc({basic:'(1A) 기본',liberal:'(1B) liberal',exceed:'(1A), 초과 시 (1B)'}[saBasis]))}</tr>`
@@ -6365,7 +6448,7 @@ function makeReport(){
   <table><tr><th width="28%">항목</th><th>적용 내용</th></tr>
    <tr><td>적용 코드</td><td>${EDITION?esc(EDITION)+' — 식 번호는 동 판 Figure 104.8-1 / para 102.3.2 기준. SIF 는 Mandatory Appendix D (2024 판은 ASME B31J 참조).':'ASME B31.1 Power Piping — <b>적용 에디션 미지정</b> (제출 시 적용 에디션 및 Appendix A 원표 대조 필요)'}</td></tr>
    <tr><td>압력설계 두께</td><td>para 104.1.2(A)${eqL('tm')}: t<sub>m</sub> = P·D<sub>o</sub>/[2(S·E·W + P·y)] + A, y: Table 104.1.2(A), W: 용접강도저감계수(102.4.7, 심리스 1.0), 가용두께 = t<sub>n</sub>×(1−밀공차 ${num(mtol0*100,1)}%)</td></tr>
-   <tr><td>지속하중 응력</td><td>para 104.8.1${eqL('sus')}: S<sub>L</sub> = ${axS} + 0.75i·M<sub>A</sub>/Z ≤ 1.0·S<sub>h</sub> (0.75i ≥ 1.0)</td></tr>
+   <tr><td>지속하중 응력</td><td>para 104.8.1${eqL('sus')}: S<sub>L</sub> = ${axS} + 0.75i·M<sub>A</sub>/Z ≤ 1.0·S<sub>h</sub> (0.75i ≥ 1.0)${R2.apStressForm?'<br><b>AP3 적용(v26.1)</b>: 지속·일시·열팽창 모두 B31.1-2020+ Fig.104.8-1 다방향식 S = √{[|축력항| + √((i<sub>i</sub>M<sub>i</sub>)²+(i<sub>o</sub>M<sub>o</sub>)²)/Z]² + (i<sub>t</sub>M<sub>t</sub>/Z)²} (AutoPIPE 25 재현; 엘보 i<sub>i</sub>=0.9/h<sup>2/3</sup>, i<sub>o</sub>=0.75/h<sup>2/3</sup>, i<sub>t</sub>=1.0; 지속·일시에 full i — 0.75i 미적용 [확인 필요]; 일시는 M<sub>A</sub>+M<sub>B</sub> 성분별 절대합; 티 i<sub>i</sub>=i<sub>o</sub>=App.D i 근사)':''}</td></tr>
    <tr><td>일시하중 응력</td><td>para 104.8.2${eqL('occ')}: ${axO} + 0.75i·M<sub>A</sub>/Z + 0.75i·M<sub>B</sub>/Z ≤ k·S<sub>h</sub>, k = ${num(r.k_occ,2)} (${r.k_occ>=1.2?'≤1 h/회·≤80 h/년':'≤8 h/회·≤800 h/년'} 사건 기준)</td></tr>
    <tr><td>열팽창 응력범위</td><td>para 104.8.3${eqL('exp')}: S<sub>E</sub> = ${axE}i·M<sub>C</sub>/Z ≤ S<sub>A</sub>${R2.axialTerm?' (i<sub>a</sub>=1.0 — 엘보·티의 축방향 SIF 는 B31J 미적용 [확인 필요])':''}</td></tr>
    <tr><td>허용 응력범위 S<sub>A</sub></td><td>para 102.3.2(b) ${esc(EQ.sa)}: ${EQ.sa1a} S<sub>A</sub> = f(1.25S<sub>c</sub> + 0.25S<sub>h</sub>) &nbsp;/&nbsp; ${EQ.sa1b} S<sub>A</sub> = f[1.25(S<sub>c</sub>+S<sub>h</sub>) − S<sub>L</sub>] (S<sub>h</sub> &gt; S<sub>L</sub> 일 때 여유 가산)${capNote}<br><b>본 해석 적용식: ${SA_NAME}</b> — §6.3 및 부록 A 에 ${EQ.sa1a}·${EQ.sa1b} 기준 비를 병기하여 상용 SW(AutoPIPE 기본 ${EQ.sa1a}) 와 비교 가능하도록 하였다.</td></tr>
@@ -6509,7 +6592,7 @@ function makeReport(){
 
   ${(r.hangers&&r.hangers.length)?`<h3>6.7 행어 설계 및 선정 · Hanger Design</h3>
   <table><tr><th>절점</th><th>종류</th><th>형식</th><th>설계(운전)하중 (N)</th><th>(kg)</th><th>하중 출처</th><th>스프링율 (N/mm)</th><th>열이동 (mm)</th><th>하중변동량 (N)</th><th>변동률</th><th>≤25%</th><th>선정 의견</th></tr>${hangerRows}</table>
-  <p class="note">설계하중은 지속하중(자중) 반력 기준 1차 산정값(사용자 지정 시 지정값)으로 행어 부품(클램프·로드) 중량은 미포함(I031). 하중변동률 = 스프링율 × 열이동 / 설계하중 (MSS SP-58 variability; B31.1 para 121.7) 으로 25% 초과 시 콘스턴트 행어를 적용한다. 냉간(설치) 하중 ≈ 설계하중 ± 하중변동량. 행어는 운전·냉간 양 상태에서 충분한 이동 여유(travel)를 확보하고 콜드 셋(cold set)을 반영하여 설치한다.</p>`:''}
+  <p class="note">설계하중은 지속하중(자중) 반력 기준 1차 산정값(사용자 지정 시 지정값)으로 행어 부품(클램프·로드) 중량은 미포함(I031). 스프링율의 "(가정)" 표기는 미입력 시 120 N/mm 가정값(I032)으로, 카탈로그 선정 스프링율 입력 시 열이동·변동률이 달라진다. 하중변동률 = 스프링율 × 열이동 / 설계하중 (MSS SP-58 variability; B31.1 para 121.7) 으로 25% 초과 시 콘스턴트 행어를 적용한다. 냉간(설치) 하중 ≈ 설계하중 ± 하중변동량. 행어는 운전·냉간 양 상태에서 충분한 이동 여유(travel)를 확보하고 콜드 셋(cold set)을 반영하여 설치한다.</p>`:''}
 
   <h3>6.8 열변위 · Thermal Displacements (설치 → 운전)</h3>
   <table><tr><th>절점</th><th>부속·지지</th><th>d<sub>x</sub> (mm)</th><th>d<sub>y</sub> (mm)</th><th>d<sub>z</sub> (mm)</th><th>|d| (mm)</th></tr>
