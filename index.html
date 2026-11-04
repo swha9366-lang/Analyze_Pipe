@@ -279,6 +279,9 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 .dirpad button{font-size:11px;font-weight:700;padding:5px 0;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--dim);border-radius:6px;cursor:pointer}
 .dirpad button:hover{background:var(--acc);color:#06121b;border-color:var(--acc)}
 .dirpad button.on{background:var(--acc);color:#06121b;border-color:var(--acc)}
+.dirpad button.dis{opacity:.32;cursor:not-allowed;text-decoration:line-through}   /* v27-B2: 본관 축과 평행한 방향 */
+.dirpad button.dis:hover{background:rgba(255,255,255,.04);color:var(--dim);border-color:var(--line)}
+.segchip .brmark{font-style:normal;font-weight:700;color:#f5a623;font-size:11px;margin-left:1px}   /* v27-B1: 분기 세그먼트 표시 */
 .tchk{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--dim);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;padding:0 9px;height:30px;cursor:pointer;user-select:none;white-space:nowrap;flex:0 0 auto} /* v24-X3b */
 .tchk input{accent-color:var(--acc);cursor:pointer}
 .recentpanel{position:absolute;top:54px;right:14px;z-index:30;width:330px;max-height:74%;overflow:auto;background:rgba(13,18,26,.97);border:1px solid var(--line2);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.5);display:none}
@@ -418,7 +421,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
   <form class="card" id="loginForm" autocomplete="off">
     <div class="logo">
       <div class="mark">PSA</div>
-      <div><h1>B31.1 Piping Stress Analyzer</h1><p>ASME B31.1 Power Piping · v26.1</p></div>
+      <div><h1>B31.1 Piping Stress Analyzer</h1><p>ASME B31.1 Power Piping · v27</p></div>
     </div>
     <label for="lgId">아이디</label>
     <div class="fld">
@@ -442,7 +445,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 </div>
 <div class="top">
   <div class="brand">
-    <b>PSA</b><span class="v" title="v26.1 — v26 + AutoPIPE 25 실측 비교(SA7) 반영: AP-01 NTL 부식여유 내보내기/임포트, AP-02 절점 보고값 카테고리별 최대, AP-03 AutoPIPE 다방향 SRSS 응력식 옵션(AutoPIPE 기준 프리셋), AP-04 스프링율 120 N/mm 가정 표기 · v26: 엔진 보정 R2 그룹(E1~E17/I5)·S_A (1A)/(1B) 선택·후프응력 보고·지진 2축 포락·반력 6성분·B31.1-2022 재질표·NTL 임포트 보정·보고서 리비전 (v25: F8~F13)">B31.1 · v26.1</span><!-- v26-C1 / v26.1 -->
+    <b>PSA</b><span class="v" title="v27 — 분기(Tee) 방향·각도·세그먼트 분리(AutoPIPE/CAESAR 관례): B1 분기=새 세그먼트(segMeta), B2 방향 패드+래터럴 각도→Δ, B3 엔진 티 기하각·W350~W354, B4 NTL 세그먼트 문자/TEE DIR·ANGLE·GEOM, B5 보고서 세그먼트 구성표 · v26.1 — v26 + AutoPIPE 25 실측 비교(SA7) 반영: AP-01 NTL 부식여유 내보내기/임포트, AP-02 절점 보고값 카테고리별 최대, AP-03 AutoPIPE 다방향 SRSS 응력식 옵션(AutoPIPE 기준 프리셋), AP-04 스프링율 120 N/mm 가정 표기 · v26: 엔진 보정 R2 그룹(E1~E17/I5)·S_A (1A)/(1B) 선택·후프응력 보고·지진 2축 포락·반력 6성분·B31.1-2022 재질표·NTL 임포트 보정·보고서 리비전 (v25: F8~F13)">B31.1 · v27</span><!-- v26-C1 / v26.1 / v27 -->
     <span class="sub">Power Piping Stress Analyzer</span>
   </div>
   <div class="spacer"></div>
@@ -666,11 +669,19 @@ input[readonly]{opacity:.6;cursor:not-allowed}
               </div>
             </div>
             <div class="grid3" style="margin-top:6px">
-              <div class="fld"><span>분기길이 <i class="u-len">m</i></span><input id="segBrLen" value="3"></div>
-              <div class="fld" id="segTeeAngleFld" style="display:none"><span>분기각 °</span><input id="segTeeAngle" value="45"></div>
+              <div class="fld"><span>분기길이 <i class="u-crd">(m)</i></span><input id="segBrLen" value="3"></div><!-- v27-B2: 좌표 단위 -->
+              <div class="fld" id="segTeeAngleFld" style="display:none"><span>분기각 ° <i style="font-weight:400">(15~90)</i></span><input id="segTeeAngle" value="45"></div>
               <div class="fld"><span>분기관경 DN <i style="font-weight:400">(이경)</i></span><select id="segTeeDN"></select></div>
             </div>
-            <div class="mini" id="segBrHint" style="margin-top:4px;color:#7e90a4">방향 버튼을 누르면 Δ좌표가 자동 입력됩니다. 분기관경을 본관과 다르게 고르면 분기관이 <b style="color:#9fd4b0">이경(별도 세그먼트)</b>으로 생성됩니다.</div>
+            <div class="row" id="segLeanRow" style="display:none;margin-top:6px"><!-- v27-B2: 래터럴 기울기 방향 -->
+              <label title="래터럴(Y) 분기의 기울기: 전방 = 본관 하류(+u_run) 쪽으로, 후방 = 상류 쪽으로">기울기</label>
+              <div class="useg" id="segLean" style="flex:1">
+                <button data-l="fwd" class="on">전방 (하류)</button>
+                <button data-l="back">후방 (상류)</button>
+              </div>
+            </div>
+            <div class="mini" id="segBrHint" style="margin-top:4px;color:#7e90a4">방향 버튼을 누르면 Δ좌표가 자동 입력됩니다(래터럴은 분기각·기울기 반영, 본관 축과 평행한 버튼은 비활성). 분기는 항상 <b style="color:#9fd4b0">새 세그먼트</b>로 시작하며, 분기관경을 본관과 다르게 고르면 이경(리듀서) 분기로 생성됩니다.</div>
+            <button id="btnBackToHeader" class="mini-btn" style="display:none;margin-top:6px;width:100%" title="활성 분기 세그먼트의 본관(부모 세그먼트)으로 돌아가 본관 마지막 절점부터 직관을 계속합니다">↩ 본관 계속</button><!-- v27-B1 -->
           </div>
           <!-- v25-F10: 세그먼트 선택 칩 — 클릭=활성화(이후 절점은 그 세그먼트로 귀속, From=그 세그 마지막 절점) -->
           <div id="segChips"></div>
@@ -708,7 +719,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
               <button id="btnDelNode" class="mini-btn del">삭제</button>
             </div>
           </div>
-          <div class="mini"><b>직관</b>=곧은 배관, <b>밴드</b>=From 절점을 곡관(엘보 SIF)으로 지정, <b>분기</b>=From 절점을 분기(Tee SIF)로 지정 후 가지 생성. 유형 선택 → 좌표 입력 → 추가 순으로 모델링합니다.</div>
+          <div class="mini"><b>직관</b>=곧은 배관, <b>밴드</b>=From 절점을 곡관(엘보 SIF)으로 지정, <b>분기</b>=From 절점을 분기(Tee SIF)로 지정 후 가지 생성. 유형 선택 → 좌표 입력 → 추가 순으로 모델링합니다.<br><b>분기</b>: 티 절점 선택 → [여기서분기] → 형식·방향(·각도) → 추가 → 새 세그먼트(B)로 분기 진행 → [↩ 본관 계속]</div><!-- v27-B6 -->
         </div>
       </div>
 
@@ -1908,6 +1919,25 @@ function runAnalysis(input){
   const elemAxis=e=>{const a=nodeById[e.i],b=nodeById[e.j];return vnorm(vsub([b.x,b.y,b.z],[a.x,a.y,a.z]));};
   const nodeAxis=nid=>{const es=adj[nid];return es.length?elemAxis(es[0]):[1,0,0];};
   const domDof=v=>{const a=v.map(Math.abs);return a[0]>=a[1]&&a[0]>=a[2]?0:(a[1]>=a[2]?1:2);};
+  /* v27-B3: 티 기하 다리 분석 — 절점에 닿는 요소마다 절점→반대편 단위벡터. 다리 ≥3 이면 내적 최소 쌍 = 본관(header), 나머지 = 분기
+     (2개 이상이면 첫 번째 평가, nBranch 로 크로스 표시). 기하 분기각 angle = 분기 벡터와 두 본관 벡터 사이 각 중 작은 쪽(도).
+     adj 는 경간분할 후 요소 기준이나 방향은 동일. 좌표 단위 무관(단위벡터만 사용). [engine_v27.py tee_legs] */
+  const teeLegs=nid=>{
+    const es=adj[nid]||[]; const legs=[]; const a0=nodeById[nid];
+    for(const e of es){ const other=(e.i===nid)?e.j:e.i; const b=nodeById[other];
+      const d=vsub([b.x,b.y,b.z],[a0.x,a0.y,a0.z]); if(vlen(d)<=0) continue;
+      const far=(b._gen&&b._parent)?((b._parent[0]===nid)?b._parent[1]:b._parent[0]):other;   // 경간분할 생성 절점이면 원래 요소의 반대편 절점 id 로 보고
+      legs.push({nid:far,u:vnorm(d)}); }
+    if(legs.length<3) return {n:legs.length,legs,header:null,branch:null,angle:null,nBranch:0};
+    let best=null;
+    for(let p=0;p<legs.length;p++) for(let q=p+1;q<legs.length;q++){
+      const dot=legs[p].u[0]*legs[q].u[0]+legs[p].u[1]*legs[q].u[1]+legs[p].u[2]*legs[q].u[2];
+      if(best===null||dot<best.dot) best={p,q,dot}; }
+    const hdr=[legs[best.p],legs[best.q]]; const br=legs.filter((_,k)=>k!==best.p&&k!==best.q); const b0=br[0];
+    const ang=u=>Math.acos(Math.max(-1,Math.min(1,u[0]*b0.u[0]+u[1]*b0.u[1]+u[2]*b0.u[2])))*180/Math.PI;
+    const angle=Math.min(ang(hdr[0].u),ang(hdr[1].u));
+    return {n:legs.length,legs,header:[hdr[0].nid,hdr[1].nid],branch:b0.nid,angle,nBranch:br.length};
+  };
 
   // ---- attachments -> SIF, weights, support specs (multiple per node) ----
   const VUP = input.upAxis==='Y'?1:2;          // vertical axis index (default Z)
@@ -1923,7 +1953,18 @@ function runAnalysis(input){
     for(const a of (n.att||[])){
       const kind=a.kind, form=a.form||'single', mult=(form==='double'?2:1);
       if(kind==='bend'||kind==='elbow'){ const R=a.R>0?a.R:(a.bendKind?bendRadius(a.bendKind,eDnom):1.5*eDnom); a._R=R; nodeSIF[n.id]=Math.max(nodeSIF[n.id],sifBend(eod,etn,R)); const bio=sifBendIO(eod,etn,R), s2=nodeSIF2[n.id]; s2.ii=Math.max(s2.ii,bio.ii); s2.io=Math.max(s2.io,bio.io); }   /* v26.1-AP03 */
-      else if(kind==='tee'){ const it=sifTee(eod,etn,a.teeType||'welding',a.branchAngle,a.branchT); a._sif=it; nodeSIF[n.id]=Math.max(nodeSIF[n.id],it); const s2=nodeSIF2[n.id]; s2.ii=Math.max(s2.ii,it); s2.io=Math.max(s2.io,it); }   /* v26.1-AP03: 티 ii=io=App.D i 근사 (B31J 티 미구현 [확인 필요], AP-05) */
+      else if(kind==='tee'){
+        /* v27-B3: 기하 각도 — 래터럴은 기하각 우선(입력각과 >1° 차이면 W350), 비래터럴인데 기하각 <89° 면 W351, 다리 ≤2 면 W352, 분기 다리 2개 이상이면 W354.
+           래터럴 없는 기존 모델(90° 용접티)의 수치 결과 불변 (sifTee 는 비래터럴에서 각도 미사용). [engine_v27.py] */
+        const tt=a.teeType||'welding'; const tg=teeLegs(n.id); let angUse=a.branchAngle;
+        if(tg.n>=3){ a._legs={header:tg.header,branch:tg.branch}; a._angleGeom=tg.angle;
+          if(tg.nBranch>1) log('w','W354',`N${n.id} 분기 다리 ${tg.nBranch}개(크로스) — 첫 번째 분기(N${tg.branch})만 기하각 평가`,'N'+n.id);
+          if(tt==='lateral'){
+            if(a.branchAngle>0 && Math.abs(a.branchAngle-tg.angle)>1) log('w','W350',`래터럴 입력각 ${a.branchAngle}° vs 기하각 ${tg.angle.toFixed(1)}° — 기하각으로 SIF 산정`,'N'+n.id);
+            angUse=tg.angle; if(tg.angle<30) log('w','W355',`N${n.id} 래터럴 기하각 ${tg.angle.toFixed(1)}° < 30° — SIF 근사식 하한 30° 로 산정 (식 적용범위 밖 [확인 필요])`,'N'+n.id); }   /* v27-F7 */
+          else if(tg.angle<89) log('w','W351',`티 N${n.id} 분기각 ${tg.angle.toFixed(1)}° (90° 아님) — 래터럴(Y) 형식 지정 권장 (현재 SIF 는 90° 티 식)`,'N'+n.id);
+        } else { log('w','W352',`N${n.id} 티 지정이나 분기 배관 없음(다리 ${tg.n}개) — SIF 만 적용`,'N'+n.id); if(tt==='lateral') angUse=(a.branchAngle>0?a.branchAngle:45); }
+        const it=sifTee(eod,etn,tt,angUse,a.branchT); a._sif=it; nodeSIF[n.id]=Math.max(nodeSIF[n.id],it); const s2=nodeSIF2[n.id]; s2.ii=Math.max(s2.ii,it); s2.io=Math.max(s2.io,it); }   /* v26.1-AP03: 티 ii=io=App.D i 근사 (B31J 티 미구현 [확인 필요], AP-05) */
       else if(kind==='reducer'){ const it=sifReducer(eod,etn,a.dnLarge,a.dnSmall); a._sif=it; nodeSIF[n.id]=Math.max(nodeSIF[n.id],it); { const s2=nodeSIF2[n.id]; s2.ii=Math.max(s2.ii,it); s2.io=Math.max(s2.io,it); }   /* v26.1-AP03 */
         log('i','I022',`이경피팅 ${a.dnLarge||'?'}→${a.dnSmall||'?'} SIF ${it.toFixed(2)} 적용`,'N'+n.id); }
       else if(kind==='valve'){ const m=(a.mass>0?a.mass:valveWeight(a.vtype||'gate',a.vclass||'150',a.vend||'flanged',eDnom)); a._w=m; n.wpt=(n.wpt||0)+m*g; log('i','I020',`밸브 ${(VALVE_TYPE[a.vtype]||VALVE_TYPE.gate).name} Class${a.vclass||'150'} 자중 ${m.toFixed(0)}kg 적용`,'N'+n.id); }
@@ -2017,6 +2058,9 @@ function runAnalysis(input){
       }
     }
   }
+  /* v27-B3: 다리 ≥3 인데 tee 부속 없음 → W353 (AutoPIPE 'Other' 티 = SIF 1.0 과 동일 상황, AP-05) [engine_v27.py] */
+  for(const n of nodes){ if((n.att||[]).some(a=>a.kind==='tee')) continue; const tg=teeLegs(n.id);
+    if(tg.n>=3) log('w','W353',`N${n.id} 분기점(다리 ${tg.n}개)에 티 형식 미지정 — SIF 1.0 적용(AutoPIPE 'Other' 티와 동일). 용접티/보강/무보강 등 지정 권장`,'N'+n.id); }
   /* v25-X1: 한 방향은 하나의 지지로만 — 동일 절점·동일 DOF 강체구속 중복 감지 (예: strut Y + rest, anchor + strut) */
   { const dup={};
     for(const s of supports){ if(s.type!=='rigid'||s.cases) continue;
@@ -2273,6 +2317,7 @@ function runAnalysis(input){
                   Ma,Mc,Mb,Na:nodeMaxNa,Nc:nodeMaxNc,Nb:nodeMaxNb, fm:nodeFM[n.id],
                   d:{x:thr.u[thr.idx[n.id]*6]/1000,y:thr.u[thr.idx[n.id]*6+1]/1000,z:thr.u[thr.idx[n.id]*6+2]/1000}};
     if(n._gen){ nr._gen=true; nr._parent=n._parent; nr.posLabel=n.posLabel; }   /* v26-E4: 경간 내부 생성 절점 */
+    { const ta=(n.att||[]).find(a=>a.kind==='tee'&&a._angleGeom!=null); if(ta){ nr.teeAngle=ta._angleGeom; nr.teeLegs=ta._legs; } }   /* v27-B3: 기하 분기각(보고서·UI 표시용) */
     nodeRes.push(nr);
     if(rSus>1.0) log('w','W301',`지속하중 응력 초과 SL=${SL.toFixed(1)} > Sh=${Sh.toFixed(1)} MPa (비 ${rSus.toFixed(2)})`,'N'+n.id);
     if(rExp>1.0) log('w','W302',`열팽창 응력범위 초과 SE=${SE.toFixed(1)} > SA=${SA.toFixed(1)} MPa ${saEq} (비 ${rExp.toFixed(2)})`,'N'+n.id);
@@ -2433,9 +2478,26 @@ function runAnalysis(input){
       hoop:hp?hp.s:null, hoopAllow:hp?hp.allow:null, rHoop:hp?hp.ratio:null, hoopT:hp?hp.t:null,   /* v26-E15: 세그먼트별 후프 */
       pass:(c.t_avail>=c.tm && c.mp.inRange), label:c.label }); }
 
+  /* v27-B5: 세그먼트 구성(topology) — segId 별 첫/끝 절점·요소 수·연장(m)·종류(input.segMeta: branch/spec/run, 없으면 seg0=run·그 외 spec).
+     보고서 3.3a(AutoPIPE Segment Data Listing 대응)·결과 패널 공용. [engine_v27.py seg_topo] */
+  const segTopo=(()=>{ const meta=input.segMeta||{}; const by={}; const order=[];
+    for(const ed of elemsIn){ const sid=(ed.segId!=null)?ed.segId:0;
+      if(!by[sid]){ by[sid]={segId:sid,first:ed.from,last:ed.to,nElem:0,length:0,specLabel:null}; order.push(sid); }
+      const s=by[sid]; s.nElem++; s.last=ed.to;
+      const A=nodeById[ed.from], B=nodeById[ed.to]; if(A&&B) s.length+=Math.hypot(B.x-A.x,B.y-A.y,B.z-A.z)/1000;
+      if(!s.specLabel){ const sp=ed.spec?Object.assign({},defaultSpec,ed.spec):defaultSpec; s.specLabel=(sp.sizeLabel||'')+' · '+sp.matKey+' · '+sp.Tdesign+'℃/'+sp.P+'MPa'; } }
+    order.sort((a,b)=>a-b);
+    return order.map(sid=>{ const s=by[sid]; let m=meta[sid]||null;
+      if(!m&&sid!==0){   /* v27-V03: segMeta 없는 구버전 모델(v26 저장파일·케이스2 JSON) — 위상으로 분기/스펙구간 추정: 첫 절점에 닿는 타 세그먼트 요소가 있으면 분기(그 세그먼트의 끝점에서 이어지면 스펙구간) */
+        const f=s.first; const oth=elemsIn.find(ed=>((ed.segId!=null)?ed.segId:0)!==sid&&(ed.to===f||ed.from===f));
+        if(oth){ const os=(oth.segId!=null)?oth.segId:0; const ob=by[os];
+          const cont=!!(ob&&ob.last===f&&!elemsIn.some(ed=>((ed.segId!=null)?ed.segId:0)===os&&ed.from===f));
+          m={kind:cont?'spec':'branch',parent:os,atNode:f}; } }
+      m=m||{};
+      return Object.assign(s,{kind:m.kind||(sid===0?'run':'spec'),parent:(m.parent!=null?m.parent:null),atNode:(m.atNode!=null?m.atNode:null)}); }); })();   /* v27-F3 */
   return {
     ok: !logs.some(l=>l.lvl==='e'),
-    logs, mp, sec0, secC, tm, t_avail, pStress, fcyc, k_occ, wlin, solutions, segments,
+    logs, mp, sec0, secC, tm, t_avail, pStress, fcyc, k_occ, wlin, solutions, segments, segTopo,   /* v27-B5 */
     nodes:input.nodes, elems:elemsIn, model, nodeRes, reactions, reactionsOcc, hangers, nodeFM,
     nodeSIF2, bendNormals:bendN,                           /* v26.1-AP03: 면내/면외/비틀림 SIF, 벤드면 법선 */
     engineOptions:Object.assign({},ENGINE_OPTIONS),        /* v22: 결과에 사용 옵션 스냅샷 */
@@ -2735,7 +2797,9 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
     /* ---------- 세그먼트 분해: 정의 순서 체인, 분기/스펙변경 시 새 SEG ---------- */
     const LET='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const segs=[]; let cur=null, prevTo=null;
-    elems.forEach(e=>{
+    /* v27-B4: segId 오름차순 안정 정렬 후 체인 분해 → 본관 A 는 분기 뒤에도 A 로 계속, 분기 = B (AutoPIPE 세그먼트 관례).
+       같은 segId 안의 불연속/_pid 변경 시 추가 분할은 기존 유지. */
+    elems.slice().sort((a,b)=>(a.segId||0)-(b.segId||0)).forEach(e=>{
       if(!cur || prevTo!==e.from || cur.pid!==e._pid){
         cur={letter:LET[segs.length%26]+(segs.length>=26?Math.floor(segs.length/26):''),
              start:e.from, pid:e._pid, sp:specOf(e), items:[]};
@@ -2752,7 +2816,9 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
       let i=0;
       const reg=nid=>{ const pn=nameIn(seg,i++);
         mapRows.push([pn,nid]); if(pnOf[nid]===undefined)pnOf[nid]=pn; return pn; };
-      seg.names=[reg(seg.start)];
+      /* v27-V02: 분기/연속 세그먼트의 첫 점이 이미 다른 세그먼트에서 명명된 공유 점이면 AutoPIPE 관례(Segment B: First Node A11 — 세그먼트 연결은 점명 기준)대로
+         기존 점명을 SEG 카드 첫 점으로 쓴다. 좌표만 같은 새 점명(B00)은 AutoPIPE 가 별도 점으로 읽어 분기가 본관과 미연결될 수 있음 [확인 필요: AutoPIPE NTL 임포트 실측]. 첫 RUN 대상점부터 B00. */
+      seg.names=[(pnOf[seg.start]!==undefined)?pnOf[seg.start]:reg(seg.start)];   /* v27-F2 */
       seg.items.forEach(e=>seg.names.push(reg(e.to)));
     });
 
@@ -2858,7 +2924,9 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           toolext(`FORCE ${pn} FX ${a.fx||0} FY ${a.fy||0} FZ ${a.fz||0} MX ${a.mx||0} MY ${a.my||0} MZ ${a.mz||0}`);
           manual.push(`${pn}(N${nid}) 임의하중 — AutoPipe Imposed load 로 수동 입력 필요`);
         } else if(a.kind==='tee'){
-          toolext(`TEE ${pn} TYPE ${a.teeType||'welding'}${a.branchAngle?(' ANGLE '+a.branchAngle):''}`);
+          const nrT=(result&&result.nodeRes)?result.nodeRes.find(q=>q.id===nid):null;   /* v27-B4: 해석 결과의 기하각(teeAngle) 병기 */
+          toolext(`TEE ${pn} TYPE ${a.teeType||'welding'}${a.branchAngle?(' ANGLE '+a.branchAngle):''}${a.branchDir?(' DIR '+a.branchDir):''}${(nrT&&nrT.teeAngle!=null)?(' GEOM '+(+nrT.teeAngle).toFixed(1)):''}`);
+          manual.push(`${pn}(N${nid}) 티 형식 '${a.teeType||'welding'}' — AutoPIPE Insert > Tee 에서 지정 (미지정 시 Other = SIF 1.0)`);   /* v27-B4 */
         } else if(a.kind==='reducer'){
           toolext(`REDUCER ${pn} ${a.dnLarge||'?'} ${a.dnSmall||'?'}`);
           manual.push(`${pn}(N${nid}) 리듀서 — AutoPipe 에서 수동 배치 필요`);
@@ -3259,7 +3327,9 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
         ' 3) 아래 [수동 입력 필요] 항목은 실물 NTL 카드로 전달할 수 없어',
         '    AutoPipe 에서 직접 입력해야 합니다 (밸브/플랜지/집중질량/임의하중/',
         '    앵커 부가 F·M·D/스너버 정격/비표준 벤드반경/rest·spring DOUBLE).',
-        ' 4) 대체 경로: 함께 생성된 .pcf(ISOGEN) 임포트도 지원됩니다.','',
+        ' 4) 대체 경로: 함께 생성된 .pcf(ISOGEN) 임포트도 지원됩니다.',
+        ' 5) [확인 필요] AutoPIPE 임포트 시 분기 세그먼트 첫 점 = 공유 점명 (예: SEG  A01  B — AutoPIPE 케이스2',
+        '    리스팅 "Segment B: First Node A11" 관례, v27-F2). 분기가 본관과 미연결로 읽히면 본 도구에 알려주세요.','',
         '모델링 노트 / 수동 입력 필요 목록:'
       ].concat(nts.length?nts.map(x=>' - '+x):[' (없음)']).join('\r\n');
       download(`B31.1_AutoPIPE25_${tag}_README.txt`, rd, 'text/plain', true); files++;
@@ -3356,7 +3426,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
     return {
       app: 'B31.1-PSA', version: 1, savedAt: new Date().toISOString(),
       units: 'SI', upAxis: 'Y', coordMode: 'abs', view: 'iso',
-      nextId: 10, segId: 0,
+      nextId: 10, segId: 0, segMeta: {},   /* v27-B1 */
       material: {
         mMat: 'A106-B', mNps: '', mSch: '-', mOD: '', mWT: '',
         mP: '0', mT: '20', mTa: '20', mCA: '0', mSG: '1.0',
@@ -3751,6 +3821,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
       } else if (op === 'TEE') {
         var at2 = { kind: 'tee', teeType: (kv.TYPE || 'welding').toLowerCase() };
         if (num(kv.ANGLE, 0)) at2.branchAngle = num(kv.ANGLE, 0);
+        if (kv.DIR && /^[+-][XYZ]$/.test(kv.DIR)) at2.branchDir = kv.DIR;   /* v27-B4: 분기 방향 복원 (GEOM 은 정보용 — 해석 시 재계산) */
         addAtt(model, nid, at2, warnings, 'TOOLEXT TEE');
       } else if (op === 'REDUCER') {
         addAtt(model, nid, { kind: 'reducer', dnLarge: tk[2] || '', dnSmall: tk[3] || '' }, warnings, 'TOOLEXT REDUCER');
@@ -3836,7 +3907,20 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           segIdx++;
           var nm0 = l.slice(5, 10).trim();
           curAbs = [num(l.slice(19, 29), 0), num(l.slice(29, 39), 0), num(l.slice(39, 49), 0)];
+          var nBefore = model.nodes.length;
           prevId = ensureNode(nm0, curAbs); lastPt = nm0;
+          if (segIdx > 0 && model.nodes.length === nBefore) {
+            /* v27-B4: SEG 시작점이 기존 점과 좌표 일치 → 분기 세그먼트 {kind:'branch', parent:그 점이 속한 요소의 segId, atNode}.
+               직전 체인의 끝점에서 그대로 이어지는 경우(다른 요소가 그 점에서 나가지 않음)는 스펙 연속 구간 kind:'spec'. */
+            var pe0 = null;
+            /* v27-V01: parent = 그 점으로 들어오는(to===점) 요소의 segId 우선(본관), 없으면 그 점에서 나가는 첫 요소 — 크로스(한 점에서 분기 2개)에서 두 번째 분기의 parent 가 첫 분기(B)로 잘못 잡히던 문제 (UI segOfNode 와 동일 규칙) */
+            for (var q0 = 0; q0 < model.elems.length; q0++) { if (model.elems[q0].to === prevId) { pe0 = model.elems[q0]; break; } }
+            if (!pe0) for (var q1 = 0; q1 < model.elems.length; q1++) { if (model.elems[q1].from === prevId) { pe0 = model.elems[q1]; break; } }   /* v27-F1 */
+            var lastE = model.elems.length ? model.elems[model.elems.length - 1] : null;
+            var isCont = !!(lastE && lastE.to === prevId && !model.elems.some(function (e9) { return e9.from === prevId; }));
+            model.segMeta = model.segMeta || {};
+            model.segMeta[segIdx] = { kind: (isCont ? 'spec' : 'branch'), parent: (pe0 ? (pe0.segId || 0) : 0), atNode: prevId };
+          }
         } else if (kw === 'PIPE') {
           curSpec = newSpec(); pipeCont = 0;
           curSpec._dn = Math.round(num(l.slice(20, 29), 0)) || null;
@@ -4378,6 +4462,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const state={ nodes:[], elems:[], nextId:10, result:null, viewMode:'ratio', meta:{},   /* v26-C4: 보고서 표지 정보 */
               anim:{playing:true, amp:60, phase:0}, sel:null, fromNode:null, coordMode:'rel',
               upAxis:'Y', treeCoord:'both', view:'iso', segType:'run', segId:0,
+              segMeta:{}, brLean:'fwd',   /* v27-B1: {segId:{kind:'branch'|'run'|'spec',parent,atNode}} / v27-B2: 래터럴 기울기 */
               showNodeLabels:true, showAttLabels:false, showDimLabels:false };
 
 /* ===================== UNIT SYSTEM (SI internal, SI/US display) ============ */
@@ -4545,6 +4630,7 @@ function fillFromNode(){
   const want=state.fromNode!=null?String(state.fromNode):cur;
   sel.value = [...sel.options].some(o=>o.value===want)?want:String(state.nodes[state.nodes.length-1].id);
   state.fromNode=parseInt(sel.value)||null;
+  if(typeof updBranchPad==='function') updBranchPad();   /* v27-B2 */
 }
 function updCoordLabels(){
   const rel=state.coordMode==='rel', p=rel?'Δ':'';
@@ -4582,11 +4668,12 @@ function updCoordPrev(){
 }
 /* ---------- undo / redo history ---------- */
 let HIST=[], REDO=[];
-function snapshot(){ return JSON.stringify({nodes:state.nodes,elems:state.elems,nextId:state.nextId,sel:state.sel,fromNode:state.fromNode}); }
+function snapshot(){ return JSON.stringify({nodes:state.nodes,elems:state.elems,nextId:state.nextId,sel:state.sel,fromNode:state.fromNode,segId:state.segId||0,segMeta:state.segMeta||{}}); }   /* v27-B1: segId/segMeta 포함 */
 function pushHist(){ HIST.push(snapshot()); if(HIST.length>60)HIST.shift(); REDO.length=0; updHistBtns(); }
 function restoreSnap(s){ const o=JSON.parse(s);
   state.nodes=o.nodes; state.elems=o.elems; state.nextId=o.nextId; state.sel=o.sel; state.fromNode=o.fromNode;
-  state.result=null;
+  if(o.segId!=null) state.segId=o.segId; state.segMeta=o.segMeta||{};   /* v27-B1 */
+  state.result=null; if(typeof renderSegChips==='function') renderSegChips();
   refreshAll(); if(renderer){ if(state.nodes.length>=2)drawModelPreview(); else clearMeshes(); }
   if(state.sel!=null){const n=nodeById(state.sel); if(n){$('#nX').value=(+CV.crd.fromSI(n.x,U.sys)).toFixed(3);$('#nY').value=(+CV.crd.fromSI(n.y,U.sys)).toFixed(3);$('#nZ').value=(+CV.crd.fromSI(n.z,U.sys)).toFixed(3);}}
 }
@@ -4603,31 +4690,96 @@ function ensureAtt(node,kind,extra){
   if(!node.att)node.att=[];
   if(!node.att.some(a=>a.kind===kind)) node.att.push(Object.assign({kind},extra||{}));
 }
+/* ===================== v27-B1/B2: 분기 보조 (세그먼트 소속 · 본관 축 · 방향 패드 · Δ 계산) ===================== */
+function segOfNode(id){ const e=state.elems.find(el=>el.to===id)||state.elems.find(el=>el.from===id); return e?(e.segId||0):0; }
+function vnorm3(v){ const l=Math.hypot(v[0],v[1],v[2]); return l>0?[v[0]/l,v[1]/l,v[2]/l]:null; }
+/* v27-B2: 본관 축 u_run (From 절점 기준) — 부모 요소가 있으면 normalize(From−parent), 없으면 자식 요소로 normalize(child−From), 둘 다 없으면 null */
+function runAxisAt(nid){
+  const n=nodeById(nid); if(!n) return null;
+  const pe=state.elems.find(e=>e.to===nid); if(pe){ const p=nodeById(pe.from); if(p){ const u=vnorm3([n.x-p.x,n.y-p.y,n.z-p.z]); if(u) return u; } }
+  const ce=state.elems.find(e=>e.from===nid); if(ce){ const c=nodeById(ce.to); if(c){ const u=vnorm3([c.x-n.x,c.y-n.y,c.z-n.z]); if(u) return u; } }
+  return null;
+}
+function branchFromNode(){ return state.nodes.length?(state.fromNode!=null?nodeById(state.fromNode):state.nodes[state.nodes.length-1]):null; }
+/* v27-B1: 구간유형 전환(버튼 .on·행 표시 동기화) — 버튼 핸들러·startBranch·↩ 본관 계속·분기 생성 후 공용 */
+function setSegType(t){
+  state.segType=t;
+  $$('#segType button').forEach(x=>x.classList.toggle('on',x.dataset.s===t));
+  const br=$('#segBendRow'), bb=$('#segBranchRow'), rr=$('#segBendRrow');
+  if(br) br.style.display=(t==='bend')?'':'none';
+  if(bb) bb.style.display=(t==='branch')?'':'none';
+  if(rr) rr.style.display=(t==='bend'&&$('#segBendKind')&&$('#segBendKind').value==='custom')?'':'none';
+  updBranchPad();
+}
+/* v27-B2: 방향 패드 가용성 — |u_perp·u_run| > 0.999 인 버튼은 .dis (본관 축과 같은 방향 — 분기 불가). From 변경·세그타입 변경·절점 선택 시 호출(fillFromNode 경유).
+   v27-B1: [↩ 본관 계속] 은 활성 세그먼트가 분기(segMeta kind branch)일 때만 표시 */
+function updBranchPad(){
+  const from=branchFromNode(); const ur=from?runAxisAt(from.id):null;
+  $$('#segBrDir button').forEach(b=>{
+    const d=b.dataset.d, sign=d[0]==='-'?-1:1, ax=d[1];
+    const up=[ax==='X'?sign:0,ax==='Y'?sign:0,ax==='Z'?sign:0];
+    const dis=!!(ur&&Math.abs(up[0]*ur[0]+up[1]*ur[1]+up[2]*ur[2])>0.999);
+    b.classList.toggle('dis',dis); if(dis) b.classList.remove('on');
+    b.title=dis?`본관 축과 같은 방향 — 분기 불가 (From N${from.id})`:`분기 방향 ${d} — Δ좌표 자동 입력`;
+  });
+  const bh=$('#btnBackToHeader'); if(bh){ const m=(state.segMeta||{})[state.segId||0]; bh.style.display=(m&&m.kind==='branch')?'':'none';
+    if(m&&m.kind==='branch') bh.textContent=`↩ 본관 ${segLetter(m.parent||0)} 계속`; }
+}
+/* v27-B2: 분기 Δ = L·( sinθ·u_perp + cosθ·lean·u_run ) (좌표 단위). θ = #segTeeAngle(래터럴만, 15~90 클램프; 다른 형식은 90°),
+   lean: 전방 = +u_run(하류) / 후방 = −u_run. θ=90° 면 순수 수직(기존 동일). u_run 이 null 이면 θ 무시(토스트). */
+function applyBranchDelta(){
+  const onb=$('#segBrDir button.on'); if(!onb) return;
+  const d=onb.dataset.d, sign=d[0]==='-'?-1:1, ax=d[1], len=parseFloat($('#segBrLen').value)||3;
+  const up=[ax==='X'?sign:0,ax==='Y'?sign:0,ax==='Z'?sign:0];
+  const from=branchFromNode(); const ur=from?runAxisAt(from.id):null;
+  let th=90;
+  if($('#segTeeType')&&$('#segTeeType').value==='lateral'){ th=parseFloat($('#segTeeAngle').value); if(!isFinite(th)) th=45;
+    const cl=Math.max(15,Math.min(90,th)); if(cl!==th){ th=cl; $('#segTeeAngle').value=th; } }
+  let v;
+  if(th<90&&ur){ const lean=(state.brLean==='back')?-1:1, s=Math.sin(th*Math.PI/180), c=Math.cos(th*Math.PI/180);
+    v=[len*(s*up[0]+c*lean*ur[0]),len*(s*up[1]+c*lean*ur[1]),len*(s*up[2]+c*lean*ur[2])]; }
+  else { if(th<90&&!ur) toast('본관 방향을 알 수 없어 각도 미적용 (수직 분기 Δ 로 입력)',false); v=[len*up[0],len*up[1],len*up[2]]; }
+  if(state.coordMode!=='rel'){ state.coordMode='rel'; $$('#coordMode button').forEach(x=>x.classList.toggle('on',x.dataset.c==='rel')); updCoordLabels(); }
+  $('#nX').value=(+v[0]).toFixed(3); $('#nY').value=(+v[1]).toFixed(3); $('#nZ').value=(+v[2]).toFixed(3);
+  updCoordPrev();
+}
 function addNode(){
   const xd=parseFloat($('#nX').value)||0, yd=parseFloat($('#nY').value)||0, zd=parseFloat($('#nZ').value)||0;
   let x=CV.crd.toSI(xd,U.sys), y=CV.crd.toSI(yd,U.sys), z=CV.crd.toSI(zd,U.sys);
   const from = state.nodes.length ? (state.fromNode!=null?nodeById(state.fromNode):state.nodes[state.nodes.length-1]) : null;
   if(state.coordMode==='rel' && from){ x+=from.x; y+=from.y; z+=from.z; }
+  /* v27-B2: 검증(pushHist 전) — 길이 0 요소 차단(모든 구간유형); 분기는 Δ 방향이 본관 축과 평행(|cos|>0.999)이면 차단 */
+  if(from){
+    const dv=[x-from.x,y-from.y,z-from.z];
+    if(Math.hypot(dv[0],dv[1],dv[2])<1e-9){ toast(`새 절점이 From N${from.id} 과 동일 좌표(길이 0) — 추가할 수 없습니다`,false); return; }
+    if(state.segType==='branch'){ const ur=runAxisAt(from.id), u=vnorm3(dv);
+      if(ur&&u&&Math.abs(u[0]*ur[0]+u[1]*ur[1]+u[2]*ur[2])>0.999){ toast('분기 방향이 본관 축과 일치 — 분기 불가 (다른 방향 또는 각도를 선택하세요)',false); return; } }
+  }
   pushHist();
   const id=state.nextId; state.nextId+=10;
   state.nodes.push({id,x,y,z,att:[]});
+  let brInfo=null;   /* v27-B1 */
   if(from){
     const el={from:from.id,to:id,segId:state.segId};
-    /* v25-F10: 활성 세그먼트에 이미 잠긴 스펙이 있으면 그 스펙을 상속(다른 세그 스펙 편승 차단),
-       없으면 기존 규칙(세그0=폼 기본, 세그>0=현재 폼 스펙 잠금) */
-    const inh=state.elems.find(e2=>(e2.segId||0)===(state.segId||0)&&e2.spec);
-    if(inh) el.spec={...inh.spec};
-    else if(state.segId>0) el.spec=currentFormSpec();   // segments after the first carry their own locked spec
-    // segment type marks the From corner (vertex where direction changes / branches)
-    if(state.segType==='bend'){
-      const bk=$('#segBendKind')?$('#segBendKind').value:'long';
-      if(bk==='custom'){ const Rmm=CV.len.toSI(parseFloat($('#segR').value)||0,U.sys)||1.5*(resolveSize().od||168.3); ensureAtt(from,'bend',{R:Rmm}); }
-      else ensureAtt(from,'bend',{bendKind:bk});
-    }
-    else if(state.segType==='branch'){
+    if(state.segType==='branch'&&!state.elems.some(e2=>e2.from===from.id||e2.to===from.id)){   /* v27-F9 (V27-09): 기준 절점에 연결 요소가 없으면 분기 세그먼트를 만들지 않고 직관으로 */
+      toast(`N${from.id} 에 연결된 요소가 없어 분기 대신 직관으로 추가합니다`,false); setSegType('run'); }
+    if(state.segType==='branch'){
+      /* v27-B1: 분기 = 항상 새 세그먼트 (관경 동일 여부 무관, AutoPIPE 세그먼트 관례). segMeta {kind:'branch', parent:본관 segId, atNode:From}.
+         스펙: 본관(From 절점이 속한 세그먼트) 요소의 규칙을 그대로 상속 — 명시 spec 이면 복사, bare(폼 상속)면 bare 유지 (v25-F11 materialize 호환).
+         이경 분기(#segTeeDN)는 기존처럼 축소 스펙 잠금 + From 에 reducer 부속. */
+      const parentSeg=segOfNode(from.id);
+      const pinh=state.elems.find(e2=>(e2.segId||0)===parentSeg&&e2.spec);
+      if(pinh) el.spec={...pinh.spec};
+      const newSeg=state.elems.reduce((mx,e)=>Math.max(mx,e.segId||0),state.segId||0)+1;
+      el.segId=newSeg;
+      if(!state.segMeta) state.segMeta={};
+      state.segMeta[newSeg]={kind:'branch',parent:parentSeg,atNode:from.id};
       const tt=$('#segTeeType')?$('#segTeeType').value:'welding';
       const extra={teeType:tt};
-      if(tt==='lateral') extra.branchAngle=parseFloat($('#segTeeAngle').value)||45;
+      if(tt==='lateral'){ const av=parseFloat($('#segTeeAngle').value); extra.branchAngle=Math.max(15,Math.min(90,isFinite(av)?av:45)); }
+      const onb=$('#segBrDir button.on');
+      if(onb){ const d0=onb.dataset.d, sg0=d0[0]==='-'?-1:1, ax0=d0[1], up0=[ax0==='X'?sg0:0,ax0==='Y'?sg0:0,ax0==='Z'?sg0:0], u0=vnorm3([x-from.x,y-from.y,z-from.z]);
+        if(u0&&(u0[0]*up0[0]+u0[1]*up0[1]+u0[2]*up0[2])>0.2) extra.branchDir=d0; }   /* v27-B2/V06: Δ 가 실제로 그 방향 성분(>sin 15°)을 가질 때만 기록 — 이전 분기의 패드 선택(.on)이 숨은 채 남아 수동 Δ 분기에 엉뚱한 branchDir 이 붙던 문제 */   /* v27-F6 */
       const bdn=$('#segTeeDN')?$('#segTeeDN').value:'';   // reducer branch DN (e.g. 'DN100')
       if(bdn){ extra.branchDN=bdn;
         // make the branch line its own REDUCED segment with the smaller pipe size
@@ -4635,27 +4787,43 @@ function addNode(){
         if(sz){ const bspec=Object.assign({}, currentFormSpec(), {
           od:sz.od, t:sz.t[sz.defaultSch||'40']||Object.values(sz.t)[0], sch:(sz.defaultSch||'40'),
           sizeLabel:`${bdn} (Ø${sz.od})`, nominalDN:parseInt((bdn.match(/\d+/)||[0])[0]) });
-          state.segId = state.elems.reduce((mx,e)=>Math.max(mx,e.segId||0),state.segId)+1;
-          el.segId=state.segId; el.spec=bspec;
+          el.spec=bspec;
           // mark the reducer fitting at the branch corner too
           ensureAtt(from,'reducer',{dnLarge:currentFormSpec().sizeLabel,dnSmall:bdn});
         }
       }
       ensureAtt(from,'tee',extra);
+      state.segId=newSeg;   // 활성 세그먼트 = 분기 세그먼트 (이후 절점은 분기에 귀속)
+      brInfo={seg:newSeg,parent:parentSeg};
+    } else {
+      /* v27-B1 스펙 상속 규칙: 같은 segId 에 요소가 있으면 그 요소를 따른다(명시 spec 복사 / bare 면 bare 유지).
+         세그먼트에 요소가 없을 때만 기존 규칙(세그0=폼 기본, 세그>0=현재 폼 스펙 잠금). (v25-F10 '편승 차단' 유지) */
+      const segEls=state.elems.filter(e2=>(e2.segId||0)===(state.segId||0));
+      if(segEls.length){ const inh=segEls.find(e2=>e2.spec); if(inh) el.spec={...inh.spec}; }
+      else if(state.segId>0) el.spec=currentFormSpec();   // segments after the first carry their own locked spec
+      // segment type marks the From corner (vertex where direction changes)
+      if(state.segType==='bend'){
+        const bk=$('#segBendKind')?$('#segBendKind').value:'long';
+        if(bk==='custom'){ const Rmm=CV.len.toSI(parseFloat($('#segR').value)||0,U.sys)||1.5*(resolveSize().od||168.3); ensureAtt(from,'bend',{R:Rmm}); }
+        else ensureAtt(from,'bend',{bendKind:bk});
+      }
     }
     state.elems.push(el);
   }
   state.fromNode=id; state.sel=id;
+  if(brInfo) setSegType('run');   /* v27-B1: 분기 첫 요소 생성 후 구간유형은 직관으로 — 이후 절점은 분기 세그먼트의 직관 */
   requestFit(); refreshAll(); updSegInfo();
+  if(brInfo){ toast(`N${id} 추가 · 분기 → 세그먼트 ${segLetter(brInfo.seg)} 시작 (본관 ${segLetter(brInfo.parent)} 로 돌아가려면 칩 ${segLetter(brInfo.parent)} 또는 [↩ 본관 계속])`,true); return; }
   const tlabel={run:'직관',bend:'밴드',branch:'분기'}[state.segType];
-  toast(`N${id} 추가${from?` · ${tlabel} · 세그먼트 ${state.segId} (N${from.id}→N${id})`:''}`,true);
+  toast(`N${id} 추가${from?` · ${tlabel} · 세그먼트 ${segLetter(state.segId)} (N${from.id}→N${id})`:''}`,true);
 }
 function startNewSegment(){
   if(!state.nodes.length){ toast('먼저 절점을 추가하세요',false); return; }
   // lock current (spec-less) segment's elements to the CURRENT form spec before changing it
   const sp=currentFormSpec();
   state.elems.forEach(e=>{ if((e.segId||0)===state.segId && !e.spec) e.spec=sp; });
-  state.segId++;
+  { const prev=state.segId||0; state.segId=state.elems.reduce((mx,e)=>Math.max(mx,e.segId||0),prev)+1;   /* v27-B1: 분기 segId 와 충돌하지 않게 최대+1 */
+    if(!state.segMeta) state.segMeta={}; state.segMeta[state.segId]={kind:'spec',parent:prev,atNode:(state.fromNode!=null?state.fromNode:null)}; }
   toast(`세그먼트 ${state.segId} 시작 — 좌측에서 온도·압력·규격 등 새 스펙을 입력한 뒤 이어서 절점을 추가하세요.`,true);
   updSegInfo();
 }
@@ -4668,12 +4836,16 @@ function segIdsInUse(){
 }
 function renderSegChips(){
   const box=$('#segChips'); if(!box)return;
+  const meta=state.segMeta||{};   /* v27-B1 */
   box.innerHTML=segIdsInUse().map(id=>{
     const nEl=state.elems.filter(e=>(e.segId||0)===id).length;
-    return `<span class="segchip${id===(state.segId||0)?' on':''}" data-sid="${id}" style="--sc:${segColor(id)}" title="세그먼트 ${segLetter(id)} — 요소 ${nEl}개. 클릭=활성화(이후 절점이 이 세그먼트로 추가되고 From 이 마지막 절점으로 전환)">${segLetter(id)}<i style="font-style:normal;font-weight:400;color:var(--dim2);font-size:9px">${nEl}</i></span>`;
+    const m=meta[id]; const isBr=!!(m&&m.kind==='branch');
+    const tip=isBr?` ← ${segLetter(m.parent||0)}${m.atNode!=null?' @N'+m.atNode:''} (분기)`:((m&&m.kind==='spec')?` (스펙구간, ${segLetter(m.parent||0)} 이후)`:'');
+    return `<span class="segchip${id===(state.segId||0)?' on':''}" data-sid="${id}" style="--sc:${segColor(id)}" title="세그먼트 ${segLetter(id)}${tip} — 요소 ${nEl}개. 클릭=활성화(이후 절점이 이 세그먼트로 추가되고 From 이 마지막 절점으로 전환)">${segLetter(id)}${isBr?'<i class="brmark">↳</i>':''}<i style="font-style:normal;font-weight:400;color:var(--dim2);font-size:9px">${nEl}</i></span>`;
   }).join('')+`<span class="segchip new" id="segNewChip" title="현재 폼 스펙을 지금 세그먼트에 잠그고 새 세그먼트를 시작합니다">＋ 새 세그먼트</span>`;
   box.querySelectorAll('.segchip[data-sid]').forEach(ch=>ch.onclick=()=>activateSegment(parseInt(ch.dataset.sid)));
   const nc=$('#segNewChip'); if(nc)nc.onclick=startNewSegment;
+  if(typeof updBranchPad==='function') updBranchPad();   /* v27-B1: [↩ 본관 계속] 표시 동기화 */
 }
 function activateSegment(sid){
   state.segId=sid;
@@ -4750,6 +4922,8 @@ function delNode(id){
   pushHist();
   state.nodes=state.nodes.filter(n=>n.id!==id);
   state.elems=state.elems.filter(e=>e.from!==id&&e.to!==id);
+  { const used=new Set(state.elems.map(e=>e.segId||0)); Object.keys(state.segMeta||{}).forEach(k=>{   /* v27-V05: 요소가 모두 사라진 세그먼트의 segMeta 고아 항목 제거(활성 세그먼트는 유지), 지워진 절점을 가리키는 atNode 는 null */
+      const m=state.segMeta[k]; if(!used.has(+k)&&(state.segId||0)!==+k) delete state.segMeta[k]; else if(m&&m.atNode===id) m.atNode=null; }); }   /* v27-F5 */
   if(state.sel===id)state.sel=null;
   if(state.fromNode===id)state.fromNode=state.nodes.length?state.nodes[state.nodes.length-1].id:null;
   requestFit(); refreshAll();
@@ -4774,14 +4948,16 @@ function insertNode(){
   const a=nodeById(e.from), b=nodeById(e.to);
   const id=state.nextId; state.nextId+=10;
   state.nodes.push({id,x:(a.x+b.x)/2,y:(a.y+b.y)/2,z:(a.z+b.z)/2,att:[]});
-  e.to=id; state.elems.push({from:id,to:b.id});
+  e.to=id; state.elems.push({from:id,to:b.id,segId:e.segId,spec:e.spec?{...e.spec}:undefined});   /* v27-V04: 중간 삽입 요소는 원 요소의 segId·spec 승계 (분기 세그먼트 안에 segId 0 요소가 생겨 세그먼트 분해·NTL 수출이 깨지던 문제) */   /* v27-F4 */
   state.sel=id; state.fromNode=id; requestFit(); refreshAll();
   toast(`N${id} 중간 삽입 (N${a.id}–N${b.id})`,true);
 }
 function startBranch(){
   if(state.sel==null){toast('분기 기준 절점을 선택하세요',false);return;}
   state.fromNode=state.sel; fillFromNode();
-  toast(`N${state.sel}에서 분기 시작 — 좌표 입력 후 절점 추가`,true);
+  setSegType('branch');   /* v27-B1: 구간유형 '분기' 전환(버튼 .on 동기화, #segBranchRow 표시) + 방향 패드 가용성 갱신(B2) */
+  const sec=$('#s-node'); if(sec) sec.classList.remove('closed');
+  toast(`N${state.sel}에서 분기 시작 — 분기 형식·방향(·각도) 선택 후 [+ 절점 추가] → 새 세그먼트로 분기 진행`,true);
 }
 function selectNode(id){
   if(typeof ATT_EDIT!=='undefined'&&ATT_EDIT&&ATT_EDIT.node!==id) endAttEdit();   /* v24-F7: 절점 변경 시 편집 해제 */
@@ -4985,10 +5161,11 @@ function renderNodes(){
       if(tc==='rel')return `<span style="color:#7fb0d0">${d}</span>`;
       return `${a}<br><span style="font-size:8.5px;color:#5d7088">Δ${d}</span>`;
     };
-    /* v25-F10/F13: 소속 세그먼트 뱃지(색상) */
-    const eSeg=state.elems.find(e=>e.to===n.id)||state.elems.find(e=>e.from===n.id);
-    const sid=eSeg?(eSeg.segId||0):0;
-    tr.innerHTML=`<td class="nid">N${n.id}<span class="segb" style="background:${segColor(sid)}" title="세그먼트 ${segLetter(sid)}">${segLetter(sid)}</span></td>
+    /* v25-F10/F13 → v27-B1: 절점에 닿는 세그먼트 문자를 모두(중복 제거, 최대 3개) 표시 — 티 절점은 'A B' */
+    const sids=[...new Set(state.elems.filter(e=>e.to===n.id||e.from===n.id).map(e=>e.segId||0))].sort((a,b)=>a-b).slice(0,3);
+    if(!sids.length) sids.push(0);
+    const segBadges=sids.map(sid=>`<span class="segb" style="background:${segColor(sid)}" title="세그먼트 ${segLetter(sid)}">${segLetter(sid)}</span>`).join('');
+    tr.innerHTML=`<td class="nid">N${n.id}${segBadges}</td>
       <td>${cell(n.x,p?n.x-p.x:0)}</td><td>${cell(n.y,p?n.y-p.y:0)}</td><td>${cell(n.z,p?n.z-p.z:0)}</td>
       <td>${attBadges(n.att)}</td>`;
     tr.onclick=()=>selectNode(n.id);
@@ -5006,6 +5183,7 @@ function refreshAll(){
   if(state.result){ state.result=null; }   // model changed: stale result -> back to preview
   renderNodes(); renderAttPanel(); fillFromNode();   // renderNodes redraws preview (fits to screen)
   if(renderer && state.nodes.length<2){ clearMeshes(); $('#legend').style.display='none'; $('#animBar').style.display='none'; }
+  if(typeof renderSegChips==='function') renderSegChips();   /* v27-F10: 병합 로드 등 모든 모델 변경 후 칩 갱신 (중복 렌더 무해) */
   if(typeof autosaveSession==='function') autosaveSession();
 }
 
@@ -5034,7 +5212,8 @@ function gatherInput(){
   return Object.assign({}, sp, {
     k_occ:optNum('#mKocc',1.15), occG:optNum('#mOccG',0.3), upAxis:state.upAxis,   /* v26-E14: Builder-2: <select id="mKocc">(1.15|1.2), <input id="mOccG"> */
     nodes:state.nodes.map(n=>({id:n.id,x:n.x,y:n.y,z:n.z,att:(n.att||[]).map(a=>({...a})),apName:n.apName})),   /* v26-I9 */
-    elems:state.elems.map(e=>({...e}))
+    elems:state.elems.map(e=>({...e})),
+    segMeta:JSON.parse(JSON.stringify(state.segMeta||{}))   /* v27-B5: 엔진 segTopo 용 */
   });
 }
 
@@ -5046,6 +5225,7 @@ function serializeModel(){
     app:'B31.1-PSA', version:1, savedAt:new Date().toISOString(),
     units:U.sys, upAxis:state.upAxis, coordMode:state.coordMode, view:state.view,
     nextId:state.nextId, segId:state.segId||0, material:mat,
+    segMeta:JSON.parse(JSON.stringify(state.segMeta||{})),   /* v27-B1: {segId:{kind,parent,atNode}} */
     engineOptions:Object.assign({},PSA.OPTIONS),   /* v22: 엔진 보정 옵션 저장 */
     engineOptionsR2:Object.assign({},PSA.OPTIONS_R2), resultOptions:Object.assign({},PSA.RESULT),   /* v26: R2 보정·결과 관례 옵션 저장 */
     meta:Object.assign({},state.meta||{}),   /* v26-C4: 보고서 표지 정보 */
@@ -5103,6 +5283,11 @@ function applyLoadedModel(data, opt={}){
   state.nodes=data.nodes.map(n=>({id:n.id,x:+n.x,y:+n.y,z:+n.z,att:(n.att||[]).map(a=>({...a})),apName:(n.apName!=null?n.apName:undefined)}));   /* v26-I9: AutoPIPE 점명 복원 */
   state.elems=data.elems.map(e=>({from:e.from,to:e.to,segId:e.segId||0,spec:e.spec?{...e.spec}:undefined}));
   state.segId=data.segId||0;
+  state.segMeta=(data.segMeta&&typeof data.segMeta==='object')?JSON.parse(JSON.stringify(data.segMeta)):{};   /* v27-B1: 없으면 {} (하위호환) */
+  if(!Object.keys(state.segMeta).length&&state.elems.some(e=>(e.segId||0)>0)){   /* v27-V03: 구버전 파일 — 위상으로 segMeta 추정(칩 ↳·[↩ 본관 계속]·보고서 3.3a 용, 엔진 segTopo 와 동일 규칙) */
+    const byS={}; state.elems.forEach(e=>{ const s=e.segId||0; if(!byS[s]) byS[s]={first:e.from,last:e.to}; byS[s].last=e.to; });
+    Object.keys(byS).forEach(k=>{ const s=+k; if(!s) return; const f=byS[s].first; const oth=state.elems.find(e=>(e.segId||0)!==s&&(e.to===f||e.from===f)); if(!oth) return; const os=oth.segId||0;
+      const cont=!!(byS[os]&&byS[os].last===f&&!state.elems.some(e=>(e.segId||0)===os&&e.from===f)); state.segMeta[s]={kind:cont?'spec':'branch',parent:os,atNode:f}; }); }   /* v27-F3 */
   /* v22: 엔진 보정 옵션 복원 — 파일에 없으면(구버전 저장본) 기본 전부 ON */
   Object.keys(PSA.OPTIONS).forEach(k=>{ PSA.OPTIONS[k]=data.engineOptions?data.engineOptions[k]!==false:true; });
   /* v26: R2 보정·결과 관례 옵션 복원 — 저장본에 없으면(v25 이전 파일) 현재 설정 유지(기본 v26). 재현이 필요하면 PSA.applyPreset('v25') */
@@ -5130,7 +5315,11 @@ function mergeLoadedModel(data){
   data.nodes.forEach((n,i)=>{ idmap[n.id]=base+i*10; });
   let added=0;
   data.nodes.forEach(n=>{ state.nodes.push({id:idmap[n.id],x:+n.x,y:+n.y,z:+n.z,att:(n.att||[]).map(a=>({...a}))}); added++; });
-  data.elems.forEach(e=>{ if(idmap[e.from]!=null&&idmap[e.to]!=null) state.elems.push({from:idmap[e.from],to:idmap[e.to],segId:(state.segId||0)+1+(e.segId||0),spec:e.spec?{...e.spec}:undefined}); });
+  const segOff=state.elems.reduce((m,e)=>Math.max(m,e.segId||0),state.segId||0)+1;   /* v27-B1: 기존 최대 segId+1 부터 */
+  data.elems.forEach(e=>{ if(idmap[e.from]!=null&&idmap[e.to]!=null) state.elems.push({from:idmap[e.from],to:idmap[e.to],segId:segOff+(e.segId||0),spec:e.spec?{...e.spec}:undefined}); });
+  if(!state.segMeta) state.segMeta={};
+  Object.keys(data.segMeta||{}).forEach(k=>{ const m=data.segMeta[k]; if(!m) return;   /* v27-B1: segMeta 재매핑 */
+    state.segMeta[segOff+(+k||0)]={kind:m.kind||'run',parent:(m.parent!=null?segOff+(+m.parent||0):null),atNode:(m.atNode!=null&&idmap[m.atNode]!=null)?idmap[m.atNode]:null}; });
   state.segId=state.elems.reduce((m,e)=>Math.max(m,e.segId||0),0);
   state.nextId=state.nodes.length?Math.max(...state.nodes.map(n=>n.id))+10:10;
   state.sel=null; state.result=null;
@@ -5597,7 +5786,8 @@ function openNodePopup(id){
       det=`곡률반경 R = ${(+CV.len.fromSI(R,U.sys)).toFixed(0)} ${L.len}${a.bendKind?` (${a.bendKind.toUpperCase()})`:''}`+(sif?`<br>SIF i = ${sif.toFixed(2)}`:'');
     } else if(a.kind==='tee'){
       const tt=({welding:'용접티',reinforced:'보강분기',unreinforced:'무보강분기',weldolet:'웰돌렛',lateral:'Y(래터럴)'})[a.teeType||'welding'];
-      det=`형식 ${tt}`+(a.teeType==='lateral'&&a.branchAngle?` · 분기각 ${a.branchAngle}°`:'')+(a.branchDN?` · 분기관경 ${a.branchDN}(이경)`:'')+(sif?`<br>SIF i = ${sif.toFixed(2)}`:'');
+      det=`형식 ${tt}`+(a.teeType==='lateral'&&a.branchAngle?` · 분기각 ${a.branchAngle}°`:'')+(a.branchDN?` · 분기관경 ${a.branchDN}(이경)`:'')
+         +(a.branchDir?` · 분기방향 ${a.branchDir}`:'')+((nr&&nr.teeAngle!=null)?` · 기하각 ${(+nr.teeAngle).toFixed(1)}°`:'')+(sif?`<br>SIF i = ${sif.toFixed(2)}`:'');   /* v27-B6 */
     } else if(a.kind==='reducer'){
       det=`관경 전환 ${a.dnLarge||'?'} → ${a.dnSmall||'?'}`+(sif?`<br>SIF i = ${sif.toFixed(2)}`:'');
     } else if(['vspring_hanger','vspring_support','constant_hanger','constant_support'].includes(a.kind)){
@@ -6073,6 +6263,12 @@ function renderSummary(){
        <tr><td style="color:#8a97aa">최대 열변위</td><td colspan="2">${D.dsp(s.maxDisp).toFixed(2)} ${L.dsp} @ ${nodeLabel(s.maxDispNode)}</td></tr>
        <tr><td style="color:#8a97aa">절점 / element</td><td colspan="2">${s.nNode-(s.nNodeGen||0)} / ${s.nElem}${s.nNodeGen?` <span style="font-size:9px;color:#7c93a8">(+ 경간 내부 평가점 ${s.nNodeGen})</span>`:''}</td></tr>
      </tbody></table>
+     ${(r.segTopo&&r.segTopo.length>1)?`
+     <h4 style="font-size:10px;letter-spacing:.8px;color:#8a97aa;text-transform:uppercase;margin:14px 0 7px">세그먼트 구성 · Segment Topology (${r.segTopo.length}개)</h4>
+     <table class="rtab"><thead><tr><th>문자</th><th>종류</th><th>첫→끝</th><th>요소</th><th>연장 (m)</th></tr></thead><tbody>
+     ${r.segTopo.map(sg=>`<tr><td class="nid" style="color:${segColor(sg.segId)}">${segLetter(sg.segId)}</td><td style="font-size:9px">${sg.kind==='branch'?`분기 ← ${segLetter(sg.parent||0)}${sg.atNode!=null?' @N'+sg.atNode:''}`:(sg.kind==='spec'?'스펙구간':'본관')}</td>
+       <td style="font-size:9px">N${sg.first} → N${sg.last}</td><td>${sg.nElem}</td><td>${(+sg.length).toFixed(2)}</td></tr>`).join('')}
+     </tbody></table>`:''}
      ${(r.segments&&r.segments.length>1)?`
      <h4 style="font-size:10px;letter-spacing:.8px;color:#8a97aa;text-transform:uppercase;margin:14px 0 7px">세그먼트별 스펙 · Segment Specs (${r.segments.length}개)</h4>
      <table class="rtab"><thead><tr><th>#</th><th>규격·재질</th><th>온도/압력</th><th>t_m/가용</th><th>압력</th></tr></thead><tbody>
@@ -6233,7 +6429,7 @@ function makeReport(){
   const occG=(r.occG!=null)?r.occG:(s.occG!=null?s.occG:0.3);
   const occDirs=(r.occDirs&&r.occDirs.length)?r.occDirs:(s.occDirs&&s.occDirs.length?s.occDirs:['X']);
   const occTxt=`${num(occG,2)} g 수평 ${occDirs.length>1?occDirs.join('·')+' 2축 각각 해석 후 절점별 포락':'단축 '+occDirs[0]+' 단일 케이스'}`;
-  const APP_VER=(function(){const b=document.querySelector('.brand .v');return b?b.textContent.trim():'';})()||'PSA B31.1 v26.1';   /* v26.1 */
+  const APP_VER=(function(){const b=document.querySelector('.brand .v');return b?b.textContent.trim():'';})()||'PSA B31.1 v27';   /* v26.1 / v27 */
 
   /* ---------- 뷰포트 캡처 ---------- */
   let img='';
@@ -6336,7 +6532,12 @@ function makeReport(){
     return `<tr>${td('N'+n.id)}${RO.apPointNames?td(esc(n.apName||'-')):''}${tdr(num(n.x,3))}${tdr(num(n.y,3))}${tdr(num(n.z,3))}
       ${tdr(p?num(n.x-p.x,3):'-')}${tdr(p?num(n.y-p.y,3):'-')}${tdr(p?num(n.z-p.z,3):'-')}${td(esc(attText(n)))}</tr>`;}).join('');
   const elemGeom=elemsIn.map((e,k)=>`<tr>${td('E'+(k+1))}${tdc('N'+e.from)}${tdc('N'+e.to)}${tdr(num(elemLen(e),3))}${tdc(e.segId!=null?e.segId:0)}${td(e.spec?esc((e.spec.sizeLabel||'')+' · '+(e.spec.matKey||'')+' · '+(e.spec.Tdesign!=null?e.spec.Tdesign+'℃':'')+'/'+(e.spec.P!=null?e.spec.P+'MPa':'')+(e.spec.mtol!=null?' · mtol '+num(e.spec.mtol*100,2)+'%':'')+(e.spec.W!=null&&e.spec.W!==1?' · W '+num(e.spec.W,2):'')):'기본 스펙')}</tr>`).join('');
-  const attEcho=nodesM.flatMap(n=>(n.att||[]).map(a=>`<tr>${td('N'+n.id)}${td(esc(attName(a)))}${td(esc(a.kind))}${td(attDetail(a)||'-')}</tr>`)).join('')||`<tr><td colspan="4">부속·지지 없음</td></tr>`;
+  const teeGeo=(n,a)=>{ if(a.kind!=='tee') return ''; const q=resById[n.id]; const p=[];   /* v27-B5: 티 절점 행에 방향·입력각·기하각 */
+    if(a.branchDir) p.push('방향 '+esc(a.branchDir)); if(a.branchAngle) p.push('입력각 '+num(a.branchAngle,0)+'°');
+    if(q&&q.teeAngle!=null) p.push('각 '+num(q.teeAngle,1)+'°');
+    (r.segTopo||[]).filter(sg=>sg.kind==='branch'&&sg.atNode===n.id).forEach(sg=>p.push('분기 '+segLetter(sg.segId)+': '+esc(sg.specLabel||'')));   /* v27-V08: AutoPIPE Tee Data Listing 의 B-Branch 행(분기 세그먼트 OD/두께/재질) 대응 */
+    return p.length?', '+p.join(', '):''; };   /* v27-F8 */
+  const attEcho=nodesM.flatMap(n=>(n.att||[]).map(a=>`<tr>${td('N'+n.id)}${td(esc(attName(a)))}${td(esc(a.kind))}${td((attDetail(a)+teeGeo(n,a))||'-')}</tr>`)).join('')||`<tr><td colspan="4">부속·지지 없음</td></tr>`;
   const isAnchorKind=k=>/anchor|nozzle|hx/.test(String(k||''));
   const z6={fx:0,fy:0,fz:0,mx:0,my:0,mz:0,mag:0,mmag:0};
   const F6=(v,bold)=>{ v=v||z6; const w=x=>bold?'<b>'+x+'</b>':x; const mag=(v.mag!=null)?v.mag:Math.hypot(v.fx||0,v.fy||0,v.fz||0); const mm=(v.mmag!=null)?v.mmag:Math.hypot(v.mx||0,v.my||0,v.mz||0);
@@ -6487,6 +6688,10 @@ function makeReport(){
    <td style="vertical-align:top;border:none"><table><tr><th>T (℃)</th><th>α 평균 (×10⁻⁶/℃)</th></tr>${matTbl(matRef.Ta||matRef.T,matRef.a,(v,k)=>(k===0&&!(v>0))?'(20℃ 항 보정'+(R2.alphaLowT?' 적용':' 미적용')+')':num(v*1e6,2))}</table></td></tr></table>`:''}
   <h3>3.3 단면 특성</h3>
   <p class="note">공칭(t<sub>n</sub>) 기준: A = ${num(r.sec0&&r.sec0.A,0)} mm², I = ${num(r.sec0&&r.sec0.I/1e4,0)} cm⁴, Z = ${num(r.sec0&&r.sec0.Z/1000,1)} cm³ · 부식 후(t<sub>n</sub>−A) 기준: A = ${num(r.secC&&r.secC.A,0)} mm², I = ${num(r.secC&&r.secC.I/1e4,0)} cm⁴, Z = ${num(r.secC&&r.secC.Z/1000,1)} cm³. <b>응력 계산 단면: ${R2.zNominal?'공칭(E16 옵션)':'부식 후'}</b>. 단위 자중 w = ${num((r.wlin||0)*1000,0)} N/m (강관 + 유체 SG ${num(inp.SG,2)} + 보온).</p>
+  ${(r.segTopo&&r.segTopo.length)?`<h3>3.3a 세그먼트 구성 (Segment Data)</h3>
+  <p class="note">세그먼트 = 연속 점 체인(AutoPIPE Segment Data Listing 대응). 분기 세그먼트의 첫 절점은 본관의 티 절점(공유 점)이다.</p>
+  <table><tr><th>문자</th><th>종류</th><th>첫 절점</th><th>끝 절점</th><th>요소 수</th><th>연장 (m)</th><th>스펙</th></tr>
+   ${r.segTopo.map(sg=>`<tr>${td(segLetter(sg.segId))}${td(sg.kind==='branch'?`분기 ← ${segLetter(sg.parent||0)}${sg.atNode!=null?' @N'+sg.atNode:''}`:(sg.kind==='spec'?'스펙구간':'본관'))}${td('N'+sg.first)}${td('N'+sg.last)}${tdr(sg.nElem)}${tdr(num(sg.length,2))}${td(esc(sg.specLabel||''))}</tr>`).join('')}</table>`:''}
   ${segs.length>1?`<h3>3.4 세그먼트별 스펙</h3><table><tr><th>#</th><th>규격·재질</th><th>P (MPa)</th><th>T (℃)</th><th>S<sub>c</sub> / S<sub>h</sub> (MPa)</th><th>A (mm)</th><th>밀공차</th><th>W</th></tr>
    ${segs.map((sg,i)=>`<tr>${td(i+1)}${td(esc(sg.label||sg.sizeLabel))}${tdr(num(sg.P,2))}${tdr(num(sg.Tdesign,1))}${tdr(num(sg.Sc,1)+' / '+num(sg.Sh,1))}${tdr(num(sg.CA,2))}${tdr(num((sg.mtol!=null?sg.mtol:mtol0)*100,2)+'%')}${tdr(num(sg.W!=null?sg.W:W0,2))}</tr>`).join('')}</table>`:''}
 
@@ -6696,6 +6901,7 @@ function loadSampleA(){
     {id:70,x:12,y:3,z:8,att:[{kind:'constant_hanger',form:'single'},{kind:'guide'}]},
     {id:80,x:16,y:3,z:8,att:[{kind:'hx'}]}
   ];
+  state.segMeta={};   /* v27-B1 */
   state.elems=[{from:10,to:20},{from:20,to:30},{from:30,to:40},{from:40,to:50},
                {from:50,to:55},{from:55,to:60},{from:60,to:70},{from:70,to:80}];
   $('#mMat').value='A106-B'; $('#mNps').value='DN150'; fillSch(); $('#mSch').value='40';
@@ -6743,6 +6949,7 @@ function loadSampleD(){
   const byIds=[20,200,205,210,220,230,240,250,260];
   for(let i=0;i<byIds.length-1;i++) state.elems.push({from:byIds[i],to:byIds[i+1],segId:1,spec:bypass});
   state.segId=1;   // bypass is segment 1
+  state.segMeta={1:{kind:'branch',parent:0,atNode:20}};   /* v27-B6: 바이패스 = N20 에서 분기한 세그먼트 B (B1 규칙) */
   // form = SEG0 main spec (600℃ DN700 P92)
   $('#mMat').value='A335-P92';
   $('#mNps').value='custom'; fillSch();
@@ -6775,6 +6982,7 @@ function loadSampleC(){
     {id:140,x:51, y:0, z:0, att:[{kind:'vspring_hanger',form:'single',rate:250},{kind:'snubber',form:'single',dir:'lateral'},{kind:'snubber',form:'single',dir:'axial'}]},
     {id:150,x:56, y:0, z:0, att:[{kind:'nozzle'}]}
   ];
+  state.segMeta={};   /* v27-B1 */
   state.elems=[]; for(let i=0;i<state.nodes.length-1;i++) state.elems.push({from:state.nodes[i].id,to:state.nodes[i+1].id});
   $('#mMat').value='A335-P92';
   $('#mNps').value='custom'; fillSch();
@@ -6803,6 +7011,7 @@ function loadSampleB(){
     {id:110,x:56, y:0, z:0, att:[{kind:'snubber',form:'single',dir:'lateral'}]},      // seismic snubber (occasional only)
     {id:120,x:64, y:0, z:0, att:[{kind:'nozzle'}]}                                     // turbine stop-valve nozzle (anchor)
   ];
+  state.segMeta={};   /* v27-B1 */
   state.elems=[{from:10,to:20},{from:20,to:30},{from:30,to:40},{from:40,to:50},
                {from:50,to:60},{from:60,to:70},{from:70,to:80},{from:80,to:90},
                {from:90,to:100},{from:100,to:110},{from:110,to:120}];
@@ -6877,7 +7086,7 @@ function bind(){
   $$('#unitSys button').forEach(b=>b.onclick=()=>switchUnits(b.dataset.u));
   $$('#coordMode button').forEach(b=>b.onclick=()=>{state.coordMode=b.dataset.c;
     $$('#coordMode button').forEach(x=>x.classList.toggle('on',x===b)); updCoordLabels();});
-  $('#fromNode').addEventListener('change',e=>{state.fromNode=parseInt(e.target.value)||null; updCoordPrev();});
+  $('#fromNode').addEventListener('change',e=>{state.fromNode=parseInt(e.target.value)||null; updCoordPrev(); updBranchPad();});   /* v27-B2 */
   ['#nX','#nY','#nZ'].forEach(s=>$(s).addEventListener('input',updCoordPrev));
   $('#btnAddNode').onclick=addNode;
   $('#btnUndo').onclick=undo;
@@ -6900,27 +7109,27 @@ function bind(){
   $('#btnAddAtt').onclick=addAttachment;
   $$('#treeCoord button').forEach(b=>b.onclick=()=>{state.treeCoord=b.dataset.tc;
     $$('#treeCoord button').forEach(x=>x.classList.toggle('on',x===b)); renderNodes();});
-  $$('#segType button').forEach(b=>b.onclick=()=>{state.segType=b.dataset.s;
-    $$('#segType button').forEach(x=>x.classList.toggle('on',x===b));
-    $('#segBendRow').style.display = state.segType==='bend'?'':'none';
-    $('#segBranchRow').style.display = state.segType==='branch'?'':'none';
-    if(state.segType==='bend'){ $('#segBendRrow').style.display = ($('#segBendKind').value==='custom')?'':'none'; }
-    else $('#segBendRrow').style.display='none';
-  });
+  $$('#segType button').forEach(b=>b.onclick=()=>setSegType(b.dataset.s));   /* v27-B1: 공용 전환 함수(.on·행 표시·방향 패드 동기화) */
   $('#segBendKind').addEventListener('change',()=>{
     const cust=$('#segBendKind').value==='custom'; $('#segBendRrow').style.display=cust?'':'none';
     if(cust && !$('#segR').value){const Rmm=1.5*(resolveSize().od||168.3);$('#segR').value=(+CV.len.fromSI(Rmm,U.sys)).toFixed(U.sys==='US'?2:0);}
   });
-  $('#segTeeType').addEventListener('change',()=>{ $('#segTeeAngleFld').style.display=($('#segTeeType').value==='lateral')?'':'none'; });
-  $$('#segBrDir button').forEach(b=>b.onclick=()=>{
+  $('#segTeeType').addEventListener('change',()=>{ const lat=($('#segTeeType').value==='lateral');
+    $('#segTeeAngleFld').style.display=lat?'':'none'; const lr=$('#segLeanRow'); if(lr) lr.style.display=lat?'':'none';
+    if($('#segBrDir button.on')) applyBranchDelta(); });   /* v27-B2 */
+  $$('#segBrDir button').forEach(b=>b.onclick=()=>{   /* v27-B2: 방향 + 각도·기울기 → Δ (본관 축과 평행한 버튼은 거부) */
+    if(b.classList.contains('dis')){ toast('본관 축과 같은 방향 — 분기 불가 (다른 방향을 선택하세요)',false); return; }
     $$('#segBrDir button').forEach(x=>x.classList.toggle('on',x===b));
-    const d=b.dataset.d, sign=d[0]==='-'?-1:1, axis=d[1], len=parseFloat($('#segBrLen').value)||3;
-    if(state.coordMode!=='rel'){ state.coordMode='rel'; $$('#coordMode button').forEach(x=>x.classList.toggle('on',x.dataset.c==='rel')); updCoordLabels(); }
-    $('#nX').value = axis==='X'?(sign*len).toFixed(2):'0';
-    $('#nY').value = axis==='Y'?(sign*len).toFixed(2):'0';
-    $('#nZ').value = axis==='Z'?(sign*len).toFixed(2):'0';
-    updCoordPrev();
+    applyBranchDelta();
   });
+  /* v27-B2: 분기길이·각도 입력, 기울기 토글 변경 시 패드 선택이 있으면 Δ 재계산 */
+  ['#segBrLen','#segTeeAngle'].forEach(s=>{ const el=$(s); if(el) el.addEventListener('input',()=>{ if($('#segBrDir button.on')) applyBranchDelta(); }); });
+  $$('#segLean button').forEach(b=>b.onclick=()=>{ state.brLean=b.dataset.l; $$('#segLean button').forEach(x=>x.classList.toggle('on',x===b)); if($('#segBrDir button.on')) applyBranchDelta(); });
+  /* v27-B1: ↩ 본관 계속 — 활성 분기 세그먼트의 부모로 복귀(From = 본관 마지막 절점) + 구간유형 직관 */
+  { const bh=$('#btnBackToHeader'); if(bh) bh.onclick=()=>{ const m=(state.segMeta||{})[state.segId||0];
+      if(!(m&&m.kind==='branch')){ toast('활성 세그먼트가 분기 세그먼트가 아닙니다',false); return; }
+      const par=m.parent||0; activateSegment(par); setSegType('run');
+      toast(`본관 ${segLetter(par)} 로 복귀 — 이후 절점은 본관 세그먼트에 귀속 (From = 본관 마지막 절점)`,true); }; }
   $('#btnNewSeg').onclick=startNewSegment;
   /* v25-F11: 세그먼트 스펙 편집 버튼 */
   if($('#btnSegSpecLoad'))$('#btnSegSpecLoad').onclick=()=>loadSegSpecToForm(state.segId||0);
@@ -6952,7 +7161,7 @@ function bind(){
   ctr.addEventListener('drop',e=>{ e.preventDefault(); dragN=0; dz.classList.remove('show');
     const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
     if(f && /\.(json|ntl|dat)$/i.test(f.name)) loadModelFile(f); else if(f) toast('모델 파일(.json/.ntl/.dat)만 열 수 있습니다',false); }); /* v22-SA5 */
-  $('#btnClear').onclick=()=>{state.nodes=[];state.elems=[];state.sel=null;state.fromNode=null;state.result=null;state.segId=0;
+  $('#btnClear').onclick=()=>{state.nodes=[];state.elems=[];state.sel=null;state.fromNode=null;state.result=null;state.segId=0;state.segMeta={};state.nextId=10;   /* v27-B1 / v27-F11: nextId 리셋 */
     HIST=[];REDO=[];updHistBtns(); updSegInfo();
     $('#nodePop').classList.remove('show'); $('#labelLayer').innerHTML='';
     refreshAll();clearMeshes();switchTab('sum');$('#logCnt').textContent=0;$('#vpEmpty').style.display='flex';};
