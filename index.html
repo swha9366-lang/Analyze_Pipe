@@ -5573,7 +5573,8 @@ function snapCand(c){   // deep snapshot preserving change records
     elems: c.elems.map(e => ({ ...e, spec: e.spec?{...e.spec}:undefined })),
     spec: {...c.spec}, nextId: c.nextId, log: c.log.slice(), changes: c.changes.map(x=>({...x})),   /* v27.1-AF-10: 변경 객체 깊은 복사(시험 행동이 공유 객체를 오염) */
     changedNodes: [...c.changedNodes],
-    _loopKeys:[...(c._loopKeys||[])], _loopList:(c._loopList||[]).map(l=>({ids:l.ids.slice(),up:l.up.slice(),H:l.H})), _loops:c._loops||0, _relaxed:c._relaxed||0   /* v27.1-AF-8 */
+    _loopKeys:[...(c._loopKeys||[])], _loopList:(c._loopList||[]).map(l=>({ids:l.ids.slice(),up:l.up.slice(),H:l.H})), _loops:c._loops||0, _relaxed:c._relaxed||0,   /* v27.1-AF-8 */
+    _midKeys:[...(c._midKeys||[])]   /* v27.1-AF-11 */
   };
 }
 /* v27.1-AF-8: 스냅샷 → 후보 객체 (시험 행동용 깊은 복사) */
@@ -5581,7 +5582,8 @@ function restoreCand(sn){
   return { nodes:sn.nodes.map(n=>({id:n.id,x:n.x,y:n.y,z:n.z,att:(n.att||[]).map(a=>({...a})),apName:n.apName})),
     elems:sn.elems.map(e=>({...e,spec:e.spec?{...e.spec}:undefined})), spec:{...sn.spec}, nextId:sn.nextId,
     log:sn.log.slice(), changes:sn.changes.map(x=>({...x})), changedNodes:new Set(sn.changedNodes),   /* v27.1-AF-10 */
-    _loopKeys:new Set(sn._loopKeys||[]), _loopList:(sn._loopList||[]).map(l=>({ids:l.ids.slice(),up:l.up.slice(),H:l.H})), _loops:sn._loops||0, _relaxed:sn._relaxed||0 };
+    _loopKeys:new Set(sn._loopKeys||[]), _loopList:(sn._loopList||[]).map(l=>({ids:l.ids.slice(),up:l.up.slice(),H:l.H})), _loops:sn._loops||0, _relaxed:sn._relaxed||0,
+    _midKeys:new Set(sn._midKeys||[]) };   /* v27.1-AF-11 */
 }
 function vget(n){ return [n.x,n.y,n.z]; }
 function upIdx(){ return state.upAxis==='Y'?1:2; }
@@ -5589,7 +5591,8 @@ function upIdx(){ return state.upAxis==='Y'?1:2; }
 function fixThicken(c,r){
   let did=false;
   const bump=(sp)=>{ const m=PSA.matProps(sp.matKey,sp.Tdesign,sp.Tamb); const tm=sp.P*sp.od/(2*(m.Sh*sp.Eff+sp.P*m.y))+sp.CA;
-    const need=Math.ceil((tm/0.875)*1.03*10)/10; if(need>sp.t){ const old=sp.t; sp.t=need; sp.sch='-'; sp.sizeLabel=`Ø${sp.od}×${need} (보강)`;
+    const mtol=(sp.mtol!=null&&sp.mtol>=0)?sp.mtol:0.125, hoopT=(sp.P*sp.od/(2*(m.Sh*sp.Eff*(sp.W||1)+sp.P*m.y))+(sp.CA||0))/(1-mtol);   /* v27.1-AF-11: 후프(W304)도 만족하는 두께 */
+    const need=Math.ceil(Math.max(tm/(1-mtol), hoopT)*1.03*10)/10; if(need>sp.t){ const old=sp.t; sp.t=need; sp.sch='-'; sp.sizeLabel=`Ø${sp.od}×${need} (보강)`;
       c.changes.push({type:'thicken',label:sp.sizeLabel,from:old,to:need}); return true;} return false; };
   if(bump(c.spec)) did=true;
   for(const e of c.elems){ if(e.spec && bump(e.spec)) did=true; }
@@ -5640,10 +5643,73 @@ function loopCandidates(c,r,n){
   const cand=[];
   for(const e of c.elems){ if(looped.has(key(e))) continue;
     const a=c.nodes.find(x=>x.id===e.from),b=c.nodes.find(x=>x.id===e.to); if(!a||!b)continue;
-    const L=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z); if(L<3.0) continue;
-    cand.push({key:key(e),L,near:Math.max(rmap[a.id]||0, rmap[b.id]||0)}); }
+    const L=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z); if(L<1.5) continue;   /* v27.1-AF-11: 짧은 요소 허용(직관열 길이로 크기 산정) */
+    cand.push({key:key(e),L:runLength(c,e),near:Math.max(rmap[a.id]||0, rmap[b.id]||0)}); }
   cand.sort((p,q)=>(q.near-p.near)||(q.L-p.L));
   return cand.slice(0,n).map(x=>x.key);
+}
+/* v27.1-AF-11: 요소 e 를 포함하는 공선(같은 방향) 직관열의 총 길이 — 중간 절점이 요소 2개·벤드/티 없음·방향 동일이면 이어짐 */
+function runLength(c,e){
+  const N=id=>c.nodes.find(x=>x.id===id); const a0=N(e.from),b0=N(e.to); if(!a0||!b0) return 0;
+  const L0=Math.hypot(b0.x-a0.x,b0.y-a0.y,b0.z-a0.z); if(!(L0>0)) return 0;
+  const d=[(b0.x-a0.x)/L0,(b0.y-a0.y)/L0,(b0.z-a0.z)/L0];
+  const adj=id=>c.elems.filter(x=>x.from===id||x.to===id);
+  const walk=(id,prev,sign)=>{ let tot=0, cur=id, pe=prev;
+    for(let g=0;g<50;g++){ const n=N(cur); if(!n) break; if((n.att||[]).some(x=>x.kind==='bend'||x.kind==='tee'||x.kind==='anchor')) break;
+      const es=adj(cur); if(es.length!==2) break; const ne=es.find(x=>x!==pe); const o=ne.from===cur?ne.to:ne.from; const m=N(o); if(!m) break;
+      const L=Math.hypot(m.x-n.x,m.y-n.y,m.z-n.z); if(!(L>0)) break; const dd=[(m.x-n.x)/L,(m.y-n.y)/L,(m.z-n.z)/L];
+      if(Math.abs(dd[0]*d[0]+dd[1]*d[1]+dd[2]*d[2])<0.999) break; tot+=L; pe=ne; cur=o; }
+    return tot; };
+  return L0+walk(e.to,e,1)+walk(e.from,e,-1);
+}
+/* v27.1-AF-11: 경간 중간 지지 — 실패 절점(지속/일시)에 인접한 가장 긴 요소를 중점에서 분할하고 rest(+스너버) 추가 */
+function midSpanCandidates(c,r,which,n){
+  const done=c._midKeys||new Set(); const key=e=>e.from+'-'+e.to;
+  const rk=which==='occ'?'rOcc':'rSus';
+  const rmap={}; (r.nodeRes||[]).forEach(x=>{ const id=genToParent(x); rmap[id]=Math.max(rmap[id]||0, x[rk]||0); });
+  const cand=[];
+  for(const e of c.elems){ if(done.has(key(e))) continue; const a=c.nodes.find(x=>x.id===e.from),b=c.nodes.find(x=>x.id===e.to); if(!a||!b) continue;
+    const L=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z); if(L<2.0) continue;
+    cand.push({key:key(e),L,near:Math.max(rmap[a.id]||0,rmap[b.id]||0)}); }
+  cand.sort((p,q)=>(q.near-p.near)||(q.L-p.L));
+  return cand.slice(0,n).map(x=>x.key);
+}
+function fixMidSupport(c,k,withSnub){
+  const e=c.elems.find(x=>(x.from+'-'+x.to)===k); if(!e) return false;
+  const a=c.nodes.find(x=>x.id===e.from),b=c.nodes.find(x=>x.id===e.to); if(!a||!b) return false;
+  const id=c.nextId; c.nextId+=10;
+  const att=[{kind:'rest'}]; if(withSnub) att.push({kind:'snubber',form:'single',dir:'lateral'});
+  c.nodes.push({id,x:(a.x+b.x)/2,y:(a.y+b.y)/2,z:(a.z+b.z)/2,att});
+  const sp=e.spec?{...e.spec}:undefined, sg=e.segId||0;
+  c.elems=c.elems.filter(x=>x!==e); c.elems.push({from:a.id,to:id,segId:sg,spec:sp?{...sp}:undefined},{from:id,to:b.id,segId:sg,spec:sp?{...sp}:undefined});
+  (c._midKeys||(c._midKeys=new Set())).add(k); c.changedNodes.add(id);
+  c.changes.push({type:'midsup',node:id,span:[a.id,b.id],snub:!!withSnub});
+  c.log.push(`${withSnub?'일시하중(W303)':'지속/간격(W301/W310)'}: N${a.id}–N${b.id} 경간 중점 N${id} 에 리지드 지지${withSnub?'+횡 스너버':''} 추가`);
+  return true;
+}
+/* v27.1-AF-13: 루프가 지진에 흔들려 일시하중이 초과할 때 — 루프 높이 30 % 축소(열팽창 여유가 있을 때 채택됨) / 루프 절점에 횡·축 스너버 */
+function fixShrinkLoop(c,k){
+  const lp=(c._loopList||[])[k]; if(!lp||lp.H<=4) return false;
+  const dH=lp.H*0.3; const n2=c.nodes.find(x=>x.id===lp.ids[1]), n3=c.nodes.find(x=>x.id===lp.ids[2]); if(!n2||!n3) return false;
+  [n2,n3].forEach(n=>{ n.x-=lp.up[0]*dH; n.y-=lp.up[1]*dH; n.z-=lp.up[2]*dH; c.changedNodes.add(n.id); });
+  lp.H-=dH; const ch=c.changes.find(x=>x.type==='loop'&&x.nodes[0]===lp.ids[0]); if(ch) ch.H=lp.H;
+  c.changes.push({type:'loopgrow',nodes:lp.ids.slice(),H:lp.H}); c.log.push(`일시하중(W303): 루프 N${lp.ids[0]}~N${lp.ids[3]} 높이 ${lp.H.toFixed(1)} m 로 축소`);
+  return true;
+}
+function fixLoopSnubbers(c,k){
+  const lp=(c._loopList||[])[k]; if(!lp) return false; let n=0;
+  for(const id of lp.ids){ const nd=c.nodes.find(x=>x.id===id); if(!nd) continue; nd.att=nd.att||[];
+    for(const dir of ['lateral','axial']){ if(!nd.att.some(a=>a.kind==='snubber'&&a.dir===dir)){ nd.att.push({kind:'snubber',form:'single',dir}); n++; c.changes.push({type:'snubber',node:id,dir}); c.changedNodes.add(id); } } }
+  if(n) c.log.push(`일시하중(W303): 루프 N${lp.ids[0]}~N${lp.ids[3]} 절점에 스너버 ${n}개`);
+  return n>0;
+}
+/* v27.1-AF-11: 일시하중 — 최악 절점에 가이드(횡 구속) */
+function fixGuide(c,r){
+  const worst=(r.nodeRes||[]).filter(x=>x.rOcc>1.0).sort((p,q)=>q.rOcc-p.rOcc).map(genToParent);
+  for(const id of worst){ const nd=c.nodes.find(x=>x.id===id); if(!nd) continue; nd.att=nd.att||[];
+    if(nd.att.some(a=>['guide','anchor','nozzle','hx','line_stop'].includes(a.kind))) continue;
+    nd.att.push({kind:'guide'}); c.changedNodes.add(id); c.changes.push({type:'guide',node:id}); c.log.push(`일시하중(W303): N${id} 가이드 추가`); return true; }
+  return false;
 }
 /* v27.1-AF-9: 기존 루프 k 확대 — 크라운 두 절점을 up 방향으로 0.5H 더 밀어 H×1.5 (≤ 15 m) */
 function fixEnlargeLoop(c,k){
@@ -5665,7 +5731,7 @@ function fixInsertLoop(c,r,forceKey){
   const cand=[];
   for(const e of c.elems){ if(looped.has(key(e))) continue;
     const a=c.nodes.find(x=>x.id===e.from),b=c.nodes.find(x=>x.id===e.to); if(!a||!b)continue;
-    const L=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z); if(L<3.0) continue;              // m
+    const L=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z); if(L<1.5) continue;              // m  /* v27.1-AF-11: 1.5 m */
     const near=Math.max(rmap[a.id]||0, rmap[b.id]||0);   /* v27.1-AF-6: 가장 심한 절점 인접 직관 우선 */
     cand.push({e,L,a,b,near}); }
   if(!cand.length) return false;
@@ -5675,7 +5741,8 @@ function fixInsertLoop(c,r,forceKey){
   const d=[(b.x-a.x)/bl,(b.y-a.y)/bl,(b.z-a.z)/bl];
   let up=[0,0,0]; const vi=upIdx(); up[vi]=1;
   if(Math.abs(d[vi])>0.8){ up=[0,0,0]; up[(vi+1)%3]=1; }
-  const H=Math.min(12, Math.max(3, bl*0.5*Math.min(3,Math.sqrt(worst)))), w=Math.min(bl*0.4,5);   // m  /* v27.1-AF-6 */
+  const Lrun=Math.max(bl, runLength(c,best));   /* v27.1-AF-11: 공선 직관열 길이로 루프 크기 산정 */
+  const H=Math.min(12, Math.max(3, Lrun*0.5*Math.min(3,Math.sqrt(worst)))), w=Math.min(bl*0.4,5);   // m  /* v27.1-AF-6 */
   const mid=[(a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2];
   const P=(t)=>[mid[0]+d[0]*t, mid[1]+d[1]*t, mid[2]+d[2]*t];
   const newIds=[];
@@ -5715,35 +5782,44 @@ function fixRelaxAnchor(c,r){
   c.log.push(`열팽창 과구속(W302): 중간 ${was==='anchor'?'앵커':'라인스톱'} N${best.id} → 가이드로 완화`);
   return true;
 }
-function autoFix(){
+/* v27.1-AF-11: 불합격 유형별 후보 행동 목록 */
+function actionsFor(c,r){
+  const S=r.summary, codes=new Set((r.solutions||[]).map(s=>s.code)); const acts=[];
+  const add=(name,fn)=>acts.push({name,fn});
+  if(S.maxSusR>1.0||codes.has('W301')||codes.has('W310')){ add('support',t=>fixSupports(t,r)); midSpanCandidates(c,r,'sus',2).forEach(k=>add('midsup',t=>fixMidSupport(t,k,false))); }
+  if(S.maxOccR>1.0||codes.has('W303')){ add('snubber',t=>fixSnubbers(t,r)); add('guide',t=>fixGuide(t,r)); midSpanCandidates(c,r,'occ',2).forEach(k=>add('midsup+snub',t=>fixMidSupport(t,k,true)));
+    (c._loopList||[]).forEach((lp,k)=>{ add('loopsnub',t=>fixLoopSnubbers(t,k)); add('loopshrink',t=>fixShrinkLoop(t,k)); }); }   /* v27.1-AF-13 */
+  if(S.maxExpR>1.0||codes.has('W302')){ loopCandidates(c,r,3).forEach(k=>add('loop',t=>fixInsertLoop(t,r,k))); (c._loopList||[]).forEach((lp,k)=>add('loopgrow',t=>fixEnlargeLoop(t,k))); add('relax',t=>fixRelaxAnchor(t,r)); }
+  return acts;
+}
+async function autoFix(){
   if(!state.result){ toast('먼저 해석을 실행하세요',false); return; }
   if(!state.result.summary || state.result.summary.fail===0){ toast('이미 적합(OK)한 모델입니다',true); return; }
+  if(state._fixBusy) return; state._fixBusy=true;
+  const yieldUI=()=>new Promise(res=>setTimeout(res,0));
+  try{
   let c=cloneModel(); let r=state.result;
   const s0=state.result.summary;
   const startRatio=s0.maxRatio, startBreak={sus:s0.maxSusR,exp:s0.maxExpR,occ:s0.maxOccR,fail:s0.fail};
   let best={ snap:snapCand(c), ratio:startRatio, summary:s0 };
-  /* v27.1-AF-7: 후보 행동을 각각 시험 해석해 가장 낮은 최대응력비를 주는 것만 채택(최선 우선). 개선이 없으면 중단 — 악화 상태로 계속 진행하던 결함 수정 */
+  const T0=performance.now(), BUDGET=60000; const trace=[]; window.PSA_FIX_TRACE=trace;   /* v27.1-AF-12 */
+  /* v27.1-AF-7/11: 후보 행동을 각각 시험 해석해 가장 낮은 최대응력비만 채택(최선 우선). 개선 없으면 중단 */
   const trial=(cc,act)=>{ const t=restoreCand(snapCand(cc)); if(!act(t)) return null; const rr=runCand(t); return (rr&&rr.summary)?{c:t,r:rr,ratio:rr.summary.maxRatio}:null; };
-  for(let pass=0; pass<14; pass++){
+  for(let pass=0; pass<16; pass++){
     r=runCand(c); if(!r||!r.summary){ break; }
     if(r.summary.maxRatio<best.ratio-1e-9){ best={ snap:snapCand(c), ratio:r.summary.maxRatio, summary:r.summary }; }
     if(r.summary.fail===0) break;
+    if(performance.now()-T0>BUDGET){ c.log.push('시간 예산(60 s) 도달 — 탐색 중단'); break; }
+    toast(`자동 개선 탐색 중… 패스 ${pass+1} · 현재 최대비 ${r.summary.maxRatio.toFixed(2)}`,true); await yieldUI();
     const codes=new Set((r.solutions||[]).map(s=>s.code));
-    let changed=false;
-    if(codes.has('E402')) changed=fixThicken(c,r)||changed;
+    let changed=false;   // 확정적 행동(항상 유리): 두께 보강, 스프링→콘스턴트
+    if(codes.has('E402')||(r.summary.maxHoopR||0)>1.0) changed=fixThicken(c,r)||changed;
     if(codes.has('W311')) changed=fixSpringToConstant(c,r)||changed;
-    if(codes.has('W301')||codes.has('W310')) changed=fixSupports(c,r)||changed;
-    if(codes.has('W303')) changed=fixSnubbers(c,r)||changed;
     if(changed) continue;
-    if(codes.has('W302') || r.summary.maxExpR>1.0){
-      const actions=[];
-      loopCandidates(c,r,3).forEach(k=>actions.push(t=>fixInsertLoop(t,r,k)));
-      (c._loopList||[]).forEach((lp,k)=>actions.push(t=>fixEnlargeLoop(t,k)));
-      actions.push(t=>fixRelaxAnchor(t,r));
-      let bt=null;
-      for(const act of actions){ const res=trial(c,act); if(res&&(!bt||res.ratio<bt.ratio)) bt=res; }
-      if(bt && bt.ratio < r.summary.maxRatio-1e-6){ c=bt.c; continue; }
-    }
+    const acts=actionsFor(c,r); let bt=null; const tr={pass,cur:+r.summary.maxRatio.toFixed(3),trials:[]};   /* v27.1-AF-12: 탐색 추적(콘솔 PSA_FIX_TRACE) */
+    for(const act of acts){ const res=trial(c,act.fn); tr.trials.push({name:act.name,ratio:res?+res.ratio.toFixed(3):null}); if(res&&(!bt||res.ratio<bt.ratio)) bt={...res,name:act.name}; await yieldUI(); if(performance.now()-T0>BUDGET) break; }
+    tr.pick=bt?bt.name:null; trace.push(tr);
+    if(bt && bt.ratio < r.summary.maxRatio-1e-6){ c=bt.c; continue; }
     break;   // 개선되는 행동이 없음
   }
   const bs=best.summary;
@@ -5751,9 +5827,10 @@ function autoFix(){
     log:best.snap.log, changes:best.snap.changes, highlight:new Set(best.snap.changedNodes),
     startRatio, endRatio:best.ratio,
     startBreak, endBreak:{sus:bs.maxSusR,exp:bs.maxExpR,occ:bs.maxOccR,fail:bs.fail},
-    addedNodes:best.snap.nodes.length-state.nodes.length };
+    addedNodes:best.snap.nodes.length-state.nodes.length, elapsed:Math.round(performance.now()-T0), trace };
   renderFixPanel();
   startFixPreview();   // show improved model in 3D with changes highlighted
+  } finally { state._fixBusy=false; }
 }
 function startFixPreview(){
   const f=state._fix; if(!f)return;
@@ -5781,7 +5858,7 @@ function renderFixPanel(){
       <div class="cbars"><div class="cbar"><i style="width:${pa}%;background:${ca}"></i><b>${a.toFixed(2)}</b></div>
       <div class="cbar"><i style="width:${pb}%;background:${cb}"></i><b>${b.toFixed(2)}</b></div></div></div>`; };
   // group changes
-  const g={loop:[],support:[],snubber:[],spring2const:[],thicken:[],relax:[],loopgrow:[]};   /* v27.1-AF */
+  const g={loop:[],support:[],snubber:[],spring2const:[],thicken:[],relax:[],loopgrow:[],midsup:[],guide:[]};   /* v27.1-AF */
   (f.changes||[]).forEach(ch=>{ if(g[ch.type]) g[ch.type].push(ch); });
   const chip=(c,t)=>`<span class="chchip" style="background:${c}1a;color:${c};border-color:${c}55">${t}</span>`;
   let chHtml='';
@@ -5792,6 +5869,8 @@ function renderFixPanel(){
   if(g.spring2const.length){ chHtml+=`<div class="chrow">${chip('#c89bf5','행어 변경')} 변동과다 스프링 ${g.spring2const.length}개 → 콘스턴트 (${g.spring2const.map(c=>'N'+c.node).join(', ')})</div>`; }
   if(g.thicken.length){ g.thicken.forEach(ch=>chHtml+=`<div class="chrow">${chip('#ff8b8f','두께 보강')} ${ch.label}: t ${ch.from}→${ch.to}mm</div>`); }
   if(g.loopgrow.length){ const last={}; g.loopgrow.forEach(c=>{ last[c.nodes[0]]=c; }); chHtml+=`<div class="chrow">${chip('#9fd4b0','루프 확대')} ${Object.values(last).map(c=>'N'+c.nodes[0]+'~N'+c.nodes[3]+' → 높이 '+c.H.toFixed(1)+'m').join(', ')}</div>`; }   /* v27.1-AF-9 */
+  if(g.midsup.length){ chHtml+=`<div class="chrow">${chip('#39bdf8','중간 지지')} ${g.midsup.map(c=>'N'+c.span[0]+'–N'+c.span[1]+' 중점 N'+c.node+(c.snub?'(리지드+스너버)':'(리지드)')).join(', ')}</div>`; }   /* v27.1-AF-11 */
+  if(g.guide.length){ chHtml+=`<div class="chrow">${chip('#8b9bff','가이드')} ${g.guide.map(c=>'N'+c.node).join(', ')} 횡 구속 추가</div>`; }
   if(g.relax.length){ chHtml+=`<div class="chrow">${chip('#4dd0e1','구속 완화')} 중간 ${g.relax.map(c=>'N'+c.node+'('+(c.from==='anchor'?'앵커':'라인스톱')+'→가이드)').join(', ')} — 설계 의도 확인 필요</div>`; }   /* v27.1-AF-3 */
   if(!chHtml) chHtml='<div class="chrow">적용 가능한 자동 개선이 없습니다.</div>';
   pn.innerHTML=`<div class="pph"><b>🛠 자동 개선안 — 개선 내역</b><span id="fixClose">×</span></div>
@@ -5806,7 +5885,7 @@ function renderFixPanel(){
       ${bar('지속',f.startBreak.sus,f.endBreak.sus)}
       ${bar('열팽창',f.startBreak.exp,f.endBreak.exp)}
       ${bar('일시',f.startBreak.occ,f.endBreak.occ)}
-      <div class="cmpfoot">불합격 절점 ${f.startBreak.fail} → ${f.endBreak.fail} · 추가 절점 ${f.addedNodes>0?'+'+f.addedNodes:f.addedNodes}</div>
+      <div class="cmpfoot">불합격 절점 ${f.startBreak.fail} → ${f.endBreak.fail} · 추가 절점 ${f.addedNodes>0?'+'+f.addedNodes:f.addedNodes}${f.elapsed?' · 탐색 '+(f.elapsed/1000).toFixed(1)+' s':''}</div>
       <h5>변경 항목 <span class="hl-leg">3D에서 <i style="color:#33d399">●</i> 강조 표시</span></h5>
       ${chHtml}
       <div class="fixact">
