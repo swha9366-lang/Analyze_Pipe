@@ -100,7 +100,11 @@ input,select{font-family:var(--mono);font-size:12px}
 .tbtn svg{width:14px;height:14px}
 
 /* ---- layout ---- */
-.app{display:grid;grid-template-columns:minmax(250px,288px) minmax(430px,1fr) minmax(270px,312px);grid-template-rows:minmax(0,1fr);flex:1 1 auto;min-height:0;overflow:hidden} /* v24-X3b: 행 고정 — 좌우 패널이 내용만큼 늘어나 창을 뚫던 결함 수정 */
+.app{--wL:318px;--wR:312px;display:grid;grid-template-columns:var(--wL) 6px minmax(360px,1fr) 6px var(--wR);grid-template-rows:minmax(0,1fr);flex:1 1 auto;min-height:0;overflow:hidden}   /* v27.1-UI-1: 폭 변수 + 분할선 */
+.split{cursor:col-resize;background:var(--line);position:relative;z-index:5;transition:background .12s}
+.split:hover,.split.on{background:var(--acc)}
+.split::after{content:'';position:absolute;top:50%;left:1px;width:4px;height:36px;margin-top:-18px;border-radius:2px;background:rgba(255,255,255,.25)}
+#mNps{flex:1 1 120px;min-width:120px}#mSch{width:72px!important}.row.specrow{flex-wrap:wrap}   /* v27.1-UI-2 */ /* v24-X3b: 행 고정 — 좌우 패널이 내용만큼 늘어나 창을 뚫던 결함 수정 */
 .col{display:flex;flex-direction:column;min-height:0;background:var(--panel)}
 .col.left{border-right:1px solid var(--line)}
 .col.right{border-left:1px solid var(--line)}
@@ -445,7 +449,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 </div>
 <div class="top">
   <div class="brand">
-    <b>PSA</b><span class="v" title="v27 — 분기(Tee) 방향·각도·세그먼트 분리(AutoPIPE/CAESAR 관례): B1 분기=새 세그먼트(segMeta), B2 방향 패드+래터럴 각도→Δ, B3 엔진 티 기하각·W350~W354, B4 NTL 세그먼트 문자/TEE DIR·ANGLE·GEOM, B5 보고서 세그먼트 구성표 · v26.1 — v26 + AutoPIPE 25 실측 비교(SA7) 반영: AP-01 NTL 부식여유 내보내기/임포트, AP-02 절점 보고값 카테고리별 최대, AP-03 AutoPIPE 다방향 SRSS 응력식 옵션(AutoPIPE 기준 프리셋), AP-04 스프링율 120 N/mm 가정 표기 · v26: 엔진 보정 R2 그룹(E1~E17/I5)·S_A (1A)/(1B) 선택·후프응력 보고·지진 2축 포락·반력 6성분·B31.1-2022 재질표·NTL 임포트 보정·보고서 리비전 (v25: F8~F13)">B31.1 · v27.1</span><!-- v26-C1 / v26.1 / v27 -->
+    <b>PSA</b><span class="v" title="v27 — 분기(Tee) 방향·각도·세그먼트 분리(AutoPIPE/CAESAR 관례): B1 분기=새 세그먼트(segMeta), B2 방향 패드+래터럴 각도→Δ, B3 엔진 티 기하각·W350~W354, B4 NTL 세그먼트 문자/TEE DIR·ANGLE·GEOM, B5 보고서 세그먼트 구성표 · v26.1 — v26 + AutoPIPE 25 실측 비교(SA7) 반영: AP-01 NTL 부식여유 내보내기/임포트, AP-02 절점 보고값 카테고리별 최대, AP-03 AutoPIPE 다방향 SRSS 응력식 옵션(AutoPIPE 기준 프리셋), AP-04 스프링율 120 N/mm 가정 표기 · v26: 엔진 보정 R2 그룹(E1~E17/I5)·S_A (1A)/(1B) 선택·후프응력 보고·지진 2축 포락·반력 6성분·B31.1-2022 재질표·NTL 임포트 보정·보고서 리비전 (v25: F8~F13)">B31.1 · v27.1</span><!-- v27.1-UI --><!-- v26-C1 / v26.1 / v27 -->
     <span class="sub">Power Piping Stress Analyzer</span>
   </div>
   <div class="spacer"></div>
@@ -488,7 +492,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
             </div>
           </div>
           <div class="row"><label>재질</label><select id="mMat"></select></div>
-          <div class="row"><label>규격(DN)</label>
+          <div class="row specrow"><label>규격(DN)</label>
             <select id="mNps" style="flex:1"></select>
             <select id="mSch" style="width:84px"></select>
             <input id="mMtol" value="12.5" style="width:40px;margin-left:4px" title="밀공차 mill tolerance (%) — 가용두께 t_avail = tn(1−mtol), 후프 t_av = tn(1−mtol)−CA 에 사용. 심리스 ASTM 12.5 % (v26-E15)"><span style="font-size:9px;color:#7e90a4;margin-left:2px" title="밀공차 %">공차%</span><!-- v26-C2 -->
@@ -830,8 +834,8 @@ input[readonly]{opacity:.6;cursor:not-allowed}
             </div>
           </div>
           <div class="grid3" style="margin-top:6px">
-            <div class="fld"><span>형식</span>
-              <select id="attForm"><option value="single">Single</option><option value="double">Double</option></select>
+            <div class="fld"><span>수량</span>
+              <select id="attForm" title="같은 절점에 같은 종류를 몇 개 설치하는지 — 강성·설계하중·3D 글리프에 반영"><option value="single">1개 (Single)</option><option value="double">2개 (Double)</option><option value="3">3개</option><option value="4">4개</option></select>
             </div>
             <div class="fld" id="attParamFld"><span id="attParamLab">R <i class="u-len">mm</i></span><input id="attParam" value=""></div>
             <div class="fld" id="attDirFld" style="display:none"><span>방향</span>
@@ -910,6 +914,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
   </div>
 
   <!-- CENTER : VIEWPORT -->
+  <div class="split" id="splitL" title="드래그: 좌측 패널 폭 · 더블클릭: 초기화"></div><!-- v27.1-UI-1 -->
   <div class="center" id="vpCenter">
     <div class="dropzone" id="dropZone"><div class="dzinner">📂 여기에 모델 파일(.json / .ntl / .dat)을 놓으세요<span id="dzhint">기존 모델을 새로 불러옵니다</span></div></div><!-- v22-SA5 -->
     <div class="recentpanel" id="recentPanel">
@@ -987,6 +992,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
   </div>
 
   <!-- RIGHT : RESULTS -->
+  <div class="split" id="splitR" title="드래그: 우측 패널 폭 · 더블클릭: 초기화"></div><!-- v27.1-UI-1 -->
   <div class="col right">
     <div class="tabs" id="rtabs">
       <button data-t="sum" class="on">요약</button>
@@ -1951,7 +1957,7 @@ function runAnalysis(input){
   for(const n of nodes){
     const cs=nodeSpec(n.id); const eod=cs.od, etn=cs.tn, eDnom=cs.Dnom;
     for(const a of (n.att||[])){
-      const kind=a.kind, form=a.form||'single', mult=(form==='double'?2:1);
+      const kind=a.kind, form=a.form||'single', mult=(a.qty>0?Math.max(1,Math.round(a.qty)):(form==='double'?2:1));   /* v27.1-UI-3: 수량 */
       if(kind==='bend'||kind==='elbow'){ const R=a.R>0?a.R:(a.bendKind?bendRadius(a.bendKind,eDnom):1.5*eDnom); a._R=R; nodeSIF[n.id]=Math.max(nodeSIF[n.id],sifBend(eod,etn,R)); const bio=sifBendIO(eod,etn,R), s2=nodeSIF2[n.id]; s2.ii=Math.max(s2.ii,bio.ii); s2.io=Math.max(s2.io,bio.io); }   /* v26.1-AP03 */
       else if(kind==='tee'){
         /* v27-B3: 기하 각도 — 래터럴은 기하각 우선(입력각과 >1° 차이면 W350), 비래터럴인데 기하각 <89° 면 W351, 다리 ≤2 면 W352, 분기 다리 2개 이상이면 W354.
@@ -2038,8 +2044,8 @@ function runAnalysis(input){
         supports.push({node:n.id,type:'rigid',dofs:[d],kind,form,cases:null,reaction:true});
       }
       else if(kind==='rod'){ supports.push({node:n.id,type:'rigid',dofs:[VUP],kind,form,cases:null,reaction:true}); }
-      else if(kind==='vspring_hanger'||kind==='vspring_support'){ const k=(a.rate>0?a.rate:120)*mult; supports.push({node:n.id,type:'spring',dofs:[VUP],k,rate:k,kind,form,cases:null,reaction:true,size:true,userLoad:(a.load>0?a.load:null),userRate:(a.rate>0?a.rate:null)}); }
-      else if(kind==='constant_hanger'||kind==='constant_support'){ supports.push({node:n.id,type:'constant',dofs:[VUP],mult,kind,form,cases:null,reaction:true,size:true,userLoad:(a.load>0?a.load:null)}); }
+      else if(kind==='vspring_hanger'||kind==='vspring_support'){ const k=(a.rate>0?a.rate:120)*mult; supports.push({node:n.id,type:'spring',dofs:[VUP],k,rate:k,kind,form,qty:mult,cases:null,reaction:true,size:true,userLoad:(a.load>0?a.load:null),userRate:(a.rate>0?a.rate:null)}); }
+      else if(kind==='constant_hanger'||kind==='constant_support'){ supports.push({node:n.id,type:'constant',dofs:[VUP],mult,kind,form,qty:mult,cases:null,reaction:true,size:true,userLoad:(a.load>0?a.load:null)}); }
       else if(kind==='snubber'||kind==='damper'){
         /* v22-D4: axis(배관축) 수동지정 지원. 코너 + 미지정은 v21 방식(첫 요소 축) 유지 + W322 경고.
            v23-F1: dir 이 'X'|'Y'|'Z' 면 전역축 직접 지정 [py: if dr in ("X","Y","Z"): d={"X":0,"Y":1,"Z":2}[dr]] */
@@ -2388,7 +2394,7 @@ function runAnalysis(input){
       if(variation>0.25) rec='하중변동 25% 초과 → 콘스턴트 행어 권장';
       else rec='베리어블 스프링 적합 (변동 ≤25%)';
     } else { rec = move<3 ? '열변위 작음 → 리지드/로드 검토 가능' : '콘스턴트 적합 (일정 지지력)'; }
-    return { node:s.node, kind:s.kind, form:s.form, load, rate:(s.type==='spring'?s.rate:0),
+    return { node:s.node, kind:s.kind, form:s.form, qty:s.qty||(s.form==='double'?2:1), load, rate:(s.type==='spring'?s.rate:0),
              autoLoad:(s.autoLoad||0), userLoad:(s.userLoad!=null), userRate:(s.userRate!=null),
              movement:move, variation, rec, rateAssumed:(s.type==='spring'&&s.userRate==null) };   /* v26.1-AP04 */
   });
@@ -2846,7 +2852,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
         } else if(a.kind==='rest'){
           c([[0,'VSTP'],[5,pn],[16,'W'],R(2540,3,48),[60,'R']]);
           c([[0,CONT]]); c([[0,CONT],R(1000,2,58),R(0,3,68),R(0,3,78)]);
-          if(a.form==='double') manual.push(`${pn}(N${nid}) rest DOUBLE — AutoPipe 지지 속성에서 수동 반영`);
+          if(a.form==='double'||a.qty>1) manual.push(`${pn}(N${nid}) rest ×${a.qty>0?Math.round(a.qty):2} — AutoPipe 지지 속성에서 수동 반영`);
         } else if(a.kind==='strut'){
           /* v25-F8: strut — V(수직)는 VSTP, 전역축은 수직축 일치→VSTP / 배관축 일치→LINE / 그 외→GUID 1슬롯.
              TOOLEXT STRUT 로 무손실(임포터가 kind/dir 정확 복원). */
@@ -2881,7 +2887,7 @@ window.PSA = { MATERIALS, SCHEDULES, PIPE_SIZES, INSULATION, insulWeightPerM,
           c([[0,CONT],[50,'N'],R(1000,2,78)]);   /* v26-I3: 끝컬럼 78 (실물) */
           c([[0,CONT],R(0.150,3,58),R(0,3,68),R(0,3,78)]);
           if(!(rate>0)||!(load>0)) manual.push(`${pn}(N${nid}) 스프링 값 미확정(0) — 해석 후 내보내면 도구 설계값이 기입됨`);
-          if(a.form==='double') manual.push(`${pn}(N${nid}) 스프링 DOUBLE — 기입값은 유효 총량, AutoPipe 에서 확인`);
+          if(a.form==='double'||a.qty>1) manual.push(`${pn}(N${nid}) 스프링 ×${a.qty>0?Math.round(a.qty):2} — 기입값은 유효 총량, AutoPipe 에서 확인`);
         } else if(a.kind==='constant_hanger'||a.kind==='constant_support'){
           const h=hangersByNode[nid];
           const load=(a.load>0)?a.load:(h&&h.load>0?h.load:0);
@@ -4994,7 +5000,7 @@ function addAttachment(){
   const n=nodeById(state.sel); if(!n)return; if(!n.att)n.att=[];
   const kind=$('#attKind').value, m=ATT_META[kind]||{};
   const att={kind};
-  if(m.form && !$('#attForm').disabled) att.form=$('#attForm').value;
+  if(m.form && !$('#attForm').disabled){ const fv=$('#attForm').value; att.qty=(fv==='single')?1:(fv==='double')?2:(parseInt(fv)||1); att.form=att.qty>=2?'double':'single'; }   /* v27.1-UI-3 */
   if(m.bend){ const bk=$('#attBendKind').value;
     if(bk==='custom') att.R=CV.len.toSI(parseFloat($('#attParam').value)||0,U.sys);
     else att.bendKind=bk; }
@@ -5084,7 +5090,7 @@ function startAttEdit(nid,idx){
   if([...kSel.options].some(o=>o.value===kind)) kSel.value=kind;
   syncAttFields();
   const set=(id,v)=>{const el=$(id); if(el)el.value=(v==null?'':v);};
-  if(m.form) set('#attForm',a.form||'single');
+  if(m.form) set('#attForm',(a.qty>2)?String(Math.min(4,Math.round(a.qty))):(a.form||'single'));   /* v27.1-UI-3 */
   if(m.bend){ set('#attBendKind',a.bendKind||(a.R>0?'custom':'long'));
     set('#attParam',a.R>0?(+CV.len.fromSI(a.R,U.sys)).toFixed(U.sys==='US'?2:0):'');
     syncAttFields(); }                                   // custom 이면 R 입력난 표시
@@ -5120,7 +5126,7 @@ function renderAttPanel(){
   const n=nodeById(state.sel); tgt.textContent='N'+n.id;
   if(!n.att||!n.att.length){ list.innerHTML='<div class="mini">부속/지지 없음 — 아래에서 추가</div>'; return; }
   list.innerHTML=n.att.map((a,i)=>{
-    let extra=''; if(a.form==='double')extra='·D';
+    let extra=''; { const q=a.qty>0?Math.round(a.qty):(a.form==='double'?2:1); if(q>1) extra='·×'+q; }   /* v27.1-UI-3 */
     if(a.bendKind)extra+=' '+a.bendKind.toUpperCase(); else if(a.R)extra+=` R${(+CV.len.fromSI(a.R,U.sys)).toFixed(0)}`;
     if(a.kind==='tee'){ const tn={welding:'T용접',reinforced:'보강',unreinforced:'무보강',weldolet:'올렛',lateral:'Y'}[a.teeType||'welding']; extra+=' '+tn; if(a.teeType==='lateral'&&a.branchAngle)extra+=`${a.branchAngle}°`; if(a.branchDN)extra+=` Ø${a.branchDN}`; }
     if(a.vtype)extra+=` ${a.vtype}/${a.vclass}`;
@@ -5146,7 +5152,7 @@ function renderAttPanel(){
 /* ---- tree render ---- */
 function attBadges(att){ if(!att||!att.length)return '<span style="color:#475569">·</span>';
   return att.map(a=>{const c=attClass(a.kind);const cls=c==='sup'?'s':c==='spr'?'v':c==='dyn'?'d':'';
-    return `<span class="abadge ${cls}">${ATT_LABEL[a.kind]||a.kind}${a.form==='double'?'·D':''}</span>`;}).join(''); }
+    return `<span class="abadge ${cls}">${ATT_LABEL[a.kind]||a.kind}${(a.qty>2)?'·×'+Math.round(a.qty):(a.form==='double'?'·×2':'')}</span>`;}).join(''); }
 function parentOfNode(id){ const e=state.elems.find(el=>el.to===id); return e?nodeById(e.from):null; }
 function renderNodes(){
   const tb=$('#nodeBody'); tb.innerHTML='';
@@ -5424,6 +5430,20 @@ function initThree(){
   scene.add(gridHelper); applyUpAxisGrid();
   addAxes();
   resize(); window.addEventListener('resize',resize);
+  /* v27.1-UI-1: 패널 폭 분할선 */
+  (function(){ const app=document.querySelector('.app'); if(!app) return;
+    const KEY='psa_panel_w'; const LIM={L:[230,560],R:[240,600]}; const DEF={L:318,R:312};
+    const apply=w=>{ app.style.setProperty('--wL',w.L+'px'); app.style.setProperty('--wR',w.R+'px'); try{resize();}catch(e){} };
+    let w={...DEF}; try{ const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s&&s.L&&s.R) w={L:Math.min(LIM.L[1],Math.max(LIM.L[0],s.L)),R:Math.min(LIM.R[1],Math.max(LIM.R[0],s.R))}; }catch(e){}
+    apply(w);
+    const bind=(id,side)=>{ const el=document.getElementById(id); if(!el) return;
+      el.addEventListener('mousedown',e=>{ e.preventDefault(); el.classList.add('on'); const x0=e.clientX, w0=w[side];
+        const mv=ev=>{ const d=ev.clientX-x0; w[side]=Math.min(LIM[side][1],Math.max(LIM[side][0], side==='L'?w0+d:w0-d)); apply(w); };
+        const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); el.classList.remove('on'); try{localStorage.setItem(KEY,JSON.stringify(w));}catch(e){} };
+        document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up); });
+      el.addEventListener('dblclick',()=>{ w[side]=DEF[side]; apply(w); try{localStorage.setItem(KEY,JSON.stringify(w));}catch(e){} }); };
+    bind('splitL','L'); bind('splitR','R'); window.PSA_PANEL={get:()=>({...w}),set:(nw)=>{w={...w,...nw};apply(w);}};
+  })();
   bindOrbit(cv);
   animate();
 }
@@ -6146,8 +6166,10 @@ const DEV_COLOR={anchor:0xff5a5f,nozzle:0xff7a5f,hx:0x8b9bff,rest:0x39bdf8,strut
   vspring_hanger:0xb69ce6,vspring_support:0xb69ce6,constant_hanger:0x9b7fe0,constant_support:0x9b7fe0,
   snubber:0xe0b87f,damper:0xe0b87f,valve:0xf5a623,flange:0xf5d062,mass:0xcfd8e3,bend:0x33d399,tee:0x33d399,force:0x39bdf8};
 /* build a device as a THREE.Group in LOCAL +Y-up coordinates */
-function buildDevice(kind,form){
-  const g=new THREE.Group(), dbl=(form==='double'), col=DEV_COLOR[kind]||0x9fb3c8, M=MATd(col);
+function buildDevice(kind,form,qty){
+  /* v27.1-UI-3: 수량 N 은 단일 장치를 0.34 간격으로 N개 복제(기존 double 전용 2중 형상은 더 이상 사용 안 함) */
+  const nq=(qty>0?Math.max(1,Math.round(qty)):(form==='double'?2:1));
+  const g=new THREE.Group(), dbl=false, col=DEV_COLOR[kind]||0x9fb3c8, M=MATd(col);
   const add=(geo,x,y,z,rot,mat)=>{const m=new THREE.Mesh(geo,mat||M);m.position.set(x||0,y||0,z||0);if(rot)m.rotation.set(rot[0]||0,rot[1]||0,rot[2]||0);g.add(m);return m;};
   const ring=(r,t)=>new THREE.TorusGeometry(r,t,8,18);
   if(kind==='anchor'||kind==='nozzle'||kind==='hx'){
@@ -6196,6 +6218,7 @@ function buildDevice(kind,form){
     add(new THREE.CylinderGeometry(0.03,0.03,0.5,8),0,0.25,0);
   } else if(kind==='mass'){ add(new THREE.SphereGeometry(0.13,16,12),0,0,0);
   } else { add(new THREE.SphereGeometry(0.10,14,10),0,0,0); }       // bend/tee marker
+  if(nq>1){ const base=g.children.slice(); for(let i=1;i<nq;i++){ for(const m of base){ const c2=m.clone(); c2.position.x+=0.34*i; g.add(c2); } } for(const m of g.children) m.position.x-=0.17*(nq-1); }   /* v27.1-UI-3 */
   return g;
 }
 function drawSupports(pos){
@@ -6203,7 +6226,7 @@ function drawSupports(pos){
   for(const n of state.nodes){
     const P=pos[n.id]; if(!P||!n.att)continue; let stack=0;
     for(const a of n.att){
-      const g=buildDevice(a.kind,a.form);
+      const g=buildDevice(a.kind,a.form,a.qty);   /* v27.1-UI-3 */
       // orientation: pipe-aligned (valve/guide/line_stop), axis-dir (snubber), else vertical(up)
       let dir=up.clone();
       if(a.kind==='valve'||a.kind==='line_stop') dir=nodeAxisW(n.id);
@@ -6444,7 +6467,7 @@ function renderSummary(){
      ${r.hangers&&r.hangers.length?`
      <h4 style="font-size:10px;letter-spacing:.8px;color:#8a97aa;text-transform:uppercase;margin:14px 0 7px">행어 설계 · Hanger Sizing & Selection (B31.1)</h4>
      <table class="rtab"><thead><tr><th>Node</th><th>종류</th><th>설계하중</th><th>열이동</th><th>변동</th></tr></thead><tbody>
-     ${r.hangers.map(h=>`<tr><td class="nid">${nodeLabel(h.node)}</td><td style="font-size:9px">${supName(h.kind)}${h.form==='double'?'·D':''}${h.rateAssumed?'<br><span style="color:#f5a623" title="스프링율 미입력 — 120 N/mm 가정 (I032)">k=120 N/mm 가정</span>':(h.rate>0?'<br><span style="color:#8a97aa">k='+h.rate+' N/mm</span>':'')}</td>
+     ${r.hangers.map(h=>`<tr><td class="nid">${nodeLabel(h.node)}</td><td style="font-size:9px">${supName(h.kind)}${(h.qty>1)?'·×'+h.qty:''}${h.rateAssumed?'<br><span style="color:#f5a623" title="스프링율 미입력 — 120 N/mm 가정 (I032)">k=120 N/mm 가정</span>':(h.rate>0?'<br><span style="color:#8a97aa">k='+h.rate+' N/mm</span>':'')}</td>
        <td>${(h.load/9.80665).toFixed(0)} kg<br><span style="font-size:9px;color:#8a97aa">${D.frc(h.load).toFixed(0)} ${L.frc}</span></td>
        <td>${D.dsp(h.movement/1000).toFixed(1)} ${L.dsp}</td>
        <td>${h.variation?(h.variation*100).toFixed(0)+'%':'-'}<br><span style="font-size:8.5px;color:${h.variation>0.25?'#f5a623':'#8a97aa'}">${h.rec||''}</span></td></tr>`).join('')}
@@ -6637,7 +6660,7 @@ function makeReport(){
   const ATT_LABEL={bend:'엘보/벤드',elbow:'엘보',tee:'티(분기)',reducer:'리듀서',valve:'밸브',flange:'플랜지',mass:'집중질량',force:'외력'};
   const attName=a=>ATT_LABEL[a.kind]||supName(a.kind);
   const attDetail=a=>{const p=[];
-    if(a.form==='double')p.push('Double');
+    { const q=a.qty>0?Math.round(a.qty):(a.form==='double'?2:1); if(q>1) p.push('×'+q); }
     if(a.kind==='bend'||a.kind==='elbow')p.push(a.R>0?`R=${num(a.R,0)}mm`:(a.bendKind?`${esc(a.bendKind)} radius`:'1.5D'));
     if(a.kind==='tee')p.push(esc(a.teeType||'welding'));
     if(a.kind==='valve')p.push(`${esc(a.vtype||'gate')} Cl.${esc(a.vclass||'150')} ${esc(a.vend||'flanged')}${a.mass>0?' '+num(a.mass,0)+'kg':''}`);
@@ -6648,7 +6671,7 @@ function makeReport(){
     if(['dx','dy','dz'].some(k=>a[k]))p.push(`D=(${num(a.dx||0,1)},${num(a.dy||0,1)},${num(a.dz||0,1)})mm`);
     if(['fx','fy','fz'].some(k=>a[k]))p.push(`F=(${num(a.fx||0,0)},${num(a.fy||0,0)},${num(a.fz||0,0)})N`);
     return p.join(', ');};
-  const attText=n=>(n.att&&n.att.length)?n.att.map(a=>attName(a)+(a.form==='double'?'(D)':'')).join(', '):'직관';
+  const attText=n=>(n.att&&n.att.length)?n.att.map(a=>attName(a)+((a.qty>1||a.form==='double')?'(×'+(a.qty>0?Math.round(a.qty):2)+')':'')).join(', '):'직관';
   const supCount={}; nodesM.forEach(n=>(n.att||[]).forEach(a=>{supCount[a.kind]=(supCount[a.kind]||0)+1;}));
   const supSummary=Object.keys(supCount).map(k=>`${attName({kind:k})} ${supCount[k]}`).join(' · ')||'-';
 
@@ -6714,7 +6737,7 @@ function makeReport(){
      ${tdr(num(ro.fx,0))}${tdr(num(ro.fy,0))}${tdr(num(ro.fz,0))}${tdr('<b>'+num(ro.mag,0)+'</b>')}${tdr(num((ro.mmag!=null?ro.mmag:Math.hypot(ro.mx||0,ro.my||0,ro.mz||0))/1000,0))}
      ${tdr((ro.snubs||[]).map(sb=>`${esc(sb.dir)}: ${num(sb.calc,0)}${sb.rated!=null?` / ${num(sb.rated,0)}${sb.over?' <b style="color:#c0392b">초과!</b>':' OK'}`:' / (정격 미입력)'}`).join('<br>')||'-')}</tr>`).join('');
   const hangerRows=(r.hangers||[]).map(h=>{const dv=(h.rate||0)*(h.movement||0);
-    return `<tr>${td(nlId(h.node))}${td(esc(supName(h.kind)))}${td(h.form==='double'?'Double':'Single')}
+    return `<tr>${td(nlId(h.node))}${td(esc(supName(h.kind)))}${td((h.qty>1)?('×'+h.qty):'Single')}
      ${tdr(num(h.load,0))}${tdr(num(h.load/g,0))}${td(h.userLoad?'사용자':'자동')}${tdr(h.rate>0?num(h.rate,1)+(h.rateAssumed?' (가정)':''):'정하중(0)')}
      ${tdr(num(h.movement,1))}${tdr(h.rate>0?num(dv,0):'-')}${tdr(h.rate>0?num((h.variation||0)*100,1)+'%':'-')}${tdc(h.rate>0?okng(!(h.variation>0.25)):'-')}${td(esc(h.rec||''))}</tr>`;}).join('');
   const dispRows=nodeRes.map(nr=>{const dd=nr.d||{x:0,y:0,z:0};const mag=Math.hypot(dd.x,dd.y,dd.z);
