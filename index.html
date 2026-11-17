@@ -445,7 +445,7 @@ input[readonly]{opacity:.6;cursor:not-allowed}
 </div>
 <div class="top">
   <div class="brand">
-    <b>PSA</b><span class="v" title="v27 — 분기(Tee) 방향·각도·세그먼트 분리(AutoPIPE/CAESAR 관례): B1 분기=새 세그먼트(segMeta), B2 방향 패드+래터럴 각도→Δ, B3 엔진 티 기하각·W350~W354, B4 NTL 세그먼트 문자/TEE DIR·ANGLE·GEOM, B5 보고서 세그먼트 구성표 · v26.1 — v26 + AutoPIPE 25 실측 비교(SA7) 반영: AP-01 NTL 부식여유 내보내기/임포트, AP-02 절점 보고값 카테고리별 최대, AP-03 AutoPIPE 다방향 SRSS 응력식 옵션(AutoPIPE 기준 프리셋), AP-04 스프링율 120 N/mm 가정 표기 · v26: 엔진 보정 R2 그룹(E1~E17/I5)·S_A (1A)/(1B) 선택·후프응력 보고·지진 2축 포락·반력 6성분·B31.1-2022 재질표·NTL 임포트 보정·보고서 리비전 (v25: F8~F13)">B31.1 · v27</span><!-- v26-C1 / v26.1 / v27 -->
+    <b>PSA</b><span class="v" title="v27 — 분기(Tee) 방향·각도·세그먼트 분리(AutoPIPE/CAESAR 관례): B1 분기=새 세그먼트(segMeta), B2 방향 패드+래터럴 각도→Δ, B3 엔진 티 기하각·W350~W354, B4 NTL 세그먼트 문자/TEE DIR·ANGLE·GEOM, B5 보고서 세그먼트 구성표 · v26.1 — v26 + AutoPIPE 25 실측 비교(SA7) 반영: AP-01 NTL 부식여유 내보내기/임포트, AP-02 절점 보고값 카테고리별 최대, AP-03 AutoPIPE 다방향 SRSS 응력식 옵션(AutoPIPE 기준 프리셋), AP-04 스프링율 120 N/mm 가정 표기 · v26: 엔진 보정 R2 그룹(E1~E17/I5)·S_A (1A)/(1B) 선택·후프응력 보고·지진 2축 포락·반력 6성분·B31.1-2022 재질표·NTL 임포트 보정·보고서 리비전 (v25: F8~F13)">B31.1 · v27.1</span><!-- v26-C1 / v26.1 / v27 -->
     <span class="sub">Power Piping Stress Analyzer</span>
   </div>
   <div class="spacer"></div>
@@ -5564,16 +5564,24 @@ function cloneModel(){
   return {
     nodes: state.nodes.map(n => ({ id:n.id, x:n.x, y:n.y, z:n.z, att:(n.att||[]).map(a => ({...a})), apName:n.apName })),   /* v26-I9 */
     elems: state.elems.map(e => ({ ...e, spec: e.spec?{...e.spec}:undefined })),
-    spec: currentFormSpec(), nextId: state.nextId, log: [], changes: [], changedNodes: new Set()
+    spec: currentFormSpec(), nextId: Math.max(state.nextId||10, Math.ceil((Math.max(0,...state.nodes.map(n=>n.id))+10)/10)*10), log: [], changes: [], changedNodes: new Set()   /* v27.1-AF-5: id 충돌 방지 */
   };
 }
 function snapCand(c){   // deep snapshot preserving change records
   return {
     nodes: c.nodes.map(n => ({ id:n.id, x:n.x, y:n.y, z:n.z, att:(n.att||[]).map(a => ({...a})), apName:n.apName })),   /* v26-I9 */
     elems: c.elems.map(e => ({ ...e, spec: e.spec?{...e.spec}:undefined })),
-    spec: {...c.spec}, nextId: c.nextId, log: c.log.slice(), changes: c.changes.slice(),
-    changedNodes: [...c.changedNodes]
+    spec: {...c.spec}, nextId: c.nextId, log: c.log.slice(), changes: c.changes.map(x=>({...x})),   /* v27.1-AF-10: 변경 객체 깊은 복사(시험 행동이 공유 객체를 오염) */
+    changedNodes: [...c.changedNodes],
+    _loopKeys:[...(c._loopKeys||[])], _loopList:(c._loopList||[]).map(l=>({ids:l.ids.slice(),up:l.up.slice(),H:l.H})), _loops:c._loops||0, _relaxed:c._relaxed||0   /* v27.1-AF-8 */
   };
+}
+/* v27.1-AF-8: 스냅샷 → 후보 객체 (시험 행동용 깊은 복사) */
+function restoreCand(sn){
+  return { nodes:sn.nodes.map(n=>({id:n.id,x:n.x,y:n.y,z:n.z,att:(n.att||[]).map(a=>({...a})),apName:n.apName})),
+    elems:sn.elems.map(e=>({...e,spec:e.spec?{...e.spec}:undefined})), spec:{...sn.spec}, nextId:sn.nextId,
+    log:sn.log.slice(), changes:sn.changes.map(x=>({...x})), changedNodes:new Set(sn.changedNodes),   /* v27.1-AF-10 */
+    _loopKeys:new Set(sn._loopKeys||[]), _loopList:(sn._loopList||[]).map(l=>({ids:l.ids.slice(),up:l.up.slice(),H:l.H})), _loops:sn._loops||0, _relaxed:sn._relaxed||0 };
 }
 function vget(n){ return [n.x,n.y,n.z]; }
 function upIdx(){ return state.upAxis==='Y'?1:2; }
@@ -5622,17 +5630,52 @@ function fixSupports(c,r){
   if(n)c.log.push(`지속/간격(W301/W310): 스프링 행어 ${n}개 추가`);
   return n>0;
 }
-// insert ONE expansion loop into the longest straight element (W302)
-function fixInsertLoop(c,r){
-  if(c._loopAdded)return false;
-  let best=null,bl=0; for(const e of c.elems){ const a=c.nodes.find(x=>x.id===e.from),b=c.nodes.find(x=>x.id===e.to);
-    if(!a||!b)continue; const L=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z); if(L>bl){bl=L;best=e;} }
-  if(!best||bl<3000)return false;
-  const a=c.nodes.find(x=>x.id===best.from), b=c.nodes.find(x=>x.id===best.to);
+// insert expansion loop(s) into long straight elements near expansion-failing nodes (W302)
+/* v27.1-AF: 좌표 단위 m (v21 mm 가정 잔존 버그 — bl<3000 으로 항상 거부되던 결함 수정). 실패 절점 인접 직관 우선, 한 후보 1회, 최대 3개.
+   루프 크기: 높이 H = 3~10 m (직관 길이 25 %, 응력비 √ 비례 확대), 폭 w ≤ 4 m. 크라운에 콘스턴트 행어. */
+/* v27.1-AF-7: 후보 직관 상위 n개 (가장 심한 절점 인접 → 긴 순) */
+function loopCandidates(c,r,n){
+  const looped=c._loopKeys||new Set(); const key=e=>e.from+'-'+e.to;
+  const rmap={}; (r.nodeRes||[]).forEach(x=>{ const id=genToParent(x); rmap[id]=Math.max(rmap[id]||0, x.rExp||0); });
+  const cand=[];
+  for(const e of c.elems){ if(looped.has(key(e))) continue;
+    const a=c.nodes.find(x=>x.id===e.from),b=c.nodes.find(x=>x.id===e.to); if(!a||!b)continue;
+    const L=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z); if(L<3.0) continue;
+    cand.push({key:key(e),L,near:Math.max(rmap[a.id]||0, rmap[b.id]||0)}); }
+  cand.sort((p,q)=>(q.near-p.near)||(q.L-p.L));
+  return cand.slice(0,n).map(x=>x.key);
+}
+/* v27.1-AF-9: 기존 루프 k 확대 — 크라운 두 절점을 up 방향으로 0.5H 더 밀어 H×1.5 (≤ 15 m) */
+function fixEnlargeLoop(c,k){
+  const lp=(c._loopList||[])[k]; if(!lp||lp.H>=15) return false;
+  const dH=lp.H*0.5; const n2=c.nodes.find(x=>x.id===lp.ids[1]), n3=c.nodes.find(x=>x.id===lp.ids[2]); if(!n2||!n3) return false;
+  [n2,n3].forEach(n=>{ n.x+=lp.up[0]*dH; n.y+=lp.up[1]*dH; n.z+=lp.up[2]*dH; c.changedNodes.add(n.id); });
+  lp.H+=dH;
+  const ch=c.changes.find(x=>x.type==='loop'&&x.nodes[0]===lp.ids[0]); if(ch) ch.H=lp.H;
+  c.changes.push({type:'loopgrow',nodes:lp.ids.slice(),H:lp.H});
+  c.log.push(`열팽창 초과(W302): 루프 N${lp.ids[0]}~N${lp.ids[3]} 높이 ${lp.H.toFixed(1)} m 로 확대`);
+  return true;
+}
+function fixInsertLoop(c,r,forceKey){
+  c._loops=c._loops||0; if(c._loops>=5) return false;   /* v27.1-AF-6/7: 최대 5개 */
+  const looped=c._loopKeys||(c._loopKeys=new Set());
+  const key=e=>e.from+'-'+e.to;
+  const rmap={}; (r.nodeRes||[]).forEach(x=>{ const id=genToParent(x); rmap[id]=Math.max(rmap[id]||0, x.rExp||0); });   /* v27.1-AF-6: 절점별 최악 열팽창비 */
+  const worst=Math.max(1,(r.summary&&r.summary.maxExpR)||1);
+  const cand=[];
+  for(const e of c.elems){ if(looped.has(key(e))) continue;
+    const a=c.nodes.find(x=>x.id===e.from),b=c.nodes.find(x=>x.id===e.to); if(!a||!b)continue;
+    const L=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z); if(L<3.0) continue;              // m
+    const near=Math.max(rmap[a.id]||0, rmap[b.id]||0);   /* v27.1-AF-6: 가장 심한 절점 인접 직관 우선 */
+    cand.push({e,L,a,b,near}); }
+  if(!cand.length) return false;
+  cand.sort((p,q)=>(q.near-p.near)||(q.L-p.L));
+  const pick=forceKey?cand.find(x=>key(x.e)===forceKey):cand[0]; if(!pick) return false;   /* v27.1-AF-7 */
+  const {e:best,L:bl,a,b}=pick;
   const d=[(b.x-a.x)/bl,(b.y-a.y)/bl,(b.z-a.z)/bl];
   let up=[0,0,0]; const vi=upIdx(); up[vi]=1;
   if(Math.abs(d[vi])>0.8){ up=[0,0,0]; up[(vi+1)%3]=1; }
-  const H=Math.max(3000, bl*0.2), w=Math.min(bl*0.35,4000);
+  const H=Math.min(12, Math.max(3, bl*0.5*Math.min(3,Math.sqrt(worst)))), w=Math.min(bl*0.4,5);   // m  /* v27.1-AF-6 */
   const mid=[(a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2];
   const P=(t)=>[mid[0]+d[0]*t, mid[1]+d[1]*t, mid[2]+d[2]*t];
   const newIds=[];
@@ -5645,10 +5688,31 @@ function fixInsertLoop(c,r){
   const sp=best.spec?{...best.spec}:undefined, sg=best.segId||0;
   c.elems=c.elems.filter(e=>e!==best);
   const mk=(f,t)=>({from:f,to:t,segId:sg,spec:sp?{...sp}:undefined});
-  c.elems.push(mk(a.id,i1),mk(i1,i2),mk(i2,i3),mk(i3,i4),mk(i4,b.id));
-  c._loopAdded=true;
-  c.changes.push({type:'loop',nodes:newIds,H:H/1000,span:[a.id,b.id]});
-  c.log.push(`열팽창 초과(W302): N${a.id}–N${b.id} 직관에 신축루프 삽입(높이 ${(H/1000).toFixed(0)}m, 신규 N${i1}~N${i4})`);
+  const ne=[mk(a.id,i1),mk(i1,i2),mk(i2,i3),mk(i3,i4),mk(i4,b.id)];
+  ne.forEach(e=>{ c.elems.push(e); looped.add(key(e)); }); looped.add(key(best));
+  c._loops++; (c._loopList||(c._loopList=[])).push({ids:newIds.slice(),up:up.slice(),H:H});   /* v27.1-AF-9 */
+  c.changes.push({type:'loop',nodes:newIds,H:H,span:[a.id,b.id]});
+  c.log.push(`열팽창 초과(W302): N${a.id}–N${b.id} 직관에 신축루프 삽입(높이 ${H.toFixed(1)} m · 폭 ${w.toFixed(1)} m, 신규 N${i1}~N${i4})`);
+  return true;
+}
+/* v27.1-AF-3: 열팽창 과구속 완화 — 말단이 아닌(연결 요소 2개 이상) 중간 앵커/라인스톱 중 실패 절점에 가장 가까운 것 하나를 가이드로.
+   루프를 넣어도 초과할 때만 호출(autoFix 순서). 설계 의도 변경이므로 변경 패널에 명시. */
+function fixRelaxAnchor(c,r){
+  c._relaxed=c._relaxed||0; if(c._relaxed>=2) return false;
+  const fail=(r.nodeRes||[]).filter(x=>x.rExp>1.0).sort((p,q)=>q.rExp-p.rExp).map(genToParent);
+  if(!fail.length) return false;
+  const deg=id=>c.elems.filter(e=>e.from===id||e.to===id).length;
+  const cands=c.nodes.filter(n=>deg(n.id)>=2 && (n.att||[]).some(a=>a.kind==='anchor'||a.kind==='line_stop'));
+  if(!cands.length) return false;
+  const pos=id=>{ const n=c.nodes.find(x=>x.id===id); return n?[n.x,n.y,n.z]:null; };
+  const fp=fail.map(pos).filter(Boolean); if(!fp.length) return false;
+  let best=null,bd=Infinity;
+  for(const n of cands){ for(const p of fp){ const dd=Math.hypot(n.x-p[0],n.y-p[1],n.z-p[2]); if(dd<bd){bd=dd;best=n;} } }
+  const a=best.att.find(x=>x.kind==='anchor'||x.kind==='line_stop'); const was=a.kind;
+  ['fx','fy','fz','mx','my','mz','dx','dy','dz','dir'].forEach(k=>delete a[k]); a.kind='guide'; a.form='single';
+  c._relaxed++;
+  c.changes.push({type:'relax',node:best.id,from:was}); c.changedNodes.add(best.id);
+  c.log.push(`열팽창 과구속(W302): 중간 ${was==='anchor'?'앵커':'라인스톱'} N${best.id} → 가이드로 완화`);
   return true;
 }
 function autoFix(){
@@ -5658,9 +5722,11 @@ function autoFix(){
   const s0=state.result.summary;
   const startRatio=s0.maxRatio, startBreak={sus:s0.maxSusR,exp:s0.maxExpR,occ:s0.maxOccR,fail:s0.fail};
   let best={ snap:snapCand(c), ratio:startRatio, summary:s0 };
-  for(let pass=0; pass<8; pass++){
+  /* v27.1-AF-7: 후보 행동을 각각 시험 해석해 가장 낮은 최대응력비를 주는 것만 채택(최선 우선). 개선이 없으면 중단 — 악화 상태로 계속 진행하던 결함 수정 */
+  const trial=(cc,act)=>{ const t=restoreCand(snapCand(cc)); if(!act(t)) return null; const rr=runCand(t); return (rr&&rr.summary)?{c:t,r:rr,ratio:rr.summary.maxRatio}:null; };
+  for(let pass=0; pass<14; pass++){
     r=runCand(c); if(!r||!r.summary){ break; }
-    if(r.summary.maxRatio<best.ratio){ best={ snap:snapCand(c), ratio:r.summary.maxRatio, summary:r.summary }; }
+    if(r.summary.maxRatio<best.ratio-1e-9){ best={ snap:snapCand(c), ratio:r.summary.maxRatio, summary:r.summary }; }
     if(r.summary.fail===0) break;
     const codes=new Set((r.solutions||[]).map(s=>s.code));
     let changed=false;
@@ -5668,8 +5734,17 @@ function autoFix(){
     if(codes.has('W311')) changed=fixSpringToConstant(c,r)||changed;
     if(codes.has('W301')||codes.has('W310')) changed=fixSupports(c,r)||changed;
     if(codes.has('W303')) changed=fixSnubbers(c,r)||changed;
-    if(codes.has('W302')) changed=fixInsertLoop(c,r)||changed;
-    if(!changed){ changed = fixSnubbers(c,r) || fixInsertLoop(c,r); if(!changed) break; }
+    if(changed) continue;
+    if(codes.has('W302') || r.summary.maxExpR>1.0){
+      const actions=[];
+      loopCandidates(c,r,3).forEach(k=>actions.push(t=>fixInsertLoop(t,r,k)));
+      (c._loopList||[]).forEach((lp,k)=>actions.push(t=>fixEnlargeLoop(t,k)));
+      actions.push(t=>fixRelaxAnchor(t,r));
+      let bt=null;
+      for(const act of actions){ const res=trial(c,act); if(res&&(!bt||res.ratio<bt.ratio)) bt=res; }
+      if(bt && bt.ratio < r.summary.maxRatio-1e-6){ c=bt.c; continue; }
+    }
+    break;   // 개선되는 행동이 없음
   }
   const bs=best.summary;
   state._fix={ nodes:best.snap.nodes, elems:best.snap.elems, spec:best.snap.spec, nextId:best.snap.nextId,
@@ -5706,7 +5781,7 @@ function renderFixPanel(){
       <div class="cbars"><div class="cbar"><i style="width:${pa}%;background:${ca}"></i><b>${a.toFixed(2)}</b></div>
       <div class="cbar"><i style="width:${pb}%;background:${cb}"></i><b>${b.toFixed(2)}</b></div></div></div>`; };
   // group changes
-  const g={loop:[],support:[],snubber:[],spring2const:[],thicken:[]};
+  const g={loop:[],support:[],snubber:[],spring2const:[],thicken:[],relax:[],loopgrow:[]};   /* v27.1-AF */
   (f.changes||[]).forEach(ch=>{ if(g[ch.type]) g[ch.type].push(ch); });
   const chip=(c,t)=>`<span class="chchip" style="background:${c}1a;color:${c};border-color:${c}55">${t}</span>`;
   let chHtml='';
@@ -5716,13 +5791,15 @@ function renderFixPanel(){
     chHtml+=`<div class="chrow">${chip('#f5a623','지진 보강')} 스너버 ${g.snubber.length}개 → ${Object.keys(byn).map(n=>'N'+n+'('+byn[n].join('/')+')').join(', ')}</div>`; }
   if(g.spring2const.length){ chHtml+=`<div class="chrow">${chip('#c89bf5','행어 변경')} 변동과다 스프링 ${g.spring2const.length}개 → 콘스턴트 (${g.spring2const.map(c=>'N'+c.node).join(', ')})</div>`; }
   if(g.thicken.length){ g.thicken.forEach(ch=>chHtml+=`<div class="chrow">${chip('#ff8b8f','두께 보강')} ${ch.label}: t ${ch.from}→${ch.to}mm</div>`); }
+  if(g.loopgrow.length){ const last={}; g.loopgrow.forEach(c=>{ last[c.nodes[0]]=c; }); chHtml+=`<div class="chrow">${chip('#9fd4b0','루프 확대')} ${Object.values(last).map(c=>'N'+c.nodes[0]+'~N'+c.nodes[3]+' → 높이 '+c.H.toFixed(1)+'m').join(', ')}</div>`; }   /* v27.1-AF-9 */
+  if(g.relax.length){ chHtml+=`<div class="chrow">${chip('#4dd0e1','구속 완화')} 중간 ${g.relax.map(c=>'N'+c.node+'('+(c.from==='anchor'?'앵커':'라인스톱')+'→가이드)').join(', ')} — 설계 의도 확인 필요</div>`; }   /* v27.1-AF-3 */
   if(!chHtml) chHtml='<div class="chrow">적용 가능한 자동 개선이 없습니다.</div>';
   pn.innerHTML=`<div class="pph"><b>🛠 자동 개선안 — 개선 내역</b><span id="fixClose">×</span></div>
     <div class="ppb">
       <div class="fixhdr ${ok?'ok':'ng'}">
         <div>최대 응력비 <b>${f.startRatio.toFixed(2)}</b> → <b>${f.endRatio.toFixed(2)}</b>
           <span class="dn">(${(((f.startRatio-f.endRatio)/f.startRatio)*100).toFixed(0)}%↓)</span></div>
-        <div class="verdict">${ok?'✅ 적합(OK) 모델 생성':'개선됨 · 완전 적합까지 추가 보강 필요'}</div>
+        <div class="verdict">${ok?'✅ 적합(OK) 모델 생성':(f.endRatio<f.startRatio-1e-6?'개선됨 · 자동 탐색으로는 여기까지 — 남은 초과는 앵커 위치·루프 재배치 등 설계 변경 필요':'자동 개선 행동이 응력비를 낮추지 못함 — 설계 변경 필요')}</div>
       </div>
       <h5>판정별 응력비 (개선 전 → 후)</h5>
       <div class="cmphead"><span class="cl"></span><div class="cbars"><span>전</span><span>후</span></div></div>
@@ -5736,7 +5813,7 @@ function renderFixPanel(){
         <button id="fixApply" class="aff">이 개선안 적용</button>
         <button id="fixRevert">되돌리기</button>
       </div>
-      <div class="auto">현재 3D 화면은 개선안 <b style="color:#33d399">미리보기</b>입니다(변경부 녹색 강조). ‘적용’ 시 확정되며, ‘되돌리기’ 또는 ✕로 원래 모델로 복귀합니다. 적용 후 [해석 실행]으로 재확인하세요.</div>
+      <div class="auto">현재 3D 화면은 개선안 <b style="color:#33d399">미리보기</b>입니다(변경부 녹색 강조). 루프 높이·폭은 m 단위이며 응력비에 따라 자동 확대됩니다. ‘적용’ 시 확정되며, ‘되돌리기’ 또는 ✕로 원래 모델로 복귀합니다. 적용 후 [해석 실행]으로 재확인하세요.</div>
     </div>`;
   pn.classList.add('show');
   $('#fixClose').onclick=$('#fixRevert').onclick=()=>{ pn.classList.remove('show'); endFixPreview(false); };
